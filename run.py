@@ -20,4 +20,4 @@ app = create_app_from_env()
 
 if __name__ == "__main__":
     # debug değeri seçilen config üzerinden gelir
-    app.run() 
+    app.run()

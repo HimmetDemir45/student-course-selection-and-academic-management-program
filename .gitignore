@@ -1,0 +1,30 @@
+# Python derleme dosyaları (bytecode)
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Sanal ortam (Virtual Environment)
+venv/
+env/
+.venv/
+ENV/
+
+# Çevresel değişkenler ve hassas bilgiler
+.env
+.flaskenv
+!.env.example
+
+# PyCharm / IntelliJ IDEA ayarları
+.idea/
+*.iml
+
+# Veritabanı dosyaları
+*.sqlite3
+instance/
+
+# Log dosyaları
+*.log
+
+# İşletim sistemi dosyaları
+.DS_Store
+Thumbs.db
