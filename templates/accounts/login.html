@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Giris Yap{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h2>Giris Yap</h2>
+        <form method="post" novalidate>
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            <div class="mb-3">
+                <label class="form-label">{{ form.login.label }}</label>
+                {{ form.login }}
+                <div class="text-danger small">{{ form.login.errors }}</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">{{ form.password.label }}</label>
+                {{ form.password }}
+                <div class="text-danger small">{{ form.password.errors }}</div>
+            </div>
+            <div class="form-check mb-3">
+                {{ form.remember_me }}
+                <label class="form-check-label">{{ form.remember_me.label }}</label>
+            </div>
+            <button type="submit" class="btn btn-primary">Giris Yap</button>
+            <a class="btn btn-link" href="{% url 'accounts:password_reset' %}">Sifremi unuttum</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

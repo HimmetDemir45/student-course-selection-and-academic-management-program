@@ -3,5 +3,15 @@
 {% block title %}Ana Sayfa{% endblock %}
 
 {% block content %}
-<p>Django proje iskeleti hazir.</p>
+<div class="card">
+    <div class="card-body">
+        <h1 class="h4">Django Phase 2: Auth ve Yetkilendirme</h1>
+        {% if user.is_authenticated %}
+            <p class="mb-1">Hos geldiniz, {{ user.get_full_name|default:user.username }}.</p>
+            <p class="text-muted mb-0">Rol: {{ user.role }}</p>
+        {% else %}
+            <p class="mb-0">Lutfen giris yapin veya kayit olun.</p>
+        {% endif %}
+    </div>
+</div>
 {% endblock %}

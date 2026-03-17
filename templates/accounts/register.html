@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Kayit Ol{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h2>Kayit Ol</h2>
+        <form method="post" novalidate>
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            <div class="mb-3">
+                <label class="form-label">{{ form.first_name.label }}</label>
+                {{ form.first_name }}
+                <div class="text-danger small">{{ form.first_name.errors }}</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">{{ form.last_name.label }}</label>
+                {{ form.last_name }}
+                <div class="text-danger small">{{ form.last_name.errors }}</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">{{ form.email.label }}</label>
+                {{ form.email }}
+                <div class="text-danger small">{{ form.email.errors }}</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">{{ form.password1.label }}</label>
+                {{ form.password1 }}
+                <div class="text-danger small">{{ form.password1.errors }}</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">{{ form.password2.label }}</label>
+                {{ form.password2 }}
+                <div class="text-danger small">{{ form.password2.errors }}</div>
+            </div>
+            <button type="submit" class="btn btn-primary">Kayit Ol</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
