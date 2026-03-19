@@ -21,7 +21,7 @@ def register_view(request):
         request.session.set_expiry(0)
         log_auth_event(
             event_type="register",
-            user=user,
+            actor=user,
             request=request,
             description="Yeni hesap olusturuldu ve otomatik giris yapildi.",
         )
@@ -48,7 +48,7 @@ def login_view(request):
 
         log_auth_event(
             event_type="login",
-            user=user,
+            actor=user,
             request=request,
             description="Kullanici giris yapti.",
         )
@@ -64,7 +64,7 @@ def logout_view(request):
     logout(request)
     log_auth_event(
         event_type="logout",
-        user=user,
+        actor=user,
         request=request,
         description="Kullanici cikis yapti.",
     )

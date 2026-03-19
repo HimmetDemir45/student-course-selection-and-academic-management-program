@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Course List{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="h4 mb-0">Courses</h2>
+    {% if user.role == "admin" %}
+        <a class="btn btn-primary btn-sm" href="{% url 'courses:course_create' %}">Yeni Course</a>
+    {% endif %}
+</div>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Code</th>
+            <th>Name</th>
+            <th>Department</th>
+            <th>Credits</th>
+            <th>Active</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for obj in courses %}
+            <tr>
+                <td>{{ obj.code }}</td>
+                <td>{{ obj.name }}</td>
+                <td>{{ obj.department }}</td>
+                <td>{{ obj.credits }}</td>
+                <td>{{ obj.is_active }}</td>
+                <td class="text-end">
+                    {% if user.role == "admin" %}
+                        <a class="btn btn-outline-secondary btn-sm" href="{% url 'courses:course_update' obj.pk %}">Edit</a>
+                        <a class="btn btn-outline-danger btn-sm" href="{% url 'courses:course_delete' obj.pk %}">Delete</a>
+                    {% endif %}
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="6">Kayit bulunamadi.</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

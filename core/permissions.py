@@ -37,3 +37,7 @@ class RoleRequiredMixin(AccessMixin):
             return redirect("core:home")
 
         return super().dispatch(request, *args, **kwargs)
+
+
+class AdminRequiredMixin(RoleRequiredMixin):
+    allowed_roles = ("admin",)

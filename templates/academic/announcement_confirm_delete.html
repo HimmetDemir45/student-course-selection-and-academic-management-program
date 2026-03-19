@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}Announcement Delete{% endblock %}
+
+{% block content %}
+<h2 class="h4">Announcement Sil</h2>
+<p><strong>{{ object.title }}</strong> duyurusunu silmek istiyor musunuz?</p>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Sil</button>
+    <a class="btn btn-secondary" href="{% url 'academic:announcement_list' %}">Vazgec</a>
+</form>
+{% endblock %}

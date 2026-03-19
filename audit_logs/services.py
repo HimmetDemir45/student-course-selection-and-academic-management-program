@@ -1,28 +1,25 @@
 from audit_logs.models import AuditLog
 
 
-def _extract_ip(request):
-    if not request:
-        return None
-
-    forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
-    if forwarded_for:
-        return forwarded_for.split(",")[0].strip()
-    return request.META.get("REMOTE_ADDR")
-
-
-def log_auth_event(event_type, user=None, request=None, description=""):
-    """
-    Auth olaylarini sistem akisini bozmadan loglar.
-    """
+def log_event(event_type, actor=None, target_type="", target_id="", metadata=None):
     try:
         AuditLog.objects.create(
-            user=user if getattr(user, "is_authenticated", False) else None,
             event_type=event_type,
-            description=description,
-            ip_address=_extract_ip(request),
-            user_agent=request.META.get("HTTP_USER_AGENT", "") if request else "",
+            actor=actor if getattr(actor, "is_authenticated", False) else actor,
+            target_type=target_type or "",
+            target_id=str(target_id) if target_id else "",
+            metadata=metadata or {},
         )
     except Exception:
-        # Log hatasi auth akisinin calismasini engellememeli.
         return None
+
+
+def log_auth_event(event_type, actor=None, request=None, description="", **kwargs):
+    metadata = {"description": description}
+    if request:
+        metadata["ip"] = request.META.get("REMOTE_ADDR", "")
+        metadata["user_agent"] = request.META.get("HTTP_USER_AGENT", "")
+
+    # Geriye donuk uyumluluk: user=... gonderildiyse actor olarak kabul et.
+    actor = actor or kwargs.get("user")
+    return log_event(event_type=event_type, actor=actor, metadata=metadata)

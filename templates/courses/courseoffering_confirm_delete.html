@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}Course Offering Delete{% endblock %}
+
+{% block content %}
+<h2 class="h4">Course Offering Sil</h2>
+<p><strong>{{ object }}</strong> kaydini silmek istiyor musunuz?</p>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Sil</button>
+    <a class="btn btn-secondary" href="{% url 'courses:offering_list' %}">Vazgec</a>
+</form>
+{% endblock %}

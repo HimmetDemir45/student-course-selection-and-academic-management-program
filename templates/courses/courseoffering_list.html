@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Course Offering List{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="h4 mb-0">Course Offerings</h2>
+    {% if user.role == "admin" %}
+        <a class="btn btn-primary btn-sm" href="{% url 'courses:offering_create' %}">Yeni Offering</a>
+    {% endif %}
+</div>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Course</th>
+            <th>Semester</th>
+            <th>Section</th>
+            <th>Instructor</th>
+            <th>Quota</th>
+            <th>Active</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for obj in offerings %}
+            <tr>
+                <td>{{ obj.course.code }}</td>
+                <td>{{ obj.semester }}</td>
+                <td>{{ obj.section }}</td>
+                <td>{{ obj.instructor|default:"-" }}</td>
+                <td>{{ obj.quota }}</td>
+                <td>{{ obj.is_active }}</td>
+                <td class="text-end">
+                    {% if user.role == "admin" %}
+                        <a class="btn btn-outline-secondary btn-sm" href="{% url 'courses:offering_update' obj.pk %}">Edit</a>
+                        <a class="btn btn-outline-danger btn-sm" href="{% url 'courses:offering_delete' obj.pk %}">Delete</a>
+                    {% endif %}
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="7">Kayit bulunamadi.</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

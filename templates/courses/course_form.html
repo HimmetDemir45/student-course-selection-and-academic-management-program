@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Course Form{% endblock %}
+
+{% block content %}
+<h2 class="h4">Course Form</h2>
+<form method="post" class="card card-body">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Kaydet</button>
+        <a class="btn btn-secondary" href="{% url 'courses:course_list' %}">Iptal</a>
+    </div>
+</form>
+{% endblock %}
