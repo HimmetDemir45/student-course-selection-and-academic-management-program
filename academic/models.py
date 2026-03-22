@@ -58,6 +58,12 @@ class Semester(TimeStampedActiveModel):
     term = models.CharField(max_length=10, choices=Term.choices, db_index=True)
     start_date = models.DateField()
     end_date = models.DateField()
+    add_drop_start = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Bos birakilirsa ekle-birak kontrolu gevsetilir (gelistirme uyumu).",
+    )
+    add_drop_end = models.DateField(null=True, blank=True)
 
     class Meta:
         ordering = ("-academic_year", "term")
@@ -70,6 +76,94 @@ class Semester(TimeStampedActiveModel):
 
     def __str__(self):
         return f"{self.academic_year} {self.term}"
+
+
+class CourseSection(TimeStampedActiveModel):
+    """
+    Kayit birimi: her CourseOffering icin tek akademik section kaydi.
+    Kapasite bos ise offering.quota kullanilir.
+    """
+
+    offering = models.OneToOneField(
+        "courses.CourseOffering",
+        on_delete=models.CASCADE,
+        related_name="section_detail",
+    )
+    max_enrollment = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        help_text="Bos ise CourseOffering.quota gecerlidir.",
+    )
+
+    class Meta:
+        ordering = ("offering__course__code", "offering__section")
+
+    def __str__(self):
+        return str(self.offering)
+
+
+class SectionTimeSlot(TimeStampedModel):
+    class Weekday(models.IntegerChoices):
+        MONDAY = 0, "Pazartesi"
+        TUESDAY = 1, "Sali"
+        WEDNESDAY = 2, "Carsamba"
+        THURSDAY = 3, "Persembe"
+        FRIDAY = 4, "Cuma"
+        SATURDAY = 5, "Cumartesi"
+        SUNDAY = 6, "Pazar"
+
+    section = models.ForeignKey(
+        CourseSection,
+        on_delete=models.CASCADE,
+        related_name="time_slots",
+    )
+    weekday = models.PositiveSmallIntegerField(choices=Weekday.choices)
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+
+    class Meta:
+        ordering = ("section_id", "weekday", "start_time")
+
+    def __str__(self):
+        return f"{self.section} / {self.get_weekday_display()} {self.start_time}-{self.end_time}"
+
+
+class Grade(TimeStampedModel):
+    enrollment = models.OneToOneField(
+        "enrollments.Enrollment",
+        on_delete=models.CASCADE,
+        related_name="academic_grade",
+    )
+    letter_grade = models.CharField(max_length=2, blank=True)
+    numeric_grade = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        null=True,
+        blank=True,
+    )
+
+    class Meta:
+        ordering = ("-updated_at",)
+
+    def __str__(self):
+        return f"{self.enrollment_id} - {self.letter_grade or '-'}"
+
+
+class GradeItem(TimeStampedModel):
+    grade = models.ForeignKey(
+        Grade,
+        on_delete=models.CASCADE,
+        related_name="items",
+    )
+    label = models.CharField(max_length=100)
+    weight = models.DecimalField(max_digits=5, decimal_places=2)
+    score = models.DecimalField(max_digits=5, decimal_places=2)
+
+    class Meta:
+        ordering = ("grade_id", "label")
+
+    def __str__(self):
+        return f"{self.label} ({self.grade_id})"
 
 
 class Transcript(TimeStampedModel):

@@ -1,12 +1,15 @@
 from django.db import models
 
 from core.models import TimeStampedModel
+from core.services.enrollment_rules import validate_enrollment_save
 
 
 class Enrollment(TimeStampedModel):
     class Status(models.TextChoices):
+        PENDING = "pending", "Pending"
         ENROLLED = "enrolled", "Enrolled"
         DROPPED = "dropped", "Dropped"
+        WITHDRAWN = "withdrawn", "Withdrawn"
         COMPLETED = "completed", "Completed"
 
     student = models.ForeignKey(
@@ -14,8 +17,8 @@ class Enrollment(TimeStampedModel):
         on_delete=models.CASCADE,
         related_name="enrollments",
     )
-    offering = models.ForeignKey(
-        "courses.CourseOffering",
+    section = models.ForeignKey(
+        "academic.CourseSection",
         on_delete=models.CASCADE,
         related_name="enrollments",
     )
@@ -30,8 +33,8 @@ class Enrollment(TimeStampedModel):
         ordering = ("-created_at",)
         constraints = [
             models.UniqueConstraint(
-                fields=("student", "offering"),
-                name="uniq_enrollment_student_offering",
+                fields=("student", "section"),
+                name="uniq_enrollment_student_section",
             )
         ]
         indexes = [
@@ -39,25 +42,11 @@ class Enrollment(TimeStampedModel):
         ]
 
     def __str__(self):
-        return f"{self.student.student_no} - {self.offering}"
+        return f"{self.student.student_no} - {self.section}"
 
+    def clean(self):
+        validate_enrollment_save(self)
 
-class Grade(TimeStampedModel):
-    enrollment = models.OneToOneField(
-        "enrollments.Enrollment",
-        on_delete=models.CASCADE,
-        related_name="grade",
-    )
-    letter_grade = models.CharField(max_length=2, blank=True)
-    numeric_grade = models.DecimalField(
-        max_digits=5,
-        decimal_places=2,
-        null=True,
-        blank=True,
-    )
-
-    class Meta:
-        ordering = ("-created_at",)
-
-    def __str__(self):
-        return f"{self.enrollment} - {self.letter_grade or '-'}"
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)

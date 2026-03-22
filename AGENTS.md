@@ -68,6 +68,8 @@
   - `python manage.py createsuperuser`
 - Run tests:
   - `python manage.py test`
+- Load Phase 4 seed fixture (optional):
+  - `python manage.py loaddata phase4_seed` (fixture path: `core/fixtures/phase4_seed.json`; dev password for seed users: `seedpass123`)
 
 > If new workflows are introduced (lint, formatting, CI commands, container flow), append exact runnable commands to this file.
 

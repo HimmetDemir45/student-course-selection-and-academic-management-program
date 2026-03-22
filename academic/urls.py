@@ -13,4 +13,14 @@ urlpatterns = [
     path("announcements/create/", views.AnnouncementCreateView.as_view(), name="announcement_create"),
     path("announcements/<int:pk>/edit/", views.AnnouncementUpdateView.as_view(), name="announcement_update"),
     path("announcements/<int:pk>/delete/", views.AnnouncementDeleteView.as_view(), name="announcement_delete"),
+    path(
+        "instructor/enrollments/",
+        views.InstructorEnrollmentListView.as_view(),
+        name="instructor_enrollments",
+    ),
+    path(
+        "instructor/grades/<int:enrollment_id>/",
+        views.GradeEntryView.as_view(),
+        name="grade_entry",
+    ),
 ]

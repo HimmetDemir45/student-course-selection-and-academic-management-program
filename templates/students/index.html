@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}Ogrenci{% endblock %}
+{% block content %}
+<h1>Ogrenci alani</h1>
+<p><a href="{% url 'students:transcript' %}">Transkript ve GPA</a></p>
+<p><a href="{% url 'enrollments:browse' %}">Ders kaydi</a></p>
+{% endblock %}

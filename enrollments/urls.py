@@ -5,5 +5,7 @@ from . import views
 app_name = "enrollments"
 
 urlpatterns = [
-    path("", views.index, name="index"),
+    path("sections/", views.SectionBrowseView.as_view(), name="browse"),
+    path("enroll/", views.StudentEnrollView.as_view(), name="enroll"),
+    path("<int:pk>/drop/", views.StudentDropEnrollmentView.as_view(), name="drop"),
 ]

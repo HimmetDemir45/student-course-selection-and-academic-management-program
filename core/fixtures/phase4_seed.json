@@ -1,0 +1,167 @@
+[
+  {
+    "model": "auth.group",
+    "pk": 901,
+    "fields": { "name": "admin" }
+  },
+  {
+    "model": "auth.group",
+    "pk": 902,
+    "fields": { "name": "student" }
+  },
+  {
+    "model": "auth.group",
+    "pk": 903,
+    "fields": { "name": "instructor" }
+  },
+  {
+    "model": "academic.department",
+    "pk": 901,
+    "fields": {
+      "created_at": "2026-01-01T12:00:00Z",
+      "updated_at": "2026-01-01T12:00:00Z",
+      "name": "Seed Bilgisayar",
+      "code": "SEEDCS",
+      "description": "Ornek departman",
+      "is_active": true
+    }
+  },
+  {
+    "model": "academic.program",
+    "pk": 901,
+    "fields": {
+      "created_at": "2026-01-01T12:00:00Z",
+      "updated_at": "2026-01-01T12:00:00Z",
+      "department": 901,
+      "name": "Seed Lisans",
+      "code": "SEED-LIS",
+      "degree_level": "undergrad",
+      "is_active": true
+    }
+  },
+  {
+    "model": "academic.semester",
+    "pk": 901,
+    "fields": {
+      "created_at": "2026-01-01T12:00:00Z",
+      "updated_at": "2026-01-01T12:00:00Z",
+      "name": "2025-2026 Guz",
+      "academic_year": "2025-2026",
+      "term": "fall",
+      "start_date": "2025-09-01",
+      "end_date": "2026-01-31",
+      "add_drop_start": "2025-09-01",
+      "add_drop_end": "2025-12-31",
+      "is_active": true
+    }
+  },
+  {
+    "model": "accounts.user",
+    "pk": 901,
+    "fields": {
+      "password": "pbkdf2_sha256$870000$3ScTBi4SJxT4LK6Gb8OTU2$zkpXD/kPuAlsnvbnzyVWJ8pIVdmN1nCpzJni/8HIsRk=",
+      "last_login": null,
+      "is_superuser": true,
+      "username": "seed_admin",
+      "first_name": "Seed",
+      "last_name": "Admin",
+      "email": "seed_admin@example.edu",
+      "is_staff": true,
+      "is_active": true,
+      "date_joined": "2026-01-01T12:00:00Z",
+      "role": "admin"
+    }
+  },
+  {
+    "model": "accounts.user",
+    "pk": 902,
+    "fields": {
+      "password": "pbkdf2_sha256$870000$3ScTBi4SJxT4LK6Gb8OTU2$zkpXD/kPuAlsnvbnzyVWJ8pIVdmN1nCpzJni/8HIsRk=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "seed_student",
+      "first_name": "Seed",
+      "last_name": "Student",
+      "email": "seed_student@example.edu",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-01-01T12:00:00Z",
+      "role": "student"
+    }
+  },
+  {
+    "model": "accounts.user",
+    "pk": 903,
+    "fields": {
+      "password": "pbkdf2_sha256$870000$3ScTBi4SJxT4LK6Gb8OTU2$zkpXD/kPuAlsnvbnzyVWJ8pIVdmN1nCpzJni/8HIsRk=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "seed_instructor",
+      "first_name": "Seed",
+      "last_name": "Instructor",
+      "email": "seed_instructor@example.edu",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-01-01T12:00:00Z",
+      "role": "instructor"
+    }
+  },
+  {
+    "model": "instructors.instructorprofile",
+    "pk": 901,
+    "fields": {
+      "created_at": "2026-01-01T12:00:00Z",
+      "updated_at": "2026-01-01T12:00:00Z",
+      "user": 903,
+      "employee_no": "SEED-INS-1",
+      "department": 901,
+      "title": "Dr",
+      "is_active": true
+    }
+  },
+  {
+    "model": "students.studentprofile",
+    "pk": 901,
+    "fields": {
+      "created_at": "2026-01-01T12:00:00Z",
+      "updated_at": "2026-01-01T12:00:00Z",
+      "user": 902,
+      "student_no": "SEED-2026-001",
+      "department": 901,
+      "program": 901,
+      "advisor": null,
+      "enrollment_year": 2026,
+      "is_active": true
+    }
+  },
+  {
+    "model": "courses.course",
+    "pk": 901,
+    "fields": {
+      "created_at": "2026-01-01T12:00:00Z",
+      "updated_at": "2026-01-01T12:00:00Z",
+      "department": 901,
+      "program": 901,
+      "code": "SEED101",
+      "name": "Seed Introduction",
+      "credits": 3,
+      "description": "",
+      "is_active": true
+    }
+  },
+  {
+    "model": "courses.courseoffering",
+    "pk": 901,
+    "fields": {
+      "created_at": "2026-01-01T12:00:00Z",
+      "updated_at": "2026-01-01T12:00:00Z",
+      "course": 901,
+      "semester": 901,
+      "instructor": 901,
+      "classroom": null,
+      "section": "A",
+      "quota": 25,
+      "is_active": true
+    }
+  }
+]

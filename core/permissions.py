@@ -41,3 +41,11 @@ class RoleRequiredMixin(AccessMixin):
 
 class AdminRequiredMixin(RoleRequiredMixin):
     allowed_roles = ("admin",)
+
+
+class StudentRequiredMixin(RoleRequiredMixin):
+    allowed_roles = ("student",)
+
+
+class InstructorRequiredMixin(RoleRequiredMixin):
+    allowed_roles = ("instructor", "admin")

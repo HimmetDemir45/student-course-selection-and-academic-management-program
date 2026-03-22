@@ -7,6 +7,7 @@ from django.views.decorators.http import require_http_methods, require_POST
 from audit_logs.services import log_auth_event
 
 from .forms import LoginForm, RegisterForm
+from .login_throttle import clear_login_throttle, login_throttle, register_login_failure
 
 
 @require_http_methods(["GET", "POST"])
@@ -31,29 +32,34 @@ def register_view(request):
     return render(request, "accounts/register.html", {"form": form})
 
 
+@login_throttle
 @require_http_methods(["GET", "POST"])
 def login_view(request):
     if request.user.is_authenticated:
         return redirect("core:home")
 
     form = LoginForm(request=request, data=request.POST or None)
-    if request.method == "POST" and form.is_valid():
-        user = form.get_user()
-        login(request, user)
+    if request.method == "POST":
+        if form.is_valid():
+            user = form.get_user()
+            clear_login_throttle(request, form.cleaned_data.get("login", ""))
+            login(request, user)
 
-        if form.cleaned_data.get("remember_me"):
-            request.session.set_expiry(settings.SESSION_COOKIE_AGE)
-        else:
-            request.session.set_expiry(0)
+            if form.cleaned_data.get("remember_me"):
+                request.session.set_expiry(settings.SESSION_COOKIE_AGE)
+            else:
+                request.session.set_expiry(0)
 
-        log_auth_event(
-            event_type="login",
-            actor=user,
-            request=request,
-            description="Kullanici giris yapti.",
-        )
-        messages.success(request, "Basariyla giris yaptiniz.")
-        return redirect("core:home")
+            log_auth_event(
+                event_type="login",
+                actor=user,
+                request=request,
+                description="Kullanici giris yapti.",
+            )
+            messages.success(request, "Basariyla giris yaptiniz.")
+            return redirect("core:home")
+        if request.POST.get("login") and request.POST.get("password"):
+            register_login_failure(request, request.POST.get("login", ""))
 
     return render(request, "accounts/login.html", {"form": form})
 

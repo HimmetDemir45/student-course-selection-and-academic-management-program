@@ -15,6 +15,9 @@
                     <a class="nav-link" href="{% url 'academic:department_list' %}">Departments</a>
                     <a class="nav-link" href="{% url 'courses:course_list' %}">Courses</a>
                     <a class="nav-link" href="{% url 'courses:offering_list' %}">Offerings</a>
+                    <a class="nav-link" href="{% url 'enrollments:browse' %}">Kayit</a>
+                    <a class="nav-link" href="{% url 'students:transcript' %}">Transkript</a>
+                    <a class="nav-link" href="{% url 'academic:instructor_enrollments' %}">Notlar</a>
                     <a class="nav-link" href="{% url 'academic:announcement_list' %}">Announcements</a>
                     <a class="nav-link" href="{% url 'core:student_test' %}">Student Test</a>
                     <a class="nav-link" href="{% url 'core:instructor_test' %}">Instructor Test</a>
@@ -34,7 +37,11 @@
     <main class="container">
         {% if messages %}
             {% for message in messages %}
-                <div class="alert alert-{{ message.tags|default:'info' }}">{{ message }}</div>
+                {% if message.tags == 'error' %}
+                    <div class="alert alert-danger">{{ message }}</div>
+                {% else %}
+                    <div class="alert alert-{{ message.tags|default:'info' }}">{{ message }}</div>
+                {% endif %}
             {% endfor %}
         {% endif %}
         {% block content %}{% endblock %}

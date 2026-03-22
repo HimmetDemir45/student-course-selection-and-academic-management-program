@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Ogrenci kayitlari{% endblock %}
+{% block content %}
+<h1>Section kayitlarim</h1>
+<table class="table table-striped">
+    <thead>
+    <tr>
+        <th>Ogrenci</th>
+        <th>Ders</th>
+        <th>Durum</th>
+        <th>Not</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for e in enrollments %}
+        <tr>
+            <td>{{ e.student.student_no }} — {{ e.student.user.get_full_name|default:e.student.user.username }}</td>
+            <td>{{ e.section.offering.course.code }} / {{ e.section.offering.section }}</td>
+            <td>{{ e.get_status_display }}</td>
+            <td>{% if e.academic_grade %}{{ e.academic_grade.letter_grade|default:"-" }}{% else %}-{% endif %}</td>
+            <td>
+                <a class="btn btn-sm btn-outline-secondary" href="{% url 'academic:grade_entry' enrollment_id=e.pk %}">Not gir</a>
+            </td>
+        </tr>
+    {% empty %}
+        <tr><td colspan="5">Kayit yok.</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

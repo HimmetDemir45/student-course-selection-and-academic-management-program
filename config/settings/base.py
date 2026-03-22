@@ -39,6 +39,7 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
+    "core.middleware.login_throttle.LoginBruteForceMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
@@ -92,11 +93,21 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "phase4-cache",
+    }
+}
+
 AUTH_USER_MODEL = "accounts.User"
 
 LOGIN_URL = "accounts:login"
 LOGIN_REDIRECT_URL = "core:home"
 LOGOUT_REDIRECT_URL = "core:home"
+
+LOGIN_THROTTLE_MAX_FAILURES = 5
+LOGIN_THROTTLE_LOCKOUT_SECONDS = 900
 
 # Remember-me aktifse bu süre kullanılır (14 gün).
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 14

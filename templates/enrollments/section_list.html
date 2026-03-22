@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Ders sectionlari{% endblock %}
+{% block content %}
+<h1>Acilan sectionlar</h1>
+<table class="table table-striped">
+    <thead>
+    <tr>
+        <th>Ders</th>
+        <th>Donem</th>
+        <th>Section</th>
+        <th>Ogretim uyesi</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for s in sections %}
+        <tr>
+            <td>{{ s.offering.course.code }} — {{ s.offering.course.name }}</td>
+            <td>{{ s.offering.semester }}</td>
+            <td>{{ s.offering.section }}</td>
+            <td>{% if s.offering.instructor %}{{ s.offering.instructor.user.get_full_name|default:s.offering.instructor.user.username }}{% else %}-{% endif %}</td>
+            <td>
+                {% if user.is_authenticated and user.role == 'student' %}
+                <form method="post" action="{% url 'enrollments:enroll' %}" class="d-inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="section_id" value="{{ s.pk }}">
+                    <button type="submit" class="btn btn-sm btn-primary">Kayit ol</button>
+                </form>
+                {% endif %}
+            </td>
+        </tr>
+    {% empty %}
+        <tr><td colspan="5">Kayitli section yok.</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
