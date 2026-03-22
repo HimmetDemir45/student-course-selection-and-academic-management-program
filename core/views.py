@@ -1,8 +1,27 @@
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
+from django.db import connection
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
+from django.views.decorators.http import require_GET
 
 from .permissions import role_required
+
+
+@require_GET
+def health_live(request):
+    return JsonResponse({"status": "ok", "check": "live"})
+
+
+@require_GET
+def health_ready(request):
+    try:
+        connection.ensure_connection()
+    except Exception:
+        return JsonResponse(
+            {"status": "unready", "database": "unavailable"},
+            status=503,
+        )
+    return JsonResponse({"status": "ready", "database": "ok"})
 
 
 def home(request):

@@ -19,8 +19,10 @@
 ## Django architecture and request flow
 - Project-level config package: `config/`
   - `config/settings/base.py`
-  - `config/settings/development.py`
-  - `config/settings/production.py`
+  - `config/settings/dev.py` (local development; default in `manage.py`)
+  - `config/settings/prod.py` (production: RDS `DATABASE_URL`, S3, security headers)
+  - `config/settings/ci.py` (GitHub Actions + MySQL service)
+  - `config/settings/development.py` / `production.py` — backward-compatible aliases for `dev` / `prod`
 - URL entry:
   - `config/urls.py` includes app-level route modules.
 - App structure (planned baseline):
@@ -40,16 +42,15 @@
 
 ## Environment and configuration contracts
 - Environment variables are loaded from `.env` (via `django-environ` or equivalent).
-- Expected variables:
-  - `DJANGO_SETTINGS_MODULE`
-  - `SECRET_KEY`
-  - `DEBUG`
-  - `ALLOWED_HOSTS`
-  - `DB_NAME`
-  - `DB_USER`
-  - `DB_PASSWORD`
-  - `DB_HOST`
-  - `DB_PORT`
+- Expected variables (see `.env.example` and `.env.production.example`):
+  - `DJANGO_SETTINGS_MODULE` (e.g. `config.settings.dev` / `config.settings.prod`)
+  - `DJANGO_SECRET_KEY` (or legacy `SECRET_KEY` in dev)
+  - `DJANGO_DEBUG` / `DEBUG` (dev)
+  - `DJANGO_ALLOWED_HOSTS`
+  - `DJANGO_CSRF_TRUSTED_ORIGINS` (production HTTPS)
+  - `DATABASE_URL` (Docker / RDS) **or** `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT`
+  - `AWS_*` for S3 static/media in production (`django-storages`)
+  - `LOG_LEVEL` (optional)
 - Default database engine: MySQL.
 - Security defaults to preserve:
   - CSRF protection enabled.

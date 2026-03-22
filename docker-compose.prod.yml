@@ -1,0 +1,23 @@
+# Production-style stack: tek web konteyneri; MySQL RDS disarida.
+# Ortam degiskenlerini .env.production veya host uzerinde tanimlayin.
+
+services:
+  web:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env.production
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.prod
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -fsS http://127.0.0.1:8000/health/live/ || exit 1",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s

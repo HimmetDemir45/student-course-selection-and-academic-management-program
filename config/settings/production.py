@@ -1,3 +1,3 @@
-from .base import *  # noqa: F403,F401
+"""Backward-compatible alias for production (use config.settings.prod)."""
 
-DEBUG = False
+from .prod import *  # noqa: F401,F403
