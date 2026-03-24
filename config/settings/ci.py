@@ -24,3 +24,5 @@ EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
+
+RATELIMIT_ENABLE = False

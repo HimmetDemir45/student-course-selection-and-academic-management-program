@@ -1,5 +1,8 @@
 # Student Course Selection and Academic Management Program (Django)
 
+[![codecov](https://codecov.io/gh/HimmetDemir45/student-course-selection-and-academic-management-program/graph/badge.svg)](https://codecov.io/gh/HimmetDemir45/student-course-selection-and-academic-management-program)
+[![CI](https://github.com/HimmetDemir45/student-course-selection-and-academic-management-program/actions/workflows/ci.yml/badge.svg)](https://github.com/HimmetDemir45/student-course-selection-and-academic-management-program/actions/workflows/ci.yml)
+
 ## Proje Ozeti
 
 Universite dersi icin **ogrenci ders secimi ve akademik yonetim** platformu. Stack: **Django 5**, **MySQL**, **Docker**, AWS (RDS + S3) ile production hazirligi.
@@ -100,6 +103,23 @@ GitHub repo ayarlari (org izin veriyorsa): **Dependabot alerts**, **Dependabot s
 
 ---
 
+## Phase 8 — Advanced production hardening, reliability, observability
+
+- **Release otomasyonu**: `release.yml` — `quality-gate` (CI) → GHCR → **deploy-prod** (`vars.DEPLOY_MODE`: `ssh` | `ecs` | ayarlanmazsa atlanir) → **GitHub Environment `production`** (manuel onay) → smoke. Detay: `docs/deployment/production-automation.md`.
+- **Codecov + SARIF**: Coverage `codecov-action`; Bandit SARIF → Code Scanning; SBOM CycloneDX artifact. Rehber: `docs/security/code-scanning-and-secrets.md`.
+- **JSON loglama**: `DJANGO_LOG_JSON=True` + structlog (`core/structlog_config.py`); dev’de metin + `request_id`. Alanlar: `docs/observability.md`.
+- **Enrollment yarisi**: `select_for_update` + `transaction.atomic` (`core/services/enrollment_atomic.py`); MySQL concurrency testi; POST rate limit (`django-ratelimit`). Detay: `docs/reliability/concurrency-and-locking.md`.
+- **Canary**: `.github/workflows/canary.yml` (15 dk, `CANARY_BASE_URL` secret); PagerDuty/CloudWatch zinciri `docs/observability.md`.
+- **SLO / dry-run / maliyet**: `docs/sre/sli-slo.md`, `docs/operations/backup-restore-dry-run.md`, `docs/observability.md` son bolum.
+- **Feature flags**: `FEATURE_FLAGS` / `FEATURE_ENROLLMENT_RATELIMIT`, `RATELIMIT_ENABLE` (`config/settings/base.py`); yardimci `core/feature_flags.py`.
+
+### Coverage + SARIF nasil okunur?
+
+- **Codecov**: PR’da diff ve proje sayfasinda trend; dusuk coverage yeni kod yollarinda risk isareti.
+- **Security tab**: Bandit SARIF uyarıları; “dismiss” veya `.bandit` ile exclude (dikkatli).
+
+---
+
 ## Phase 5 — Deployment Overview
 
 Bu fazda hedeflenenler:
@@ -164,10 +184,11 @@ Container icinde:
 
 ### CI (`/.github/workflows/ci.yml`)
 
-- Tetikleyiciler: `push` / `pull_request` (`main`, `develop`)
-- **lint**: `ruff check .` (`requirements-dev.txt`)
-- **security**: `python -m pip_audit -r requirements.txt --strict`
-- **test**: MySQL 8.0 service, `DJANGO_SETTINGS_MODULE=config.settings.ci`, `migrate`, `coverage run manage.py test`, `coverage report` (esik `pyproject.toml`: `fail_under = 75`), `coverage.xml` artifact
+- Tetikleyiciler: `push` / `pull_request` (`main`, `develop`), `workflow_call` (release)
+- **lint**: `ruff check .`
+- **security**: `pip-audit --strict` + **Bandit** SARIF → Code Scanning upload
+- **test**: MySQL, `coverage run manage.py test`, `coverage report`, **Codecov** upload (`CODECOV_TOKEN` opsiyonel), **SBOM** artifact (CycloneDX)
+- `permissions: security-events: write` (SARIF)
 
 ### Deploy (`/.github/workflows/deploy.yml`)
 
@@ -177,10 +198,16 @@ Container icinde:
 
 ### Release (`/.github/workflows/release.yml`)
 
-- Tetikleyici: **tag** `v*` (or. `v1.0.0`)
-- Once tum **CI** (`workflow_call`) calisir; ardindan imaj **semver + sha** ile GHCR’a push edilir.
-- Opsiyonel: repository secret `HEALTHCHECK_BASE_URL` (or. `https://app.example.com`) — workflow `/health/live` ve `/health/ready` cagirir.
-- Basarisiz adimlarda **rollback-hint** ozeti uretilir; ayrintili adimlar `docs/runbooks/rollback-runbook.md`.
+- Tetikleyici: **tag** `v*`
+- **quality-gate**: reusable CI
+- **build-and-push**: GHCR (semver + `sha-`)
+- **deploy-prod**: `vars.DEPLOY_MODE` = `ssh` (appleboy/ssh-action + `EC2_*`) veya `ecs` (`aws ecs update-service` + wait); **Environment `production`** onayi
+- **post-release-smoke**: `HEALTHCHECK_BASE_URL`
+- **notify-rollback-hint**: herhangi bir job `failure` ise ozet
+
+### Canary (`/.github/workflows/canary.yml`)
+
+- `cron: */15 * * * *` + `workflow_dispatch`; secret `CANARY_BASE_URL`
 
 ### Smoke tests (`/.github/workflows/smoke-tests.yml`)
 
@@ -298,7 +325,7 @@ docker compose -f docker-compose.prod.yml up -d --build
 - MySQL `caching_sha2_password` icin istemcide `cryptography` gerekir (`requirements.txt` icinde)
 - Prod’da S3 bucket IAM ve CORS politikalari ayri yapilandirilmalidir
 - Tam otomatik EC2 deploy adimi repoya orgutunuze gore eklenmelidir (SSH, ECS task definition, vb.)
-- **Kapasite yarisi**: Yüksek eşzamanlı kayıtta DB düzeyinde ek kısıt (transaction / `select_for_update`) Phase 7+ için değerlendirilebilir; mevcut kurallar `ValidationError` ile tutarlılığı hedefler.
+- **ECS tam otomasyon**: Task definition imaj guncelleme + ECR push zinciri genisletilebilir (Phase 9).
 - **Cache invalidation**: Ana sayfa önbelleği kısa TTL ile sınırlıdır; yoğun yazma senaryolarında Redis + explicit invalidation düşünülebilir.
 
 ---

@@ -69,7 +69,7 @@
   - `python manage.py createsuperuser`
 - Run tests:
   - `python manage.py test`
-- Release / operations docs: `RELEASE.md`, `CHANGELOG.md`, `docs/runbooks/`, `docs/operations/`, `docs/go-live-checklist.md`, `docs/post-release-verification.md`
+- Release / operations docs: `RELEASE.md`, `CHANGELOG.md`, `docs/runbooks/`, `docs/operations/`, `docs/go-live-checklist.md`, `docs/post-release-verification.md`, `docs/deployment/production-automation.md`, `docs/observability.md`, `docs/reliability/concurrency-and-locking.md`, `docs/security/code-scanning-and-secrets.md`, `docs/sre/sli-slo.md`
 - Lint / coverage / dependency audit (optional dev bundle: `pip install -r requirements-dev.txt`):
   - `python -m ruff check .`
   - `coverage run manage.py test` then `coverage report` (fail threshold in `pyproject.toml`)

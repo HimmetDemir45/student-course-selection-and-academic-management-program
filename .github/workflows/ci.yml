@@ -6,6 +6,10 @@ on:
   pull_request:
   workflow_call:
 
+permissions:
+  contents: read
+  security-events: write
+
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -30,12 +34,21 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-      - name: Install pip-audit
+      - name: pip-audit
         run: |
-          python -m pip install --upgrade pip
-          pip install pip-audit
-      - name: Dependency vulnerability scan (fail on known issues)
-        run: python -m pip_audit -r requirements.txt --strict
+          python -m pip install --upgrade pip pip-audit
+          python -m pip_audit -r requirements.txt --strict
+      - name: Bandit SARIF
+        run: |
+          pip install "bandit[toml]>=1.7.10"
+          bandit -c .bandit -r . -f sarif -o bandit.sarif --exit-zero
+      - name: Upload SARIF (Code Scanning)
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        continue-on-error: true
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: bandit.sarif
+          category: bandit
 
   test:
     runs-on: ubuntu-latest
@@ -89,3 +102,23 @@ jobs:
         with:
           name: coverage-xml
           path: coverage.xml
+
+      - name: Codecov upload
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage.xml
+          fail_ci_if_error: false
+
+      - name: SBOM (CycloneDX)
+        run: |
+          pip install cyclonedx-bom
+          python -m cyclonedx_py requirements requirements.txt -o sbom-cyclonedx.json --no-validate
+        continue-on-error: true
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        if: hashFiles('sbom-cyclonedx.json') != ''
+        with:
+          name: sbom-cyclonedx
+          path: sbom-cyclonedx.json

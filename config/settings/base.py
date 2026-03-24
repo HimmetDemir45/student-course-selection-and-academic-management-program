@@ -117,36 +117,62 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 LOG_LEVEL = env("LOG_LEVEL")
 
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "formatters": {
-        "verbose": {
-            "()": "core.logging_utils.RedactingFormatter",
-            "format": "{levelname} {asctime} {name} {message}",
-            "style": "{",
+# Production JSON logs (structlog + CloudWatch/Loki/ELK). See docs/observability.md
+DJANGO_LOG_JSON = env.bool("DJANGO_LOG_JSON", default=False)
+
+FEATURE_FLAGS = {
+    "enrollment_ratelimit": env.bool("FEATURE_ENROLLMENT_RATELIMIT", default=True),
+}
+
+RATELIMIT_ENABLE = env.bool("RATELIMIT_ENABLE", default=True)
+
+if DJANGO_LOG_JSON:
+    from core.structlog_config import get_json_logging_dict, init_structlog_for_json_logging
+
+    LOGGING = get_json_logging_dict(LOG_LEVEL)
+    init_structlog_for_json_logging()
+else:
+    LOGGING = {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "verbose": {
+                "()": "core.logging_utils.RedactingFormatter",
+                "format": "{levelname} {asctime} {name} request_id={request_id} {message}",
+                "style": "{",
+            },
         },
-    },
-    "handlers": {
-        "console": {
-            "class": "logging.StreamHandler",
-            "formatter": "verbose",
+        "filters": {
+            "request_context": {
+                "()": "core.request_context.RequestContextFilter",
+            },
         },
-    },
-    "root": {
-        "handlers": ["console"],
-        "level": LOG_LEVEL,
-    },
-    "loggers": {
-        "django": {
+        "handlers": {
+            "console": {
+                "class": "logging.StreamHandler",
+                "formatter": "verbose",
+                "filters": ["request_context"],
+            },
+        },
+        "root": {
             "handlers": ["console"],
             "level": LOG_LEVEL,
-            "propagate": False,
         },
-        "django.request": {
-            "handlers": ["console"],
-            "level": "WARNING",
-            "propagate": False,
+        "loggers": {
+            "django": {
+                "handlers": ["console"],
+                "level": LOG_LEVEL,
+                "propagate": False,
+            },
+            "django.request": {
+                "handlers": ["console"],
+                "level": "WARNING",
+                "propagate": False,
+            },
+            "request": {
+                "handlers": ["console"],
+                "level": LOG_LEVEL,
+                "propagate": False,
+            },
         },
-    },
-}
+    }

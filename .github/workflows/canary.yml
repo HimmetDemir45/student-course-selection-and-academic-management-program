@@ -1,0 +1,25 @@
+# Synthetic canary (GitHub-hosted). Uretimde AWS: EventBridge + Lambda ile ayni URL'yi cagirin; alarm zinciri: docs/observability.md
+# Secret: CANARY_BASE_URL = https://app.example.com (sonunda / yok)
+
+name: Canary health
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Health probe + latency
+        env:
+          BASE_URL: ${{ secrets.CANARY_BASE_URL }}
+        run: |
+          if [ -z "$BASE_URL" ]; then
+            echo "::notice::CANARY_BASE_URL bos; canary atlandi."
+            exit 0
+          fi
+          curl -fsS --max-time 25 "$BASE_URL/health/live/"
+          curl -fsS --max-time 25 "$BASE_URL/health/ready/"
+          curl -sS -o /dev/null -w "ready_time_total_s=%{time_total}\n" --max-time 25 "$BASE_URL/health/ready/"

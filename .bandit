@@ -1,0 +1,6 @@
+exclude_dirs:
+  - /migrations/
+  - /.venv/
+  - /venv/
+  - /htmlcov/
+skips: []

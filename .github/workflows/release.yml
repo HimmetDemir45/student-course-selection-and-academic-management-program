@@ -1,5 +1,6 @@
-# Immutable release images on SemVer tags (v*). See RELEASE.md and docs/runbooks/deployment-runbook.md.
-# Prod SSH/ECS deploy is environment-specific; this workflow builds, pushes, and optionally runs remote smoke.
+# SemVer tag (v*) -> CI -> GHCR image -> optional prod deploy (SSH or ECS) -> smoke -> rollback summary on failure.
+# GitHub Environment "production" ile manuel onay: Settings > Environments > production > Required reviewers.
+# Repository variables: DEPLOY_MODE = skip | ssh | ecs ; EC2_DEPLOY_PATH ; AWS_REGION ; ECS_CLUSTER ; ECS_SERVICE
 
 name: Release
 
@@ -11,14 +12,15 @@ on:
 permissions:
   contents: read
   packages: write
+  security-events: write
 
 jobs:
-  ci:
+  quality-gate:
     uses: ./.github/workflows/ci.yml
     secrets: inherit
 
   build-and-push:
-    needs: ci
+    needs: quality-gate
     runs-on: ubuntu-latest
     env:
       REGISTRY: ghcr.io
@@ -57,40 +59,74 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Deploy hint (manual prod)
+      - name: Summary
         run: |
-          echo "## Deploy" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Tag: \`${{ github.ref_name }}\`" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Ornek: \`docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}\`" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Sunucuda: \`docker compose -f docker-compose.prod.yml up -d\` (image etiketini override edin)" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Detay: \`docs/runbooks/deployment-runbook.md\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "## Image" >> "$GITHUB_STEP_SUMMARY"
+          echo "- \`ghcr.io/${{ github.repository }}:${{ github.ref_name }}\`" >> "$GITHUB_STEP_SUMMARY"
+
+  deploy-prod:
+    needs: build-and-push
+    if: ${{ vars.DEPLOY_MODE == 'ssh' || vars.DEPLOY_MODE == 'ecs' }}
+    environment: production
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH — pull & restart
+        if: ${{ vars.DEPLOY_MODE == 'ssh' }}
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script_stop: true
+          script: |
+            set -euo pipefail
+            cd "${{ vars.EC2_DEPLOY_PATH }}"
+            docker pull ghcr.io/${{ github.repository }}:${{ github.ref_name }}
+            export IMAGE_TAG="${{ github.ref_name }}"
+            docker compose -f docker-compose.prod.yml up -d
+
+      - name: AWS credentials (ECS)
+        if: ${{ vars.DEPLOY_MODE == 'ecs' }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: ECS — force new deployment
+        if: ${{ vars.DEPLOY_MODE == 'ecs' }}
+        run: |
+          set -euo pipefail
+          aws ecs update-service --cluster "${{ vars.ECS_CLUSTER }}" --service "${{ vars.ECS_SERVICE }}" --force-new-deployment
+          aws ecs wait services-stable --cluster "${{ vars.ECS_CLUSTER }}" --services "${{ vars.ECS_SERVICE }}"
 
   post-release-smoke:
-    needs: build-and-push
+    needs: [build-and-push, deploy-prod]
+    if: ${{ always() && needs.build-and-push.result == 'success' && (needs.deploy-prod.result == 'success' || needs.deploy-prod.result == 'skipped') }}
     runs-on: ubuntu-latest
     env:
       BASE_URL: ${{ secrets.HEALTHCHECK_BASE_URL }}
     steps:
-      - name: Remote smoke (optional)
+      - name: Remote smoke
         run: |
           set -e
           if [ -z "$BASE_URL" ]; then
-            echo "HEALTHCHECK_BASE_URL secret tanimli degil; uzak smoke atlandi."
-            echo "Manuel: Actions > smoke-tests workflow_dispatch ile BASE_URL verin."
+            echo "HEALTHCHECK_BASE_URL yok; smoke atlandi."
             exit 0
           fi
           curl -fsS --max-time 30 "$BASE_URL/health/live/"
           curl -fsS --max-time 30 "$BASE_URL/health/ready/"
-          echo "Remote smoke OK"
 
-  rollback-hint:
-    if: ${{ always() && (needs.ci.result == 'failure' || needs.build-and-push.result == 'failure' || needs.post-release-smoke.result == 'failure') }}
-    needs: [ci, build-and-push, post-release-smoke]
+  notify-rollback-hint:
+    needs: [quality-gate, build-and-push, deploy-prod, post-release-smoke]
+    if: always()
     runs-on: ubuntu-latest
     steps:
-      - name: Rollback komut ozeti
+      - name: Rollback talimatlari (herhangi bir adim basarisizsa)
+        if: ${{ needs.quality-gate.result == 'failure' || needs.build-and-push.result == 'failure' || needs.deploy-prod.result == 'failure' || needs.post-release-smoke.result == 'failure' }}
         run: |
-          echo "## Rollback / geri alma" >> "$GITHUB_STEP_SUMMARY"
-          echo "1. Onceki calisan image SHA veya tag (GHCR Packages / eski release)." >> "$GITHUB_STEP_SUMMARY"
-          echo "2. \`docker pull ghcr.io/${{ github.repository }}:sha-<onceki>\` + compose up -d" >> "$GITHUB_STEP_SUMMARY"
-          echo "3. DB: geri alinamayan migration yoksa \`migrate\` ile uyum; aksi halde snapshot restore — bkz. docs/runbooks/rollback-runbook.md" >> "$GITHUB_STEP_SUMMARY"
+          echo "## Rollback" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Sonuc ozeti: quality-gate=${{ needs.quality-gate.result }} build=${{ needs.build-and-push.result }} deploy=${{ needs.deploy-prod.result }} smoke=${{ needs.post-release-smoke.result }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Onceki imaj: GHCR \`sha-*\` veya \`v*\` etiketi (docs/deployment/production-automation.md)" >> "$GITHUB_STEP_SUMMARY"
+          echo "- SSH: \`docker pull ghcr.io/${{ github.repository }}:<tag> && docker compose up -d\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- ECS: onceki task definition veya snapshot — docs/runbooks/rollback-runbook.md" >> "$GITHUB_STEP_SUMMARY"
