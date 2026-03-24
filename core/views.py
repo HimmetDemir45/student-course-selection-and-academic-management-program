@@ -4,6 +4,8 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_GET
 
+from core.services.cached_stats import cached_active_offering_count
+
 from .permissions import role_required
 
 
@@ -25,7 +27,12 @@ def health_ready(request):
 
 
 def home(request):
-    return render(request, "core/home.html")
+    # See README "Performance checklist": cheap cached aggregate for dashboard-adjacent home context.
+    return render(
+        request,
+        "core/home.html",
+        {"active_offering_count": cached_active_offering_count()},
+    )
 
 
 @login_required

@@ -123,6 +123,9 @@ class SectionTimeSlot(TimeStampedModel):
 
     class Meta:
         ordering = ("section_id", "weekday", "start_time")
+        indexes = [
+            models.Index(fields=("section", "weekday"), name="idx_timeslot_section_weekday"),
+        ]
 
     def __str__(self):
         return f"{self.section} / {self.get_weekday_display()} {self.start_time}-{self.end_time}"

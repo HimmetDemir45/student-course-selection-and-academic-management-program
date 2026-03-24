@@ -29,6 +29,10 @@ def is_within_add_drop(semester, at: date | None = None) -> bool:
 
 
 def count_active_enrollments(section_id: int, exclude_enrollment_id: int | None = None) -> int:
+    """
+    Hot path for capacity checks. Composite DB index on (section, status) keeps this COUNT fast
+    as sections grow (see Enrollment.Meta.indexes).
+    """
     from enrollments.models import Enrollment
 
     qs = Enrollment.objects.filter(
@@ -120,6 +124,7 @@ def validate_schedule_conflict(enrollment: Enrollment) -> None:
     if not other_section_ids:
         return
 
+    # Filter by section list; SectionTimeSlot(section, weekday) index reduces scan cost.
     other_slots = SectionTimeSlot.objects.filter(section_id__in=other_section_ids)
     for s in slots:
         for o in other_slots:

@@ -14,9 +14,7 @@ from core.services.audit import (
 
 if TYPE_CHECKING:
     from django.contrib.auth.models import AbstractBaseUser
-    from django.http import HttpRequest
 
-    from enrollments.models import Enrollment
 
 
 ALLOWED = {

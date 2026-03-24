@@ -5,7 +5,8 @@ Set DATABASE_URL to match the workflow service container.
 
 from .base import *  # noqa: F403,F401
 
-SECRET_KEY = "ci-not-a-secret-key-do-not-use-in-production"  # noqa: F405
+# CI must set DJANGO_SECRET_KEY in the workflow; local fallbacks are non-production placeholders only.
+SECRET_KEY = env("DJANGO_SECRET_KEY", default="ci-ephemeral-placeholder-not-for-production")  # noqa: F405
 DEBUG = False
 
 ALLOWED_HOSTS = ["*"]

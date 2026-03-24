@@ -121,6 +121,7 @@ LOGGING = {
     "disable_existing_loggers": False,
     "formatters": {
         "verbose": {
+            "()": "core.logging_utils.RedactingFormatter",
             "format": "{levelname} {asctime} {name} {message}",
             "style": "{",
         },

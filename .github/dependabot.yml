@@ -1,0 +1,20 @@
+# Dependabot: security advisories and routine bumps.
+# Repo admins should still enable: Dependabot alerts, security updates,
+# secret scanning, and push protection in GitHub Settings.
+
+version: 2
+updates:
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "ci"

@@ -69,6 +69,10 @@
   - `python manage.py createsuperuser`
 - Run tests:
   - `python manage.py test`
+- Lint / coverage / dependency audit (optional dev bundle: `pip install -r requirements-dev.txt`):
+  - `python -m ruff check .`
+  - `coverage run manage.py test` then `coverage report` (fail threshold in `pyproject.toml`)
+  - `python -m pip_audit -r requirements.txt --strict`
 - Load Phase 4 seed fixture (optional):
   - `python manage.py loaddata phase4_seed` (fixture path: `core/fixtures/phase4_seed.json`; dev password for seed users: `seedpass123`)
 

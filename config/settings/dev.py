@@ -21,6 +21,10 @@ if "test" in sys.argv:
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": ":memory:",
     }
+    # Beklenen 403/CSRF testlerinde django.request / security log gürültüsünü azalt
+    _lg = LOGGING.setdefault("loggers", {})  # noqa: F405
+    _lg["django.request"] = {"handlers": ["console"], "level": "ERROR", "propagate": False}
+    _lg["django.security.csrf"] = {"handlers": ["console"], "level": "ERROR", "propagate": False}
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 

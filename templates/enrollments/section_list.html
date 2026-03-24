@@ -8,6 +8,7 @@
         <th>Ders</th>
         <th>Donem</th>
         <th>Section</th>
+        <th>Doluluk</th>
         <th>Ogretim uyesi</th>
         <th></th>
     </tr>
@@ -18,6 +19,7 @@
             <td>{{ s.offering.course.code }} — {{ s.offering.course.name }}</td>
             <td>{{ s.offering.semester }}</td>
             <td>{{ s.offering.section }}</td>
+            <td>{{ s.active_enrollment_count }} / {% if s.max_enrollment %}{{ s.max_enrollment }}{% else %}{{ s.offering.quota }}{% endif %}</td>
             <td>{% if s.offering.instructor %}{{ s.offering.instructor.user.get_full_name|default:s.offering.instructor.user.username }}{% else %}-{% endif %}</td>
             <td>
                 {% if user.is_authenticated and user.role == 'student' %}
@@ -30,7 +32,7 @@
             </td>
         </tr>
     {% empty %}
-        <tr><td colspan="5">Kayitli section yok.</td></tr>
+        <tr><td colspan="6">Kayitli section yok.</td></tr>
     {% endfor %}
     </tbody>
 </table>

@@ -39,6 +39,7 @@ class Enrollment(TimeStampedModel):
         ]
         indexes = [
             models.Index(fields=("student", "status"), name="idx_enrollment_student_status"),
+            models.Index(fields=("section", "status"), name="idx_enrollment_section_status"),
         ]
 
     def __str__(self):

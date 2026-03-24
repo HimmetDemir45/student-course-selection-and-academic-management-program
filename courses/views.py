@@ -14,6 +14,9 @@ class CourseListView(LoginRequiredMixin, ListView):
     template_name = "courses/course_list.html"
     context_object_name = "courses"
 
+    def get_queryset(self):
+        return Course.objects.select_related("department", "program").order_by("code")
+
 
 class CourseCreateView(AdminRequiredMixin, CreateView):
     model = Course

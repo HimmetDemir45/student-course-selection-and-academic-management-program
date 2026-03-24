@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect
 from django.views import View
 from django.views.generic import ListView
@@ -21,6 +22,10 @@ class SectionBrowseView(LoginRequiredMixin, ListView):
     context_object_name = "sections"
 
     def get_queryset(self):
+        # Annotate active seats for list display; uses idx_enrollment_section_status where present.
+        active_status_q = Q(
+            enrollments__status__in=(Enrollment.Status.ENROLLED, Enrollment.Status.PENDING)
+        )
         return (
             CourseSection.objects.filter(is_active=True, offering__is_active=True)
             .select_related(
@@ -29,6 +34,7 @@ class SectionBrowseView(LoginRequiredMixin, ListView):
                 "offering__semester",
                 "offering__instructor__user",
             )
+            .annotate(active_enrollment_count=Count("enrollments", filter=active_status_q))
             .order_by("offering__course__code", "offering__section")
         )
 
@@ -36,7 +42,12 @@ class SectionBrowseView(LoginRequiredMixin, ListView):
 class StudentEnrollView(StudentRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         section = get_object_or_404(
-            CourseSection,
+            CourseSection.objects.select_related(
+                "offering",
+                "offering__course",
+                "offering__semester",
+                "offering__instructor",
+            ),
             pk=request.POST.get("section_id"),
             is_active=True,
             offering__is_active=True,

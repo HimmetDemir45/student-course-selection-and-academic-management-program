@@ -7,7 +7,7 @@ Universite dersi icin **ogrenci ders secimi ve akademik yonetim** platformu. Sta
 ## Teknoloji
 
 - Python 3.12+
-- Django 5.1
+- Django 5.1 LTS patchline (pins: `requirements.txt`)
 - MySQL (PyMySQL + `cryptography`)
 - django-environ, django-storages, boto3, Gunicorn
 - Docker / docker-compose
@@ -36,6 +36,55 @@ Varsayilan ayar modulu: `config.settings.dev` (`manage.py` / `wsgi.py`).
 | `config.settings.production` | Eski import yolu; `prod` ile ayni |
 
 Ortam degiskeni: `DJANGO_SETTINGS_MODULE` (ornegin `config.settings.prod`).
+
+---
+
+## Phase 6 — Hardening, Performance, Security (ozet)
+
+Bu fazda odak:
+
+- **Performans**: `select_related` / `prefetch_related` ve list annotate (or. section doluluk), DB indexleri (`idx_enrollment_section_status`, `idx_timeslot_section_weekday`), ana sayfada dusuk TTL cache (`core/services/cached_stats.py`), agir sorgu notlari (`enrollment_rules` docstring).
+- **Guvenlik**: Log satirlarinda hassas pattern maskeleme (`core/logging_utils.RedactingFormatter`), prod cookie/tls ayarlari (`config/settings/prod.py`), CI `pip-audit --strict`, Django guncel pin, `SECURITY.md`, Dependabot (`/.github/dependabot.yml`).
+- **Test/coverage**: RBAC, CSRF, enrollment HTTP kenarlari, GPA baglam testleri (`core/test_phase6.py`); `pyproject.toml` icinde `fail_under = 75`.
+- **`.gitignore`**: `.env`, `.env.*`, `*.sql`, anahtar dosyalari, coverage artefactlari vb. (tam liste dosyada).
+
+GitHub repo ayarlari (org izin veriyorsa): **Dependabot alerts**, **Dependabot security updates**, **Secret scanning**, **Push protection** acilmali. Detay: `SECURITY.md`.
+
+### .gitignore politikasi
+
+- `.env` ve `.env.*` **commitlenmez**; ornekler `.env.example` ve `.env.production.example` ile tutulur.
+- `media/`, `staticfiles/`, `*.sql`, `*.pem` vb. disarida tutulur; tam pattern `/.gitignore` icinde.
+
+### Hassas dosya yanlislikla commit edildiyse (acil)
+
+1. Dosyayi indexten cikar (depo kokunden): `git rm --cached <dosya-yolu>`
+2. `.gitignore` satirinin dosyayi kapsadigindan emin ol.
+3. Commit: `git commit -m "chore: remove sensitive tracked files"`
+4. **Gecmis** hala hassas veri tasiyorsa: GitHub “secret scanning” uyarisini izleyin; gerekirse `git filter-repo` / profesyonel destek ile tarih temizligi ve **sifre/anahtar rotasyonu** yapin (`SECURITY.md` runbook).
+
+### Guvenlik kontrol listesi (kisa)
+
+- [ ] Prod `DEBUG=False`, `DJANGO_SECRET_KEY` yalnizca ortamda
+- [ ] `DJANGO_ALLOWED_HOSTS`, `DJANGO_CSRF_TRUSTED_ORIGINS` HTTPS ile dolduruldu
+- [ ] RDS/S3 kimlik bilgileri repoda yok; IAM role tercih edildi mi?
+- [ ] `pip-audit` / Dependabot uyarıları kapatılmadan merge yok
+- [ ] Push protection + secret scanning acik
+
+### Performance checklist (kisa)
+
+- [ ] Yeni list/detail view’larda N+1 kontrolu (`select_related` / `prefetch_related` / `annotate`)
+- [ ] Sik filtrelenen FK/status alanlarinda index (migration ile)
+- [ ] Agregat sayimlar icin cache veya annotate (TTL kisa tutulur, invalidation stratejisi bilinir)
+- [ ] Yerel profil icin (yalniz dev): `django-debug-toolbar` — `pip install django-debug-toolbar`, `INSTALLED_APPS` + `MIDDLEWARE` ve `INTERNAL_IPS` ekleyin; **prod’da acmayin.**
+
+### Branch protection onerisi (GitHub)
+
+`main` (ve gerekiyorsa `develop`) icin:
+
+- Required status checks: **lint**, **security**, **test** (workflow job isimleri)
+- Require pull request reviews (en az 1 onay)
+- Dismiss stale approvals when new commits are pushed
+- Block force pushes; uygunsa “require linear history”
 
 ---
 
@@ -104,8 +153,9 @@ Container icinde:
 ### CI (`/.github/workflows/ci.yml`)
 
 - Tetikleyiciler: `push` / `pull_request` (`main`, `develop`)
-- Adimlar: bagimlilik kurulumu, `ruff` ( `config/` + `manage.py` ), `manage.py check`, `migrate`, `test`
-- MySQL 8.0 service + `DJANGO_SETTINGS_MODULE=config.settings.ci`
+- **lint**: `ruff check .` (`requirements-dev.txt`)
+- **security**: `python -m pip_audit -r requirements.txt --strict`
+- **test**: MySQL 8.0 service, `DJANGO_SETTINGS_MODULE=config.settings.ci`, `migrate`, `coverage run manage.py test`, `coverage report` (esik `pyproject.toml`: `fail_under = 75`), `coverage.xml` artifact
 
 ### Deploy (`/.github/workflows/deploy.yml`)
 
@@ -142,10 +192,13 @@ Container icinde:
 - `DJANGO_SECRET_KEY` — **zorunlu**, kod icinde sabit yok
 - `DJANGO_ALLOWED_HOSTS` — **zorunlu**
 - `DJANGO_CSRF_TRUSTED_ORIGINS` — HTTPS origin listesi (bos liste mumkun, form tabanli POST icin genelde doldurulmali)
+- `DJANGO_USE_X_FORWARDED_HOST` — opsiyonel (varsayilan `True`); reverse proxy arkasi icin
 - `DATABASE_URL` — **zorunlu**
 - `AWS_STORAGE_BUCKET_NAME`, `AWS_S3_REGION_NAME` — **zorunlu**
 - `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` — opsiyonel (IAM role ile bos)
 - `AWS_S3_CUSTOM_DOMAIN` — opsiyonel (CDN)
+
+Guvenlik detaylari: `SECURITY.md`.
 
 ---
 
@@ -190,15 +243,28 @@ python manage.py migrate
 python manage.py test
 python manage.py runserver
 
+# Dev tooling (lint, coverage, pip-audit)
+python -m pip install -r requirements-dev.txt
+
+# Lint (CI ile ayni kapsam)
+python -m ruff check .
+
+# Coverage (esik pyproject.toml)
+coverage erase
+coverage run manage.py test
+coverage report
+coverage html   # istege bagli: htmlcov/
+# Windows PowerShell 5.1 tek satir (&& yerine ; kullanin) veya PowerShell 7+ ile &&:
+# python -m coverage erase; python -m coverage run manage.py test; python -m coverage report
+
+# Bagimlilik guvenlik taramasi (CI ile ayni politika)
+python -m pip_audit -r requirements.txt --strict
+
 # Docker local
 docker compose up --build
 
 # Docker prod stack (RDS + S3 env ile)
 docker compose -f docker-compose.prod.yml up -d --build
-
-# Lint (config odakli, CI ile uyumlu)
-python -m pip install ruff
-python -m ruff check config manage.py
 ```
 
 ---
@@ -209,6 +275,8 @@ python -m ruff check config manage.py
 - MySQL `caching_sha2_password` icin istemcide `cryptography` gerekir (`requirements.txt` icinde)
 - Prod’da S3 bucket IAM ve CORS politikalari ayri yapilandirilmalidir
 - Tam otomatik EC2 deploy adimi repoya orgutunuze gore eklenmelidir (SSH, ECS task definition, vb.)
+- **Kapasite yarisi**: Yüksek eşzamanlı kayıtta DB düzeyinde ek kısıt (transaction / `select_for_update`) Phase 7+ için değerlendirilebilir; mevcut kurallar `ValidationError` ile tutarlılığı hedefler.
+- **Cache invalidation**: Ana sayfa önbelleği kısa TTL ile sınırlıdır; yoğun yazma senaryolarında Redis + explicit invalidation düşünülebilir.
 
 ---
 
