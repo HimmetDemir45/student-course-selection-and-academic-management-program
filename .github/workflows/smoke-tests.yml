@@ -1,0 +1,40 @@
+# Manuel canli/dogru ortam smoke. Tetikleme: Actions > Smoke tests > Run workflow
+
+name: Smoke tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Temel URL (ornek: https://app.example.com, sonunda / olmasin)"
+        required: true
+        type: string
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Normalize base URL
+        id: url
+        run: |
+          U="${{ inputs.base_url }}"
+          U="${U%/}"
+          echo "base=$U" >> "$GITHUB_OUTPUT"
+
+      - name: Health live
+        run: curl -fsS --max-time 30 "${{ steps.url.outputs.base }}/health/live/"
+
+      - name: Health ready
+        run: curl -fsS --max-time 30 "${{ steps.url.outputs.base }}/health/ready/"
+
+      - name: Login page (GET)
+        run: curl -fsS --max-time 30 -o /dev/null -w "%{http_code}" "${{ steps.url.outputs.base }}/accounts/login/" | grep -E '^200$'
+
+      - name: Home (read-only, public)
+        run: curl -fsS --max-time 30 -o /dev/null -w "%{http_code}" "${{ steps.url.outputs.base }}/" | grep -E '^200$'
+
+      - name: Courses list (auth redirect veya 200)
+        run: |
+          code=$(curl -sS --max-time 30 -o /dev/null -w "%{http_code}" "${{ steps.url.outputs.base }}/courses/")
+          echo "HTTP $code"
+          echo "$code" | grep -E '^(200|302|301)$'
