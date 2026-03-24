@@ -1,0 +1,13 @@
+# Code owners: replace placeholders with your GitHub username or @org/team-slug.
+# Requires "Require code owner reviews" in branch protection for these paths to enforce review.
+#
+# Example:
+# * @HimmetDemir45
+# /.github/ @HimmetDemir45
+# /docs/ @HimmetDemir45
+# SECURITY.md @HimmetDemir45
+# CHANGELOG.md @HimmetDemir45
+# RELEASE.md @HimmetDemir45
+
+# Uncomment and edit when your org is ready:
+# * @YOUR_GITHUB_USERNAME

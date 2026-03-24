@@ -85,6 +85,18 @@ GitHub repo ayarlari (org izin veriyorsa): **Dependabot alerts**, **Dependabot s
 - Require pull request reviews (en az 1 onay)
 - Dismiss stale approvals when new commits are pushed
 - Block force pushes; uygunsa “require linear history”
+- Opsiyonel: **CODEOWNERS** ile kritik yollar; sablon `CODEOWNERS` dosyasinda (placeholder yorumlari).
+
+---
+
+## Phase 7 — Release readiness, operations, go-live
+
+- **SemVer + changelog**: `RELEASE.md`, `CHANGELOG.md` (Keep a Changelog); tag ornegi `v1.0.0`, oncesi `v1.0.0-rc.1`.
+- **Workflows**: `/.github/workflows/release.yml` (tag `v*` → CI → GHCR imaji semver + `sha-` + opsiyonel uzak smoke icin `HEALTHCHECK_BASE_URL` secret); `smoke-tests.yml` (`workflow_dispatch` ile canli URL).
+- **Runbooklar**: `docs/runbooks/` — deployment, rollback, incident response.
+- **Operasyon**: `docs/operations/` — backup/restore/DR, monitoring & alerting checklist.
+- **UAT / canli**: `docs/go-live-checklist.md`; deploy sonrasi `docs/post-release-verification.md`.
+- **Istek korelasyonu**: yanit basligi `X-Request-ID` (`core/middleware/request_id.py`).
 
 ---
 
@@ -162,6 +174,17 @@ Container icinde:
 - `main` push veya `workflow_dispatch`
 - Docker image build + **GHCR** push (`ghcr.io/<owner>/<repo>:latest` ve SHA etiketi)
 - EC2/ECS uzerinde manuel veya ek workflow ile: `docker pull` + `docker compose -f docker-compose.prod.yml up -d`
+
+### Release (`/.github/workflows/release.yml`)
+
+- Tetikleyici: **tag** `v*` (or. `v1.0.0`)
+- Once tum **CI** (`workflow_call`) calisir; ardindan imaj **semver + sha** ile GHCR’a push edilir.
+- Opsiyonel: repository secret `HEALTHCHECK_BASE_URL` (or. `https://app.example.com`) — workflow `/health/live` ve `/health/ready` cagirir.
+- Basarisiz adimlarda **rollback-hint** ozeti uretilir; ayrintili adimlar `docs/runbooks/rollback-runbook.md`.
+
+### Smoke tests (`/.github/workflows/smoke-tests.yml`)
+
+- Yalnizca **workflow_dispatch**; `base_url` girerek canli/dogru ortamda health, login sayfasi, ana sayfa ve ders listesi HTTP kontrolleri.
 
 ### Onerilen GitHub Secrets / degiskenler
 
