@@ -6,6 +6,9 @@
   - Hata yalniz concurrency/security ise issue ac, release blokla.
 - Security scan fail:
   - `make security-scan` calistir.
+  - Python 3.14 lokalinde Bandit AST hatasi alirsan: `make security-scan BANDIT_PYTHON="py -3.12"`
+  - `.secrets.baseline` yoksa (ilk kurulum): `python -m detect_secrets scan --all-files --exclude-files '(htmlcov/|\.coverage$|coverage\.xml|node_modules/|\.git/|__pycache__/|\.pyc$|\.idea/|agent-transcripts/|mcps/)' > .secrets.baseline` sonra `git add .secrets.baseline`
+  - PowerShell'da `detect-secrets` komutu yoksa: `python -m detect_secrets ...`
   - Critical/High kapatmadan merge/deploy yapma.
 - Migration smoke fail:
   - `make migration-smoke` tekrar et.

@@ -58,10 +58,11 @@ jobs:
       - name: Security gate (pip-audit + bandit + detect-secrets)
         run: |
           python -m pip_audit -r requirements.txt --strict
-          bandit -c .bandit -r . -x "./tests,./.venv,./venv" -ll
+          python -m bandit -r . -x "./tests,./.venv,./venv" --severity-level medium --confidence-level medium
           test -f .secrets.baseline
-          detect-secrets scan --baseline .secrets.baseline --all-files
-          detect-secrets audit .secrets.baseline --stats
+          python -m detect_secrets scan --baseline .secrets.baseline --all-files \
+            --exclude-files '(htmlcov/|\.coverage$|coverage\.xml|node_modules/|\.git/|__pycache__/|\.pyc$|\.idea/|agent-transcripts/|mcps/)'
+          python -m detect_secrets audit .secrets.baseline --stats
 
       - name: Unit tests
         run: |

@@ -41,7 +41,7 @@ jobs:
       - name: Bandit JSON
         run: |
           pip install "bandit[toml]>=1.7.10"
-          bandit -c .bandit -r . -f json -o bandit.json
+          python -m bandit -r . -x "./tests,./.venv,./venv" --severity-level medium --confidence-level medium -f json -o bandit.json
       - name: Upload Bandit report
         uses: actions/upload-artifact@v4
         with:

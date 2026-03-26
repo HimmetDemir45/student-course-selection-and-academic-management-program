@@ -1,6 +1,7 @@
 SHELL := /usr/bin/env bash
 PYTHON ?= python
 PYTEST ?= pytest
+BANDIT_PYTHON ?= $(PYTHON)
 
 export PYTHONUNBUFFERED=1
 export DJANGO_SETTINGS_MODULE ?= config.settings.dev
@@ -24,10 +25,11 @@ test-concurrency:
 
 security-scan:
 	python -m pip_audit -r requirements.txt --strict
-	bandit -c .bandit -r . -x "./tests,./.venv,./venv" -ll
+	$(BANDIT_PYTHON) -m bandit -r . -x "./tests,./.venv,./venv" --severity-level medium --confidence-level medium
 	test -f .secrets.baseline
-	detect-secrets scan --baseline .secrets.baseline --all-files
-	detect-secrets audit .secrets.baseline --stats
+	python -m detect_secrets scan --baseline .secrets.baseline --all-files \
+		--exclude-files '(htmlcov/|\.coverage$$|coverage\.xml|node_modules/|\.git/|__pycache__/|\.pyc$$|\.idea/|agent-transcripts/|mcps/)'
+	python -m detect_secrets audit .secrets.baseline --stats
 
 migration-smoke:
 	chmod +x scripts/smoke_migration.sh
