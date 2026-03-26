@@ -1,7 +1,21 @@
-# Optional dev/CI tooling (not required at runtime).
 -r requirements.txt
-coverage[toml]>=7.4.0
-pip-audit>=2.7.0
-ruff>=0.8.0
-bandit[toml]>=1.7.10
-cyclonedx-bom>=5.0.0
+
+# Test ve kalite
+pytest==8.3.5
+pytest-django==4.11.1
+pytest-cov==6.1.1
+pytest-xdist==3.6.1
+coverage[toml]==7.8.0
+
+# Guvenlik
+bandit[toml]==1.8.3
+pip-audit==2.9.0
+detect-secrets==1.5.0
+
+# Test yardimcilari
+freezegun==1.5.1
+factory-boy==3.3.1
+
+# Mevcut araclar
+ruff==0.11.8
+cyclonedx-bom==6.1.0
