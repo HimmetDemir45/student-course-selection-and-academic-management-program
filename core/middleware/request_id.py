@@ -29,6 +29,8 @@ class RequestIdMiddleware:
         request.request_id = rid
         start = time.perf_counter()
 
+        service = getattr(settings, "LOG_SERVICE_NAME", "student-academic-mgmt")
+
         if getattr(settings, "DJANGO_LOG_JSON", False):
             import structlog.contextvars
 
@@ -36,6 +38,7 @@ class RequestIdMiddleware:
                 request_id=rid,
                 http_path=request.path,
                 http_method=request.method,
+                service=service,
             )
         else:
             bind_request_log_context(request_id=rid, path=request.path, method=request.method)
@@ -60,11 +63,13 @@ class RequestIdMiddleware:
                     status_code=status,
                     duration_ms=duration_ms,
                     user_id=uid,
+                    service=service,
                 )
                 structlog.contextvars.clear_contextvars()
             else:
                 logger.info(
-                    "request_finished status=%s duration_ms=%s user_id=%s",
+                    "request_finished service=%s status=%s duration_ms=%s user_id=%s",
+                    service,
                     status,
                     duration_ms,
                     uid,
