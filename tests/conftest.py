@@ -7,6 +7,14 @@ from django.core.cache import cache
 from freezegun import freeze_time
 
 
+def pytest_configure(config):
+    # Python 3.14+: Django auth decorators still call asyncio.iscoroutinefunction (deprecated).
+    config.addinivalue_line(
+        "filterwarnings",
+        "ignore:.*asyncio\\.iscoroutinefunction.*:DeprecationWarning",
+    )
+
+
 @pytest.fixture(scope="session", autouse=True)
 def deterministic_seed():
     os.environ.setdefault("PYTHONHASHSEED", "42")
@@ -22,6 +30,10 @@ def stable_time():
 
 @pytest.fixture(autouse=True)
 def safe_test_settings(settings):
+    eng = settings.DATABASES.get("default", {}).get("ENGINE", "")
+    if "mysql" in eng:
+        settings.DATABASES["default"]["CONN_MAX_AGE"] = 0
+
     settings.EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
     settings.CACHES = {
         "default": {

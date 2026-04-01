@@ -16,10 +16,15 @@ def _lockout_seconds() -> int:
 
 
 def get_client_ip(request) -> str:
+    """Client IP for throttle keys; values bounded to avoid cache key abuse via huge headers."""
     xff = request.META.get("HTTP_X_FORWARDED_FOR")
     if xff:
-        return xff.split(",")[0].strip()
-    return request.META.get("REMOTE_ADDR", "") or "unknown"
+        if len(xff) > 256:
+            xff = xff[:256]
+        first = xff.split(",")[0].strip()
+        return (first[:45] if first else "unknown") or "unknown"
+    raw = request.META.get("REMOTE_ADDR", "") or ""
+    return raw[:45] if raw else "unknown"
 
 
 def _identity_key(raw_login: str) -> str:
