@@ -328,34 +328,6 @@ docker compose -f docker-compose.prod.yml up -d --build
 - **ECS tam otomasyon**: Task definition imaj guncelleme + ECR push zinciri genisletilebilir (Phase 9).
 - **Cache invalidation**: Ana sayfa önbelleği kısa TTL ile sınırlıdır; yoğun yazma senaryolarında Redis + explicit invalidation düşünülebilir.
 
-  gantt
-    title Öğrenci Ders Seçimi Projesi Yol Haritası
-    dateFormat  YYYY-MM-DD
-    
-    section Phase 4: İş Kuralları
-    Öğrenci & Öğretim Üyesi Modülleri      :a1, 2024-01-01, 14d
-    Kayıt Kuralları & Brute-force Koruması :a2, after a1, 7d
-    
-    section Phase 5: Dağıtım (Deployment)
-    Docker ve Ortam Ayarları               :b1, after a2, 7d
-    AWS (RDS, S3) Entegrasyonu             :b2, after b1, 10d
-    CI/CD (GitHub Actions) Kurulumu        :b3, after b2, 7d
-    
-    section Phase 6: Performans & Güvenlik
-    Veritabanı Optimizasyonu ve İndeksleme :c1, after b3, 10d
-    Güvenlik Ayarları ve Test Kapsamı      :c2, after c1, 14d
-    
-    section Phase 7: Sürüm & Canlıya Alma
-    SemVer ve Release Workflows            :d1, after c2, 7d
-    Runbook ve Operasyon Dokümantasyonu    :d2, after d1, 7d
-    
-    section Phase 8: Güvenilirlik
-    Release Otomasyonu ve Code Scanning    :e1, after d2, 10d
-    JSON Loglama ve Eşzamanlılık Kontrolü  :e2, after e1, 10d
-    
-    section Phase 9: İleri Seviye (TODO)
-    ECS Tam Otomasyon Geliştirmesi         :f1, after e2, 14d
-
 ---
 
 ## Not
