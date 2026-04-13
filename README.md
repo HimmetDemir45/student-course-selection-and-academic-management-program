@@ -23,7 +23,7 @@ Universite dersi icin **ogrenci ders secimi ve akademik yonetim** platformu. Sta
 3. `.env.example` dosyasini `.env` olarak kopyalayin ve DB bilgilerini duzenleyin
 4. `python manage.py migrate`
 5. (Istege bagli) `python manage.py loaddata phase4_seed` — seed sifreleri dokumanda
-6. `python manage.py runserver`
+6. ` `
 
 Varsayilan ayar modulu: `config.settings.dev` (`manage.py` / `wsgi.py`).
 

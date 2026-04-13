@@ -69,7 +69,8 @@
       "is_staff": true,
       "is_active": true,
       "date_joined": "2026-01-01T12:00:00Z",
-      "role": "admin"
+      "role": "admin",
+      "is_founder_admin": true
     }
   },
   {

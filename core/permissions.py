@@ -1,7 +1,8 @@
 from functools import wraps
 
 from django.contrib import messages
-from django.contrib.auth.mixins import AccessMixin
+from django.contrib.auth.mixins import AccessMixin, LoginRequiredMixin
+from django.core.exceptions import PermissionDenied
 from django.shortcuts import redirect
 
 
@@ -49,3 +50,14 @@ class StudentRequiredMixin(RoleRequiredMixin):
 
 class InstructorRequiredMixin(RoleRequiredMixin):
     allowed_roles = ("instructor", "admin")
+
+
+class FounderAdminRequiredMixin(LoginRequiredMixin):
+    """Kurucu yönetici (is_founder_admin) için; yetkisizde 403."""
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return super().dispatch(request, *args, **kwargs)
+        if not getattr(request.user, "is_founder_admin", False):
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)

@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Sunucu hatası" %}{% endblock %}
+{% block content %}
+<div class="text-center py-5">
+    <h1 class="display-6">500</h1>
+    <p class="lead">{% trans "Beklenmeyen bir hata oluştu. Lütfen daha sonra tekrar deneyin." %}</p>
+    <a class="btn btn-primary" href="{% url 'core:home' %}">{% trans "Ana sayfaya dön" %}</a>
+</div>
+{% endblock %}

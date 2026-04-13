@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
+from django.utils.translation import gettext_lazy as _
 
 from .models import User
 
@@ -113,3 +114,11 @@ class LoginForm(forms.Form):
 
     def get_user(self):
         return self.user_cache
+
+
+class AdminRequestForm(forms.Form):
+    reason = forms.CharField(
+        label=_("Gerekçe"),
+        required=False,
+        widget=forms.Textarea(attrs={"rows": 4, "class": "form-control"}),
+    )

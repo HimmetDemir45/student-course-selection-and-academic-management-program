@@ -38,7 +38,7 @@
 - Request flow (target):
   - HTTP request -> `config/urls.py` -> `app/urls.py` -> `views.py` (or class-based views) -> service/domain layer (if applicable) -> model/repository -> template response.
 - Error flow:
-  - Centralized custom handlers in project-level URL config and shared error templates (`templates/errors/404.html`, `templates/errors/500.html`).
+  - Centralized custom handlers in project-level URL config (`handler403` / `handler404` / `handler500` in `config/urls.py`); Türkçe HTML yanıtları `core.views` içinde (Bootstrap CDN ile). İsteğe bağlı şablonlar: `templates/errors/`.
 
 ## Environment and configuration contracts
 - Environment variables are loaded from `.env` (via `django-environ` or equivalent).
@@ -67,6 +67,11 @@
   - `python manage.py runserver`
 - Create admin user:
   - `python manage.py createsuperuser`
+- Kurucu yönetici (tek hesap; yalnızca bu kullanıcı web arayüzünden admin taleplerini onaylar):
+  - `python manage.py set_founder_admin <kullanici_adi>`
+- Türkçe i18n (`.mo` için sistemde GNU **gettext** `msgfmt` gerekir; Windows’ta kurulum veya WSL):
+  - PO güncellemek (projede yardımcı): `python scripts/generate_django_po.py` → `locale/tr/LC_MESSAGES/django.po`
+  - Resmi Django akışı (gettext kuruluysa): `python manage.py makemessages -l tr` → `python manage.py compilemessages`
 - Run tests:
   - `python manage.py test`
 - Release / operations docs: `RELEASE.md`, `CHANGELOG.md`, `docs/runbooks/`, `docs/operations/`, `docs/go-live-checklist.md`, `docs/post-release-verification.md`, `docs/deployment/production-automation.md`, `docs/observability.md`, `docs/reliability/concurrency-and-locking.md`, `docs/security/code-scanning-and-secrets.md`, `docs/sre/sli-slo.md`

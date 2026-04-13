@@ -7,6 +7,18 @@ from django.core.cache import cache
 from freezegun import freeze_time
 
 
+def pytest_sessionstart(session):
+    """Python 3.14: Django BaseContext.__copy__ uses copy(super()) which breaks; patch for tests."""
+    from django.template.context import BaseContext
+
+    def _fixed_basecontext_copy(self):
+        duplicate = object.__new__(self.__class__)
+        duplicate.dicts = self.dicts[:]
+        return duplicate
+
+    BaseContext.__copy__ = _fixed_basecontext_copy
+
+
 @pytest.fixture(scope="session", autouse=True)
 def deterministic_seed():
     os.environ.setdefault("PYTHONHASHSEED", "42")

@@ -5,5 +5,16 @@ from . import views
 app_name = "dashboard"
 
 urlpatterns = [
-    path("", views.index, name="index"),
+    path("", views.DashboardIndexView.as_view(), name="index"),
+    path("admin-talepleri/", views.AdminRequestQueueView.as_view(), name="admin_requests"),
+    path(
+        "admin-talepleri/<int:pk>/onayla/",
+        views.AdminRequestApproveView.as_view(),
+        name="admin_request_approve",
+    ),
+    path(
+        "admin-talepleri/<int:pk>/reddet/",
+        views.AdminRequestRejectView.as_view(),
+        name="admin_request_reject",
+    ),
 ]

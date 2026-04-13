@@ -1,5 +1,7 @@
-from django.http import HttpResponse
+from django.views.generic import TemplateView
+
+from core.permissions import InstructorRequiredMixin
 
 
-def index(request):
-    return HttpResponse("Instructors app placeholder.")
+class InstructorHomeView(InstructorRequiredMixin, TemplateView):
+    template_name = "instructors/index.html"

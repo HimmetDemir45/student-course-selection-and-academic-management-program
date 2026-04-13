@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Yönetici olma talebi" %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <h1 class="h4 mb-3">{% trans "Yönetici olma talebi" %}</h1>
+        <p class="text-muted">{% trans "Yalnızca kurucu yönetici talepleri onaylayabilir. Doğrudan rol ataması yapılmaz." %}</p>
+
+        {% if pending_request %}
+            <div class="alert alert-info">
+                {% trans "Talebiniz beklemede." %}
+                <span class="text-muted small d-block mt-1">{{ pending_request.created_at }}</span>
+            </div>
+        {% else %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        {{ form.non_field_errors }}
+                        <div class="mb-3">
+                            <label class="form-label" for="{{ form.reason.id_for_label }}">{{ form.reason.label }}</label>
+                            {{ form.reason }}
+                            {% if form.reason.errors %}<div class="text-danger small">{{ form.reason.errors }}</div>{% endif %}
+                        </div>
+                        <button type="submit" class="btn btn-primary">{% trans "Talebi gönder" %}</button>
+                    </form>
+                </div>
+            </div>
+        {% endif %}
+
+        <h2 class="h6 text-secondary text-uppercase mt-4">{% trans "Geçmiş talepleriniz" %}</h2>
+        {% if history %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle phase11-table">
+                    <thead><tr><th>{% trans "Tarih" %}</th><th>{% trans "Durum" %}</th><th>{% trans "Gerekçe" %}</th></tr></thead>
+                    <tbody>
+                    {% for r in history %}
+                        <tr>
+                            <td>{{ r.created_at }}</td>
+                            <td><span class="badge text-bg-light">{{ r.get_status_display }}</span></td>
+                            <td>{{ r.reason|default:"—"|truncatechars:80 }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted mb-0">{% trans "Henüz talep yok." %}</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

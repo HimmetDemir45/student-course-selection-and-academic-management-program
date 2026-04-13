@@ -2,11 +2,13 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.shortcuts import redirect, render
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_http_methods, require_POST
 
-from audit_logs.services import log_auth_event
+from audit_logs.services import log_auth_event, log_event
 
-from .forms import LoginForm, RegisterForm
+from .forms import AdminRequestForm, LoginForm, RegisterForm
+from .models import AdminRequest, User
 from .login_throttle import clear_login_throttle, login_throttle, register_login_failure
 
 
@@ -76,3 +78,51 @@ def logout_view(request):
     )
     messages.info(request, "Cikis yapildi.")
     return redirect("core:home")
+
+
+@require_http_methods(["GET", "POST"])
+def admin_request_view(request):
+    if not request.user.is_authenticated:
+        return redirect("accounts:login")
+
+    if request.user.role == User.Role.ADMIN:
+        messages.info(request, _("Zaten yönetici rolündesiniz."))
+        return redirect("core:home")
+
+    pending = AdminRequest.objects.filter(
+        user=request.user,
+        status=AdminRequest.Status.PENDING,
+    ).first()
+
+    if request.method == "POST":
+        if pending:
+            messages.warning(request, _("Zaten bekleyen bir talebiniz var."))
+            return redirect("accounts:admin_request")
+        form = AdminRequestForm(request.POST)
+        if form.is_valid():
+            ar = AdminRequest.objects.create(
+                user=request.user,
+                reason=(form.cleaned_data.get("reason") or "").strip(),
+            )
+            log_event(
+                event_type="admin_request_created",
+                actor=request.user,
+                target_type="accounts.AdminRequest",
+                target_id=str(ar.pk),
+                metadata={"username": request.user.username},
+            )
+            messages.success(request, _("Talebiniz alındı. Kurucu yönetici inceleyecektir."))
+            return redirect("accounts:admin_request")
+    else:
+        form = AdminRequestForm()
+
+    history = AdminRequest.objects.filter(user=request.user).order_by("-created_at")[:20]
+    return render(
+        request,
+        "accounts/admin_request.html",
+        {
+            "form": form,
+            "pending_request": pending,
+            "history": history,
+        },
+    )

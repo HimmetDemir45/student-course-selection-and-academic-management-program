@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Denetim günlüğü" %}{% endblock %}
+
+{% block content %}
+<h1 class="h4 mb-3">{% trans "Denetim günlüğü" %}</h1>
+<p class="text-muted small">{% trans "Yalnızca yöneticiler görüntüleyebilir." %}</p>
+
+{% if logs %}
+<div class="table-responsive">
+    <table class="table table-sm table-hover align-middle phase11-table">
+        <thead>
+            <tr>
+                <th>{% trans "Zaman" %}</th>
+                <th>{% trans "Olay" %}</th>
+                <th>{% trans "Kullanıcı" %}</th>
+                <th>{% trans "Hedef" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for log in logs %}
+            <tr>
+                <td>{{ log.created_at }}</td>
+                <td><code>{{ log.event_type }}</code></td>
+                <td>{% if log.actor %}{{ log.actor.username }}{% else %}—{% endif %}</td>
+                <td class="small">{{ log.target_type }} #{{ log.target_id }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p class="text-muted">{% trans "Kayıt yok." %}</p>
+{% endif %}
+
+{% if is_paginated %}
+<nav class="mt-3" aria-label="Pagination">
+    <ul class="pagination pagination-sm">
+        {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">{% trans "Önceki" %}</a></li>
+        {% endif %}
+        <li class="page-item disabled"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+        {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">{% trans "Sonraki" %}</a></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

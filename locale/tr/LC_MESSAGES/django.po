@@ -1,0 +1,315 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: student-academic\n"
+"Language: tr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Ad"
+msgstr "Ad"
+
+msgid "Admin talebi"
+msgstr "Admin talebi"
+
+msgid "Admin taleplerini yönet"
+msgstr "Admin taleplerini yönet"
+
+msgid "Akademik"
+msgstr "Akademik"
+
+msgid "Akademik yönetim"
+msgstr "Akademik yönetim"
+
+msgid "Akademik yönetim sistemi"
+msgstr "Akademik yönetim sistemi"
+
+msgid "Aktif"
+msgstr "Aktif"
+
+msgid "Aktif ders teklifleri (önbellekli)"
+msgstr "Aktif ders teklifleri (önbellekli)"
+
+msgid "Ana sayfa"
+msgstr "Ana sayfa"
+
+msgid "Ana sayfaya dön"
+msgstr "Ana sayfaya dön"
+
+msgid "Aradığınız sayfa bulunamadı veya taşınmış olabilir."
+msgstr "Aradığınız sayfa bulunamadı veya taşınmış olabilir."
+
+msgid "Açılan şubeler"
+msgstr "Açılan şubeler"
+
+msgid "Beklemede"
+msgstr "Beklemede"
+
+msgid "Beklenmeyen bir hata oluştu. Lütfen daha sonra tekrar deneyin."
+msgstr "Beklenmeyen bir hata oluştu. Lütfen daha sonra tekrar deneyin."
+
+msgid "Bekleyen admin talepleri"
+msgstr "Bekleyen admin talepleri"
+
+msgid "Bekleyen talep yok."
+msgstr "Bekleyen talep yok."
+
+msgid "Bekleyen talep:"
+msgstr "Bekleyen talep:"
+
+msgid "Bu işlem için yetkiniz yok."
+msgstr "Bu işlem için yetkiniz yok."
+
+msgid "Bu sayfa yalnızca öğrenci rolü ile görüntülenebilir."
+msgstr "Bu sayfa yalnızca öğrenci rolü ile görüntülenebilir."
+
+msgid "Bu sayfa yalnızca öğretim üyesi (veya yönetici) rolü ile görüntülenebilir."
+msgstr "Bu sayfa yalnızca öğretim üyesi (veya yönetici) rolü ile görüntülenebilir."
+
+msgid "Bu talep zaten işlendi."
+msgstr "Bu talep zaten işlendi."
+
+msgid "Bölüm"
+msgstr "Bölüm"
+
+msgid "Bölümler"
+msgstr "Bölümler"
+
+msgid "Bölümler ve duyurular"
+msgstr "Bölümler ve duyurular"
+
+msgid "Denetim"
+msgstr "Denetim"
+
+msgid "Denetim günlüğü"
+msgstr "Denetim günlüğü"
+
+msgid "Ders"
+msgstr "Ders"
+
+msgid "Ders kaydı"
+msgstr "Ders kaydı"
+
+msgid "Ders listesi"
+msgstr "Ders listesi"
+
+msgid "Ders teklifleri"
+msgstr "Ders teklifleri"
+
+msgid "Ders teklifleriniz, not girişi ve kayıtlı öğrenciler için kısayollar."
+msgstr "Ders teklifleriniz, not girişi ve kayıtlı öğrenciler için kısayollar."
+
+msgid "Dersler"
+msgstr "Dersler"
+
+msgid "Devam etmek için giriş yapın veya kayıt olun."
+msgstr "Devam etmek için giriş yapın veya kayıt olun."
+
+msgid "Doluluk"
+msgstr "Doluluk"
+
+msgid "Durum"
+msgstr "Durum"
+
+msgid "Duyurular"
+msgstr "Duyurular"
+
+msgid "Dönem"
+msgstr "Dönem"
+
+msgid "Düzenle"
+msgstr "Düzenle"
+
+msgid "E-posta"
+msgstr "E-posta"
+
+msgid "Erişim reddedildi"
+msgstr "Erişim reddedildi"
+
+msgid "Gerekçe"
+msgstr "Gerekçe"
+
+msgid "Geçmiş talepleriniz"
+msgstr "Geçmiş talepleriniz"
+
+msgid "Giriş"
+msgstr "Giriş"
+
+msgid "Hedef"
+msgstr "Hedef"
+
+msgid "Henüz talep yok."
+msgstr "Henüz talep yok."
+
+msgid "Hoş geldiniz"
+msgstr "Hoş geldiniz"
+
+msgid "Katalog ve teklifler"
+msgstr "Katalog ve teklifler"
+
+msgid "Kayıt"
+msgstr "Kayıt"
+
+msgid "Kayıt bulunamadı."
+msgstr "Kayıt bulunamadı."
+
+msgid "Kayıt ol"
+msgstr "Kayıt ol"
+
+msgid "Kayıt yok."
+msgstr "Kayıt yok."
+
+msgid "Kayıtlı öğrenciler ve not girişi"
+msgstr "Kayıtlı öğrenciler ve not girişi"
+
+msgid "Kod"
+msgstr "Kod"
+
+msgid "Kredi"
+msgstr "Kredi"
+
+msgid "Kullanıcı"
+msgstr "Kullanıcı"
+
+msgid "Kurucu yönetici"
+msgstr "Kurucu yönetici"
+
+msgid "Kurucu yönetici: tek hesap; yalnızca bu kullanıcı admin taleplerini onaylayabilir."
+msgstr "Kurucu yönetici: tek hesap; yalnızca bu kullanıcı admin taleplerini onaylayabilir."
+
+msgid "Listelenecek şube yok."
+msgstr "Listelenecek şube yok."
+
+msgid "Notlar"
+msgstr "Notlar"
+
+msgid "Olay"
+msgstr "Olay"
+
+msgid "Onayla"
+msgstr "Onayla"
+
+msgid "Onaylandı"
+msgstr "Onaylandı"
+
+msgid "Panele dön"
+msgstr "Panele dön"
+
+msgid "Reddedildi"
+msgstr "Reddedildi"
+
+msgid "Reddet"
+msgstr "Reddet"
+
+msgid "Rol"
+msgstr "Rol"
+
+msgid "Sayfa bulunamadı"
+msgstr "Sayfa bulunamadı"
+
+msgid "Sil"
+msgstr "Sil"
+
+msgid "Sistem olay günlüğü"
+msgstr "Sistem olay günlüğü"
+
+msgid "Sonraki"
+msgstr "Sonraki"
+
+msgid "Sunucu hatası"
+msgstr "Sunucu hatası"
+
+msgid "Talebi gönder"
+msgstr "Talebi gönder"
+
+msgid "Talebiniz alındı. Kurucu yönetici inceleyecektir."
+msgstr "Talebiniz alındı. Kurucu yönetici inceleyecektir."
+
+msgid "Talebiniz beklemede."
+msgstr "Talebiniz beklemede."
+
+msgid "Talep bulunamadı."
+msgstr "Talep bulunamadı."
+
+msgid "Talep onaylandı; kullanıcıya yönetici rolü verildi."
+msgstr "Talep onaylandı; kullanıcıya yönetici rolü verildi."
+
+msgid "Talep reddedildi."
+msgstr "Talep reddedildi."
+
+msgid "Tarih"
+msgstr "Tarih"
+
+msgid "Transkript"
+msgstr "Transkript"
+
+msgid "Transkript ve GPA"
+msgstr "Transkript ve GPA"
+
+msgid "Yalnızca kurucu yönetici bu sayfayı kullanabilir."
+msgstr "Yalnızca kurucu yönetici bu sayfayı kullanabilir."
+
+msgid "Yalnızca kurucu yönetici talepleri onaylayabilir. Doğrudan rol ataması yapılmaz."
+msgstr "Yalnızca kurucu yönetici talepleri onaylayabilir. Doğrudan rol ataması yapılmaz."
+
+msgid "Yalnızca yöneticiler görüntüleyebilir."
+msgstr "Yalnızca yöneticiler görüntüleyebilir."
+
+msgid "Yeni ders"
+msgstr "Yeni ders"
+
+msgid "Yönetici"
+msgstr "Yönetici"
+
+msgid "Yönetici olma talebi"
+msgstr "Yönetici olma talebi"
+
+msgid "Yönetim paneli"
+msgstr "Yönetim paneli"
+
+msgid "Zaman"
+msgstr "Zaman"
+
+msgid "Zaten bekleyen bir talebiniz var."
+msgstr "Zaten bekleyen bir talebiniz var."
+
+msgid "Zaten yönetici rolündesiniz."
+msgstr "Zaten yönetici rolündesiniz."
+
+msgid "Çıkış"
+msgstr "Çıkış"
+
+msgid "Önceki"
+msgstr "Önceki"
+
+msgid "Özet"
+msgstr "Özet"
+
+msgid "Öğrenci"
+msgstr "Öğrenci"
+
+msgid "Öğrenci alanı"
+msgstr "Öğrenci alanı"
+
+msgid "Öğrenci ders seçimi ve akademik yönetim"
+msgstr "Öğrenci ders seçimi ve akademik yönetim"
+
+msgid "Öğrenci test sayfası"
+msgstr "Öğrenci test sayfası"
+
+msgid "Öğretim üyesi"
+msgstr "Öğretim üyesi"
+
+msgid "Öğretim üyesi alanı"
+msgstr "Öğretim üyesi alanı"
+
+msgid "Öğretim üyesi test sayfası"
+msgstr "Öğretim üyesi test sayfası"
+
+msgid "İşlemler"
+msgstr "İşlemler"
+
+msgid "Şube"
+msgstr "Şube"
+

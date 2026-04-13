@@ -1,18 +1,36 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Ana Sayfa{% endblock %}
+{% block title %}{% trans "Ana sayfa" %}{% endblock %}
 
 {% block content %}
-<div class="card">
-    <div class="card-body">
-        <h1 class="h4">Django Phase 2: Auth ve Yetkilendirme</h1>
-        {% if user.is_authenticated %}
-            <p class="mb-1">Hos geldiniz, {{ user.get_full_name|default:user.username }}.</p>
-            <p class="text-muted mb-0">Rol: {{ user.role }}</p>
-        {% else %}
-            <p class="mb-0">Lutfen giris yapin veya kayit olun.</p>
-        {% endif %}
-        <p class="text-muted small mt-2 mb-0">Aktif ders teklifleri (kis TTL cache): {{ active_offering_count }}</p>
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0 phase11-card">
+            <div class="card-body">
+                <h1 class="h4 mb-3">{% trans "Öğrenci ders seçimi ve akademik yönetim" %}</h1>
+                {% if user.is_authenticated %}
+                    <p class="mb-1">{% trans "Hoş geldiniz" %}, {{ user.get_full_name|default:user.username }}.</p>
+                    <p class="text-muted mb-0">
+                        {% trans "Rol" %}: <span class="badge text-bg-secondary">{{ user.get_role_display }}</span>
+                    </p>
+                {% else %}
+                    <p class="mb-3">{% trans "Devam etmek için giriş yapın veya kayıt olun." %}</p>
+                    <a class="btn btn-primary me-2" href="{% url 'accounts:login' %}">{% trans "Giriş" %}</a>
+                    <a class="btn btn-outline-primary" href="{% url 'accounts:register' %}">{% trans "Kayıt ol" %}</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card shadow-sm border-0 phase11-card h-100">
+            <div class="card-body">
+                <h2 class="h6 text-secondary">{% trans "Özet" %}</h2>
+                <p class="small text-muted mb-0">
+                    {% trans "Aktif ders teklifleri (önbellekli)" %}: <strong>{{ active_offering_count }}</strong>
+                </p>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

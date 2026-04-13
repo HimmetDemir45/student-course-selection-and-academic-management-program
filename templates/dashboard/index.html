@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Yönetim paneli" %}{% endblock %}
+
+{% block content %}
+<h1 class="h4 mb-4">{% trans "Yönetim paneli" %}</h1>
+<div class="row g-3">
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm border-0 phase11-card">
+            <div class="card-body">
+                <h2 class="h6 text-secondary">{% trans "Akademik" %}</h2>
+                <p class="small text-muted mb-2">{% trans "Bölümler ve duyurular" %}</p>
+                <a class="btn btn-outline-primary btn-sm" href="{% url 'academic:department_list' %}">{% trans "Bölümler" %}</a>
+                <a class="btn btn-outline-primary btn-sm ms-1" href="{% url 'academic:announcement_list' %}">{% trans "Duyurular" %}</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm border-0 phase11-card">
+            <div class="card-body">
+                <h2 class="h6 text-secondary">{% trans "Dersler" %}</h2>
+                <p class="small text-muted mb-2">{% trans "Katalog ve teklifler" %}</p>
+                <a class="btn btn-outline-primary btn-sm" href="{% url 'courses:course_list' %}">{% trans "Dersler" %}</a>
+                <a class="btn btn-outline-primary btn-sm ms-1" href="{% url 'courses:offering_list' %}">{% trans "Ders teklifleri" %}</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm border-0 phase11-card">
+            <div class="card-body">
+                <h2 class="h6 text-secondary">{% trans "Denetim" %}</h2>
+                <p class="small text-muted mb-2">{% trans "Sistem olay günlüğü" %}</p>
+                <a class="btn btn-outline-primary btn-sm" href="{% url 'audit_logs:index' %}">{% trans "Denetim günlüğü" %}</a>
+            </div>
+        </div>
+    </div>
+    {% if is_founder %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm border-0 border-primary phase11-card">
+            <div class="card-body">
+                <h2 class="h6">{% trans "Kurucu yönetici" %}</h2>
+                <p class="small text-muted mb-2">
+                    {% trans "Bekleyen talep:" %} <strong>{{ pending_admin_request_count }}</strong>
+                </p>
+                <a class="btn btn-primary btn-sm" href="{% url 'dashboard:admin_requests' %}">{% trans "Admin taleplerini yönet" %}</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

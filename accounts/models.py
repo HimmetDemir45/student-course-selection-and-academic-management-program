@@ -1,16 +1,61 @@
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 
 class User(AbstractUser):
     class Role(models.TextChoices):
-        ADMIN = "admin", "Admin"
-        STUDENT = "student", "Student"
-        INSTRUCTOR = "instructor", "Instructor"
+        ADMIN = "admin", _("Yönetici")
+        STUDENT = "student", _("Öğrenci")
+        INSTRUCTOR = "instructor", _("Öğretim üyesi")
 
     role = models.CharField(max_length=20, choices=Role.choices, default=Role.STUDENT)
     email = models.EmailField(unique=True)
+    is_founder_admin = models.BooleanField(
+        default=False,
+        db_index=True,
+        help_text=_("Kurucu yönetici: tek hesap; yalnızca bu kullanıcı admin taleplerini onaylayabilir."),
+    )
 
     def save(self, *args, **kwargs):
         self.email = self.email.lower().strip()
         super().save(*args, **kwargs)
+
+
+class AdminRequest(models.Model):
+    class Status(models.TextChoices):
+        PENDING = "pending", _("Beklemede")
+        APPROVED = "approved", _("Onaylandı")
+        REJECTED = "rejected", _("Reddedildi")
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="admin_requests",
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PENDING,
+        db_index=True,
+    )
+    reason = models.TextField(blank=True)
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="reviewed_admin_requests",
+    )
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("-created_at",)
+        indexes = [
+            models.Index(fields=("status", "created_at"), name="idx_adminreq_status_created"),
+        ]
+
+    def __str__(self):
+        return f"{self.user_id} {self.status}"

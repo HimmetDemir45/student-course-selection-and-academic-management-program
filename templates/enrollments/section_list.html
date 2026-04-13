@@ -1,15 +1,16 @@
 {% extends "base.html" %}
-{% block title %}Ders sectionlari{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Açılan şubeler" %}{% endblock %}
 {% block content %}
-<h1>Acilan sectionlar</h1>
-<table class="table table-striped">
+<h1 class="h4 mb-3">{% trans "Açılan şubeler" %}</h1>
+<table class="table table-striped table-hover phase11-table">
     <thead>
     <tr>
-        <th>Ders</th>
-        <th>Donem</th>
-        <th>Section</th>
-        <th>Doluluk</th>
-        <th>Ogretim uyesi</th>
+        <th>{% trans "Ders" %}</th>
+        <th>{% trans "Dönem" %}</th>
+        <th>{% trans "Şube" %}</th>
+        <th>{% trans "Doluluk" %}</th>
+        <th>{% trans "Öğretim üyesi" %}</th>
         <th></th>
     </tr>
     </thead>
@@ -26,13 +27,13 @@
                 <form method="post" action="{% url 'enrollments:enroll' %}" class="d-inline">
                     {% csrf_token %}
                     <input type="hidden" name="section_id" value="{{ s.pk }}">
-                    <button type="submit" class="btn btn-sm btn-primary">Kayit ol</button>
+                    <button type="submit" class="btn btn-sm btn-primary">{% trans "Kayıt ol" %}</button>
                 </form>
                 {% endif %}
             </td>
         </tr>
     {% empty %}
-        <tr><td colspan="6">Kayitli section yok.</td></tr>
+        <tr><td colspan="6">{% trans "Listelenecek şube yok." %}</td></tr>
     {% endfor %}
     </tbody>
 </table>

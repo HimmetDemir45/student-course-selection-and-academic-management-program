@@ -1,0 +1,25 @@
+/* Phase 11: incremental UI polish; keeps Bootstrap as base. */
+.phase11-table > :not(caption) > * > * {
+  padding-top: 0.65rem;
+  padding-bottom: 0.65rem;
+  vertical-align: middle;
+}
+
+.phase11-card {
+  border-radius: 0.5rem;
+}
+
+.navbar.phase11-nav {
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
+}
+
+@media (max-width: 991.98px) {
+  .phase11-nav .navbar-nav .nav-link {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+}
+
+main.container {
+  padding-bottom: 2rem;
+}

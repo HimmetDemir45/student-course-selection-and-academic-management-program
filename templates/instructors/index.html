@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Öğretim üyesi alanı" %}{% endblock %}
+
+{% block content %}
+<h1 class="h4 mb-3">{% trans "Öğretim üyesi alanı" %}</h1>
+<p class="text-muted">{% trans "Ders teklifleriniz, not girişi ve kayıtlı öğrenciler için kısayollar." %}</p>
+<div class="list-group shadow-sm">
+    <a class="list-group-item list-group-item-action" href="{% url 'courses:offering_list' %}">{% trans "Ders teklifleri" %}</a>
+    <a class="list-group-item list-group-item-action" href="{% url 'academic:instructor_enrollments' %}">{% trans "Kayıtlı öğrenciler ve not girişi" %}</a>
+    <a class="list-group-item list-group-item-action" href="{% url 'academic:announcement_list' %}">{% trans "Duyurular" %}</a>
+</div>
+{% endblock %}
