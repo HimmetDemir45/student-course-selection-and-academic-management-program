@@ -7,18 +7,6 @@ from django.core.cache import cache
 from freezegun import freeze_time
 
 
-def pytest_sessionstart(session):
-    """Python 3.14: Django BaseContext.__copy__ uses copy(super()) which breaks; patch for tests."""
-    from django.template.context import BaseContext
-
-    def _fixed_basecontext_copy(self):
-        duplicate = object.__new__(self.__class__)
-        duplicate.dicts = self.dicts[:]
-        return duplicate
-
-    BaseContext.__copy__ = _fixed_basecontext_copy
-
-
 @pytest.fixture(scope="session", autouse=True)
 def deterministic_seed():
     os.environ.setdefault("PYTHONHASHSEED", "42")
@@ -34,6 +22,10 @@ def stable_time():
 
 @pytest.fixture(autouse=True)
 def safe_test_settings(settings):
+    eng = settings.DATABASES.get("default", {}).get("ENGINE", "")
+    if "mysql" in eng:
+        settings.DATABASES["default"]["CONN_MAX_AGE"] = 0
+
     settings.EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
     settings.CACHES = {
         "default": {

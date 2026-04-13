@@ -6,6 +6,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 env = environ.Env(
     LOG_LEVEL=(str, "INFO"),
+    LOG_SERVICE_NAME=(str, "student-academic-mgmt"),
 )
 environ.Env.read_env(BASE_DIR / ".env")
 
@@ -124,6 +125,7 @@ SESSION_COOKIE_AGE = 60 * 60 * 24 * 14
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 LOG_LEVEL = env("LOG_LEVEL")
+LOG_SERVICE_NAME = env("LOG_SERVICE_NAME")
 
 # Production JSON logs (structlog + CloudWatch/Loki/ELK). See docs/observability.md
 DJANGO_LOG_JSON = env.bool("DJANGO_LOG_JSON", default=False)
@@ -146,7 +148,7 @@ else:
         "formatters": {
             "verbose": {
                 "()": "core.logging_utils.RedactingFormatter",
-                "format": "{levelname} {asctime} {name} request_id={request_id} {message}",
+                "format": "{levelname} {asctime} {name} service={service} request_id={request_id} {message}",
                 "style": "{",
             },
         },

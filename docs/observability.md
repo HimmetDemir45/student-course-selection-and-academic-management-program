@@ -1,4 +1,6 @@
-# Observability (Phase 8)
+# Observability (Phase 8; Phase 10 `service` alani eklendi)
+
+**Phase 10:** `LOG_SERVICE_NAME` ortam degiskeni ile loglarda servis adi ayrimi; CI’da MySQL + pytest icin baglanti havuzu ve concurrency test zaman asimlari icin `tests/conftest.py` / `tests/enrollments/test_enrollment_concurrency.py` bakiniz.
 
 ## Log fields reference
 
@@ -6,9 +8,10 @@
 
 | Field | Source |
 |-------|--------|
+| `service` | `LOG_SERVICE_NAME` ayari (`config.settings.base`), varsayilan `student-academic-mgmt` |
 | `request_id` | `X-Request-ID` veya uretilen UUID (`core.middleware.request_id`) |
 | `http_path` / `http_method` | Context filter (`core.request_context`) |
-| `request` logger | `request_finished status=... duration_ms=... user_id=...` |
+| `request` logger | `request_finished service=... status=... duration_ms=... user_id=...` |
 
 ### JSON mode (`DJANGO_LOG_JSON=True`)
 
@@ -20,6 +23,7 @@ Structlog + stdlib bridge (`core/structlog_config.py`). Her satir JSON; tipik al
 | `level` | info, warning, error |
 | `logger` | django / request / ... |
 | `event` | Mesaj veya `request_finished` |
+| `service` | Baglam (`LOG_SERVICE_NAME`) |
 | `request_id` | Baglam (merge_contextvars) |
 | `http_path`, `http_method` | Istek basinda baglanir |
 | `status_code`, `duration_ms`, `user_id` | `request_finished` satirinda |
@@ -29,13 +33,13 @@ Parola/token benzeri anahtarlar maskelemeye tabidir (`_redact_event_dict`).
 ## Ornek log satiri (JSON)
 
 ```json
-{"timestamp":"2026-03-24T12:00:00.123456Z","level":"info","logger":"request","event":"request_finished","request_id":"a1b2c3d4-...","http_path":"/enrollments/enroll/","http_method":"POST","status_code":302,"duration_ms":45.2,"user_id":42}
+{"timestamp":"2026-03-24T12:00:00.123456Z","level":"info","logger":"request","event":"request_finished","service":"student-academic-mgmt","request_id":"a1b2c3d4-...","http_path":"/enrollments/enroll/","http_method":"POST","status_code":302,"duration_ms":45.2,"user_id":42}
 ```
 
 ## CloudWatch Logs Insights (ornek)
 
 ```
-fields @timestamp, request_id, status_code, duration_ms
+fields @timestamp, service, request_id, status_code, duration_ms
 | filter event = "request_finished"
 | stats avg(duration_ms), pct(duration_ms, 95) by bin(5m)
 ```

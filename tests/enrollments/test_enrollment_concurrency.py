@@ -5,6 +5,7 @@ from datetime import timedelta
 from queue import Queue
 
 import pytest
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, close_old_connections, transaction
@@ -48,6 +49,9 @@ def _attempt_enroll(student_id: int, section_id: int, q: Queue):
 
 
 def test_same_section_parallel_enrollment_does_not_exceed_capacity():
+    if settings.DATABASES["default"]["ENGINE"] == "django.db.backends.sqlite3":
+        pytest.skip("Paralel INSERT ile kapasite testi SQLite kilitleri nedeniyle desteklenmiyor; MySQL CI kosar.")
+
     today = timezone.localdate()
     dep = Department.objects.create(name="Muhendislik", code="MUH-CN")
     program = Program.objects.create(department=dep, name="BLM-CN", code="BLM-CN")
@@ -68,11 +72,12 @@ def test_same_section_parallel_enrollment_does_not_exceed_capacity():
     s2 = _create_student("cn_stu_2", "CN002", dep, program)
 
     results = Queue()
+    _pool_timeout_s = 120
     with ThreadPoolExecutor(max_workers=2) as pool:
         f1 = pool.submit(_attempt_enroll, s1.id, section.id, results)
         f2 = pool.submit(_attempt_enroll, s2.id, section.id, results)
-        f1.result()
-        f2.result()
+        f1.result(timeout=_pool_timeout_s)
+        f2.result(timeout=_pool_timeout_s)
 
     statuses = [results.get_nowait()[0] for _ in range(2)]
     enrolled_count = Enrollment.objects.filter(

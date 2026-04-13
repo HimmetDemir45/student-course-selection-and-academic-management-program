@@ -2,6 +2,8 @@ import sys
 
 from .base import *  # noqa: F403,F401
 
+_PYTEST_LOADED = "pytest" in sys.modules
+
 SECRET_KEY = env(  # noqa: F405
     "DJANGO_SECRET_KEY",
     default=env("SECRET_KEY", default="django-insecure-dev-only-change-me"),  # noqa: F405
@@ -16,7 +18,7 @@ ALLOWED_HOSTS = env.list(  # noqa: F405
 
 CSRF_TRUSTED_ORIGINS = env.list("DJANGO_CSRF_TRUSTED_ORIGINS", default=[])
 
-if "test" in sys.argv:
+if "test" in sys.argv or _PYTEST_LOADED:
     DATABASES["default"] = {  # noqa: F405
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": ":memory:",

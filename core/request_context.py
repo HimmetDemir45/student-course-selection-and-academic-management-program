@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import contextvars
 
+from django.conf import settings
+
 _request_id: contextvars.ContextVar[str | None] = contextvars.ContextVar("log_request_id", default=None)
 _http_path: contextvars.ContextVar[str | None] = contextvars.ContextVar("log_http_path", default=None)
 _http_method: contextvars.ContextVar[str | None] = contextvars.ContextVar("log_http_method", default=None)
@@ -28,4 +30,5 @@ class RequestContextFilter:
         record.request_id = _request_id.get() or "-"
         record.http_path = _http_path.get() or "-"
         record.http_method = _http_method.get() or "-"
+        record.service = getattr(settings, "LOG_SERVICE_NAME", "student-academic-mgmt")
         return True
