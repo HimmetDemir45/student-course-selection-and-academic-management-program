@@ -19,6 +19,9 @@ ALLOWED_HOSTS = env.list(  # noqa: F405
 CSRF_TRUSTED_ORIGINS = env.list("DJANGO_CSRF_TRUSTED_ORIGINS", default=[])
 
 if "test" in sys.argv or _PYTEST_LOADED:
+    # core/urls.py test rotalari: DEBUG kapali olsa da testlerde reverse() calissin.
+    # Rollback: bu satiri silin; prod etkilenmez (prod.py bu blogu import etmez).
+    INCLUDE_CORE_DEV_TEST_ROUTES = True
     DATABASES["default"] = {  # noqa: F405
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": ":memory:",

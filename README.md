@@ -63,7 +63,7 @@
 | Üretim medya/statik | `django-storages`, `boto3`, S3 |
 | Sunucu | Gunicorn |
 | Konteyner | Docker, `docker-compose` |
-| CI | GitHub Actions (Ruff, pip-audit, Bandit, test, Codecov, SBOM) |
+| CI | GitHub Actions (Ruff, pip-audit, Bandit JSON artifact, test, Codecov, SBOM) |
 | Yapılandırılmış log | `structlog` (JSON mod opsiyonel) |
 
 ---
@@ -211,7 +211,7 @@ Ayrıntı: **`docs/TESTING.md`**.
 
 | Workflow | Tetik | Amaç |
 |----------|--------|------|
-| `ci.yml` | `push`/`pull_request` (`main`, `develop`), `workflow_call` | Ruff, pip-audit, Bandit, MySQL’de migrate + test + Codecov + SBOM |
+| `ci.yml` | `push`/`pull_request` (`main`, `develop`), `workflow_call` | Ruff, pip-audit, Bandit (JSON artifact), MySQL’de migrate + test + Codecov (`fail_ci_if_error: true`) + SBOM |
 | `phase9-ci.yml` | Aynı | Ek kapılar: pytest marker, migration smoke, detect-secrets |
 | `deploy.yml` | `main` / manuel | GHCR imaj üretimi |
 | `release.yml` | Tag `v*` | Kalite kapısı → imaj → isteğe bağlı SSH/ECS deploy → smoke |
@@ -406,7 +406,7 @@ Sınıfta veya ekipte tekrarlanabilir yayın töreni.
 
 ### Yapılan Çalışmalar
 
-Release içinde SSH/ECS seçenekleri, Codecov + Bandit SARIF + CycloneDX SBOM, structlog JSON, `enrollment_atomic` ve `select_for_update`, canary workflow, özellik bayrakları.
+Release içinde SSH/ECS seçenekleri, Codecov + Bandit JSON artifact + CycloneDX SBOM, structlog JSON, `enrollment_atomic` ve `select_for_update`, canary workflow, özellik bayrakları.
 
 ### Teknik Kazanımlar
 

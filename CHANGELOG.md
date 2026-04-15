@@ -9,13 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Phase 8: production deploy (SSH/ECS) in `release.yml`, Codecov + Bandit SARIF + CycloneDX SBOM in CI, structlog JSON logging, enrollment `select_for_update` + rate limits, GitHub canary workflow, SLO/observability docs.
+- Phase 8: production deploy (SSH/ECS) in `release.yml`, Codecov + Bandit JSON artifact + CycloneDX SBOM in CI, structlog JSON logging, enrollment `select_for_update` + rate limits, GitHub canary workflow, SLO/observability docs.
 
 ### Changed
 
 - Enrollment POST uses atomic row lock and shared service `enrollment_atomic`.
 
-## [1.0.0] - YYYY-MM-DD
+## [1.0.0] - 2026-04-16
 
 ### Added
 

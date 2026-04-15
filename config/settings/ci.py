@@ -26,3 +26,7 @@ SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
 
 RATELIMIT_ENABLE = False
+
+# core/urls.py test rotalari: CI DEBUG=False oldugundan True (prod'da tanimlanmaz).
+# Rollback: bu satiri silin; test URL'leri icin core/urls.py'deki kosulu DEBUG=True yapin veya kaldirin.
+INCLUDE_CORE_DEV_TEST_ROUTES = True
