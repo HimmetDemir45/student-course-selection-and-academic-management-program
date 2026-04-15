@@ -1,8 +1,10 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Q
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 
+from academic.models import Department
 from core.permissions import AdminRequiredMixin
 
 from .forms import CourseForm, CourseOfferingForm
@@ -15,7 +17,33 @@ class CourseListView(LoginRequiredMixin, ListView):
     context_object_name = "courses"
 
     def get_queryset(self):
-        return Course.objects.select_related("department", "program").order_by("code")
+        qs = Course.objects.select_related("department", "program")
+        q = (self.request.GET.get("q") or "").strip()
+        if q:
+            qs = qs.filter(Q(code__icontains=q) | Q(name__icontains=q))
+        dep = self.request.GET.get("department")
+        if dep and str(dep).isdigit():
+            qs = qs.filter(department_id=int(dep))
+        sort = self.request.GET.get("sort") or "code"
+        if sort == "name":
+            qs = qs.order_by("name", "code")
+        elif sort == "dept":
+            qs = qs.order_by("department__code", "code")
+        elif sort == "credits_desc":
+            qs = qs.order_by("-credits", "code")
+        else:
+            qs = qs.order_by("code")
+        return qs
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["filter_departments"] = Department.objects.filter(is_active=True).order_by("code")
+        ctx["current_filters"] = {
+            "q": self.request.GET.get("q", "").strip(),
+            "department": self.request.GET.get("department", ""),
+            "sort": self.request.GET.get("sort", "code"),
+        }
+        return ctx
 
 
 class CourseCreateView(AdminRequiredMixin, CreateView):

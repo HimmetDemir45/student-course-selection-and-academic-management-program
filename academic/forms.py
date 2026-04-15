@@ -21,5 +21,15 @@ class GradeForm(forms.ModelForm):
         fields = ("letter_grade", "numeric_grade")
         labels = {
             "letter_grade": "Harf notu",
-            "numeric_grade": "Sayisal not",
+            "numeric_grade": "Sayısal not",
+        }
+        help_texts = {
+            "letter_grade": "A, B, C, D veya F (büyük harf önerilir).",
+            "numeric_grade": "İsteğe bağlı; harf notu ile birlikte kullanılabilir.",
+        }
+        widgets = {
+            "letter_grade": forms.TextInput(
+                attrs={"class": "form-control", "maxlength": "2", "autocomplete": "off"}
+            ),
+            "numeric_grade": forms.NumberInput(attrs={"class": "form-control", "step": "0.01"}),
         }

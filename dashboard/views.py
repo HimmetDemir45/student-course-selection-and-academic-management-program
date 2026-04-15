@@ -1,5 +1,7 @@
 from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
+from django.db.models import Q
 from django.shortcuts import redirect
 from django.utils import timezone
 from django.utils.translation import gettext as _
@@ -7,22 +9,72 @@ from django.views import View
 from django.views.generic import ListView, TemplateView
 
 from accounts.models import AdminRequest, User
+from academic.models import Announcement, Semester
 from audit_logs.services import log_event
-from core.permissions import AdminRequiredMixin, FounderAdminRequiredMixin
+from courses.models import CourseOffering
+from core.permissions import FounderAdminRequiredMixin
+from core.services.enrollment_rules import is_within_add_drop
+from enrollments.models import Enrollment
 
 
-class DashboardIndexView(AdminRequiredMixin, TemplateView):
+class DashboardIndexView(LoginRequiredMixin, TemplateView):
+    """
+    Tüm roller için özet; yönetim linkleri yalnızca admin şablonda gösterilir.
+    Rollback: AdminRequiredMixin'e dönün ve şablonu eski haline alın.
+    """
+
     template_name = "dashboard/index.html"
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         u = self.request.user
+        role = getattr(u, "role", None)
+        ctx["role"] = role
         ctx["is_founder"] = bool(getattr(u, "is_founder_admin", False))
         ctx["pending_admin_request_count"] = (
             AdminRequest.objects.filter(status=AdminRequest.Status.PENDING).count()
             if ctx["is_founder"]
             else 0
         )
+        today = timezone.localdate()
+        semesters = list(Semester.objects.filter(is_active=True))
+        ctx["any_add_drop_open"] = any(is_within_add_drop(s, today) for s in semesters)
+
+        if role == "student":
+            try:
+                sp = u.student_profile
+                ctx["student_enrollment_active"] = Enrollment.objects.filter(
+                    student=sp,
+                    status__in=(Enrollment.Status.ENROLLED, Enrollment.Status.PENDING),
+                ).count()
+            except Exception:
+                ctx["student_enrollment_active"] = None
+
+        if role == "instructor":
+            try:
+                inst = u.instructor_profile
+                ctx["instructor_pending_grades"] = (
+                    Enrollment.objects.filter(
+                        section__offering__instructor=inst,
+                        status=Enrollment.Status.ENROLLED,
+                    )
+                    .filter(
+                        Q(academic_grade__isnull=True) | Q(academic_grade__letter_grade="")
+                    )
+                    .count()
+                )
+                ctx["instructor_offering_count"] = CourseOffering.objects.filter(
+                    instructor=inst, is_active=True
+                ).count()
+            except Exception:
+                ctx["instructor_pending_grades"] = None
+                ctx["instructor_offering_count"] = None
+
+        if role == "admin":
+            ctx["recent_announcements"] = list(
+                Announcement.objects.filter(is_active=True).order_by("-created_at")[:3]
+            )
+
         return ctx
 
 

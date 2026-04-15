@@ -3,6 +3,8 @@ CI / GitHub Actions: MySQL-backed tests (no sqlite override).
 Set DATABASE_URL to match the workflow service container.
 """
 
+import sys
+
 from .base import *  # noqa: F403,F401
 
 # CI must set DJANGO_SECRET_KEY in the workflow; local fallbacks are non-production placeholders only.
@@ -30,3 +32,8 @@ RATELIMIT_ENABLE = False
 # core/urls.py test rotalari: CI DEBUG=False oldugundan True (prod'da tanimlanmaz).
 # Rollback: bu satiri silin; test URL'leri icin core/urls.py'deki kosulu DEBUG=True yapin veya kaldirin.
 INCLUDE_CORE_DEV_TEST_ROUTES = True
+
+if sys.version_info >= (3, 14):
+    from core.test_client_context_patch import apply_patch
+
+    apply_patch()

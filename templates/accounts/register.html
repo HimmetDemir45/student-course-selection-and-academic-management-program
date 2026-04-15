@@ -1,40 +1,42 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Kayit Ol{% endblock %}
+{% block title %}{% trans "Kayıt ol" %}{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-6">
-        <h2>Kayit Ol</h2>
-        <form method="post" novalidate>
+        <h1 class="h4 mb-3">{% trans "Kayıt ol" %}</h1>
+        <form id="register-form" method="post" novalidate>
             {% csrf_token %}
             {{ form.non_field_errors }}
             <div class="mb-3">
-                <label class="form-label">{{ form.first_name.label }}</label>
+                <label class="form-label" for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label>
                 {{ form.first_name }}
                 <div class="text-danger small">{{ form.first_name.errors }}</div>
             </div>
             <div class="mb-3">
-                <label class="form-label">{{ form.last_name.label }}</label>
+                <label class="form-label" for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}</label>
                 {{ form.last_name }}
                 <div class="text-danger small">{{ form.last_name.errors }}</div>
             </div>
             <div class="mb-3">
-                <label class="form-label">{{ form.email.label }}</label>
+                <label class="form-label" for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
                 {{ form.email }}
+                <div id="email-hint" class="form-text">{% trans "E-posta benzersiz olmalıdır." %}</div>
                 <div class="text-danger small">{{ form.email.errors }}</div>
             </div>
             <div class="mb-3">
-                <label class="form-label">{{ form.password1.label }}</label>
+                <label class="form-label" for="{{ form.password1.id_for_label }}">{{ form.password1.label }}</label>
                 {{ form.password1 }}
                 <div class="text-danger small">{{ form.password1.errors }}</div>
             </div>
             <div class="mb-3">
-                <label class="form-label">{{ form.password2.label }}</label>
+                <label class="form-label" for="{{ form.password2.id_for_label }}">{{ form.password2.label }}</label>
                 {{ form.password2 }}
                 <div class="text-danger small">{{ form.password2.errors }}</div>
             </div>
-            <button type="submit" class="btn btn-primary">Kayit Ol</button>
+            <button type="submit" class="btn btn-primary">{% trans "Kayıt ol" %}</button>
         </form>
     </div>
 </div>

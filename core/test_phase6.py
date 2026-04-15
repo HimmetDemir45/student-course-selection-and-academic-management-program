@@ -43,12 +43,14 @@ class RbacBoundaryTests(Phase4FactoriesMixin, TestCase):
         response = client.get(reverse("core:student_test"))
         self.assertEqual(response.status_code, 302)
 
-    def test_student_redirected_from_admin_dashboard(self):
+    def test_student_dashboard_is_accessible_without_admin_audit_nav(self):
+        """Phase 14: öğrenci panosuna erişir; denetim URL'si sayfada yok."""
         st = self._student("RBAC1")
         client = Client()
         client.force_login(st.user)
         response = client.get(reverse("dashboard:index"))
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("/audit-logs/", response.content.decode("utf-8"))
 
     def test_instructor_reaches_instructor_test_endpoint(self):
         ins = self._instructor("RBACI")

@@ -1,10 +1,67 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-{% block title %}{% trans "Yönetim paneli" %}{% endblock %}
+{% block title %}{% trans "Pano" %}{% endblock %}
 
 {% block content %}
-<h1 class="h4 mb-4">{% trans "Yönetim paneli" %}</h1>
+<h1 class="h4 mb-4">{% trans "Pano" %}</h1>
+
+{% if role == "student" %}
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card h-100 shadow-sm border-0 phase11-card">
+            <div class="card-body">
+                <h2 class="h6">{% trans "Bugün ne yapmalıyım?" %}</h2>
+                {% if any_add_drop_open %}
+                    <p class="small text-success mb-2">{% trans "Ders kaydı / ders bırakma penceresi açık görünüyor." %}</p>
+                {% else %}
+                    <p class="small text-muted mb-2">{% trans "Şu an için açık bir kayıt penceresi bilgisi yok veya pencere kapalı." %}</p>
+                {% endif %}
+                <a class="btn btn-primary btn-sm" href="{% url 'enrollments:browse' %}">{% trans "Ders kaydına git" %}</a>
+                <a class="btn btn-outline-secondary btn-sm ms-1" href="{% url 'students:transcript' %}">{% trans "Transkript" %}</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100 shadow-sm border-0 phase11-card">
+            <div class="card-body">
+                <h2 class="h6 text-secondary">{% trans "Özet" %}</h2>
+                {% if student_enrollment_active is not None %}
+                    <p class="small mb-0">{% trans "Aktif veya bekleyen ders kaydı sayısı" %}: <strong>{{ student_enrollment_active }}</strong></p>
+                {% else %}
+                    <p class="small text-warning mb-0">{% trans "Öğrenci profili eksik." %}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% elif role == "instructor" %}
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card h-100 shadow-sm border-0 phase11-card">
+            <div class="card-body">
+                <h2 class="h6">{% trans "Bekleyen işler" %}</h2>
+                {% if instructor_pending_grades is not None %}
+                    <p class="small mb-2">{% trans "Not girişi bekleyen kayıt" %}: <strong>{{ instructor_pending_grades }}</strong></p>
+                {% endif %}
+                <a class="btn btn-primary btn-sm" href="{% url 'academic:instructor_enrollments' %}">{% trans "Öğrenciler ve notlar" %}</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100 shadow-sm border-0 phase11-card">
+            <div class="card-body">
+                <h2 class="h6 text-secondary">{% trans "Verdiğim dersler" %}</h2>
+                {% if instructor_offering_count is not None %}
+                    <p class="small mb-2">{% trans "Aktif ders teklifi" %}: <strong>{{ instructor_offering_count }}</strong></p>
+                {% endif %}
+                <a class="btn btn-outline-primary btn-sm" href="{% url 'courses:offering_list' %}">{% trans "Ders tekliflerim" %}</a>
+                <a class="btn btn-outline-secondary btn-sm ms-1" href="{% url 'academic:announcement_list' %}">{% trans "Duyurular" %}</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% elif role == "admin" %}
 <div class="row g-3">
     <div class="col-md-6 col-lg-4">
         <div class="card h-100 shadow-sm border-0 phase11-card">
@@ -35,6 +92,21 @@
             </div>
         </div>
     </div>
+    {% if recent_announcements %}
+    <div class="col-12">
+        <div class="card shadow-sm border-0 phase11-card">
+            <div class="card-body">
+                <h2 class="h6">{% trans "Son duyurular" %}</h2>
+                <ul class="small mb-0">
+                    {% for a in recent_announcements %}
+                        <li>{{ a.title }}</li>
+                    {% endfor %}
+                </ul>
+                <a class="btn btn-link btn-sm px-0" href="{% url 'academic:announcement_list' %}">{% trans "Tümünü gör" %}</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
     {% if is_founder %}
     <div class="col-md-6 col-lg-4">
         <div class="card h-100 shadow-sm border-0 border-primary phase11-card">
@@ -43,10 +115,13 @@
                 <p class="small text-muted mb-2">
                     {% trans "Bekleyen talep:" %} <strong>{{ pending_admin_request_count }}</strong>
                 </p>
-                <a class="btn btn-primary btn-sm" href="{% url 'dashboard:admin_requests' %}">{% trans "Admin taleplerini yönet" %}</a>
+                <a class="btn btn-primary btn-sm" href="{% url 'dashboard:admin_requests' %}">{% trans "Yönetici taleplerini yönet" %}</a>
             </div>
         </div>
     </div>
     {% endif %}
 </div>
+{% else %}
+<p class="text-muted">{% trans "Pano içeriği rolünüz için yapılandırılmadı." %}</p>
+{% endif %}
 {% endblock %}

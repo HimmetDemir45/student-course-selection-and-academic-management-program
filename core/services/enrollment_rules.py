@@ -179,3 +179,44 @@ def validate_enrollment_save(enrollment: Enrollment) -> None:
         and enrollment.status == enrollment.Status.DROPPED
     ):
         validate_drop_window(enrollment, enrollment.Status.DROPPED)
+
+
+def collect_enrollment_preview_messages(student_profile, section) -> dict:
+    """
+    Ders kaydı ekranı için salt okunur önizleme; DB'ye yazmaz.
+    Rollback: enrollments/views.py ve şablondaki enrollment_preview kullanımını kaldırın.
+    """
+    from enrollments.models import Enrollment
+
+    cap = _effective_capacity(section)
+    used = count_active_enrollments(section.pk, exclude_enrollment_id=None)
+    pct = int(round(100 * used / cap)) if cap else 0
+    pct = min(100, max(0, pct))
+    enr = Enrollment(
+        student=student_profile,
+        section=section,
+        status=Enrollment.Status.ENROLLED,
+    )
+    blockers: list[str] = []
+    for fn in (
+        validate_capacity,
+        validate_prerequisites,
+        validate_schedule_conflict,
+        validate_add_drop_for_new_enrollment,
+    ):
+        try:
+            fn(enr)
+        except ValidationError as exc:
+            if getattr(exc, "messages", None):
+                blockers.extend(list(exc.messages))
+            else:
+                blockers.append(str(exc))
+    has_room = cap > 0 and used < cap
+    return {
+        "capacity_used": used,
+        "capacity_cap": cap,
+        "capacity_pct": pct,
+        "has_capacity": has_room,
+        "blockers": blockers,
+        "eligible": (not blockers) and has_room,
+    }

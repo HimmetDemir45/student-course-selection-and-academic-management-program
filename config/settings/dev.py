@@ -38,3 +38,8 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
+
+if sys.version_info >= (3, 14) and ("test" in sys.argv or _PYTEST_LOADED):
+    from core.test_client_context_patch import apply_patch
+
+    apply_patch()

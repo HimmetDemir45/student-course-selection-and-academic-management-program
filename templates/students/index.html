@@ -1,10 +1,11 @@
 {% extends "base.html" %}
 {% load i18n %}
-{% block title %}{% trans "Öğrenci" %}{% endblock %}
+{% block title %}{% trans "Öğrenci alanı" %}{% endblock %}
 {% block content %}
 <h1 class="h4 mb-3">{% trans "Öğrenci alanı" %}</h1>
 <div class="list-group shadow-sm">
     <a class="list-group-item list-group-item-action" href="{% url 'students:transcript' %}">{% trans "Transkript ve GPA" %}</a>
+    <a class="list-group-item list-group-item-action" href="{% url 'courses:course_list' %}">{% trans "Ders kataloğu" %}</a>
     <a class="list-group-item list-group-item-action" href="{% url 'enrollments:browse' %}">{% trans "Ders kaydı" %}</a>
 </div>
 {% endblock %}

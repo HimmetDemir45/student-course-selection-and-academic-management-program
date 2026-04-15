@@ -1,17 +1,70 @@
 {% extends "base.html" %}
 {% load i18n %}
-{% block title %}{% trans "Açılan şubeler" %}{% endblock %}
+{% block title %}{% trans "Ders kaydı — şubeler" %}{% endblock %}
 {% block content %}
-<h1 class="h4 mb-3">{% trans "Açılan şubeler" %}</h1>
-<table class="table table-striped table-hover phase11-table">
+<h1 class="h4 mb-3">{% trans "Ders kaydı — açılan şubeler" %}</h1>
+
+<form class="row g-2 align-items-end mb-3" method="get" role="search" aria-label="{% trans 'Şube filtreleri' %}">
+    <div class="col-md-3">
+        <label for="filter-q" class="form-label small mb-0">{% trans "Arama" %}</label>
+        <input id="filter-q" class="form-control form-control-sm" type="search" name="q" value="{{ current_filters.q }}" placeholder="{% trans 'Kod veya ders adı' %}" aria-label="{% trans 'Ders kodu veya adı ile ara' %}">
+    </div>
+    <div class="col-md-2">
+        <label for="filter-semester" class="form-label small mb-0">{% trans "Dönem" %}</label>
+        <select id="filter-semester" class="form-select form-select-sm" name="semester" aria-label="{% trans 'Dönem filtresi' %}">
+            <option value="">{% trans "Tümü" %}</option>
+            {% for s in filter_semesters %}
+                <option value="{{ s.pk }}" {% if current_filters.semester == s.pk|stringformat:"s" %}selected{% endif %}>{{ s }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-2">
+        <label for="filter-dept" class="form-label small mb-0">{% trans "Bölüm" %}</label>
+        <select id="filter-dept" class="form-select form-select-sm" name="department" aria-label="{% trans 'Bölüm filtresi' %}">
+            <option value="">{% trans "Tümü" %}</option>
+            {% for d in filter_departments %}
+                <option value="{{ d.pk }}" {% if current_filters.department == d.pk|stringformat:"s" %}selected{% endif %}>{{ d.code }} — {{ d.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-2">
+        <label for="filter-sort" class="form-label small mb-0">{% trans "Sıralama" %}</label>
+        <select id="filter-sort" class="form-select form-select-sm" name="sort" aria-label="{% trans 'Sıralama' %}">
+            <option value="code" {% if current_filters.sort == "code" %}selected{% endif %}>{% trans "Ders kodu (A→Z)" %}</option>
+            <option value="code_desc" {% if current_filters.sort == "code_desc" %}selected{% endif %}>{% trans "Ders kodu (Z→A)" %}</option>
+            <option value="semester" {% if current_filters.sort == "semester" %}selected{% endif %}>{% trans "Dönem" %}</option>
+            <option value="cap" {% if current_filters.sort == "cap" %}selected{% endif %}>{% trans "Kontenjan (önce uygun)" %}</option>
+            <option value="cap_desc" {% if current_filters.sort == "cap_desc" %}selected{% endif %}>{% trans "Kontenjan (önce dolu)" %}</option>
+        </select>
+    </div>
+    <div class="col-md-2 form-check mt-4">
+        <input class="form-check-input" type="checkbox" name="avail" value="1" id="filter-avail" {% if current_filters.avail == "1" %}checked{% endif %}>
+        <label class="form-check-label small" for="filter-avail">{% trans "Yalnızca kontenjanı uygun şubeler" %}</label>
+    </div>
+    <div class="col-md-1">
+        <button type="submit" class="btn btn-sm btn-primary w-100">{% trans "Uygula" %}</button>
+    </div>
+</form>
+
+{% if not sections %}
+<div class="alert alert-info" role="status">
+    {% trans "Kriterlere uygun şube bulunamadı. Filtreleri gevşetmeyi veya aramayı değiştirmeyi deneyin." %}
+</div>
+{% endif %}
+
+<div class="table-responsive table-responsive-stack">
+<table class="table table-striped table-hover phase11-table align-middle">
     <thead>
     <tr>
-        <th>{% trans "Ders" %}</th>
-        <th>{% trans "Dönem" %}</th>
-        <th>{% trans "Şube" %}</th>
-        <th>{% trans "Doluluk" %}</th>
-        <th>{% trans "Öğretim üyesi" %}</th>
-        <th></th>
+        <th scope="col">{% trans "Ders" %}</th>
+        <th scope="col">{% trans "Dönem" %}</th>
+        <th scope="col">{% trans "Şube" %}</th>
+        <th scope="col">{% trans "Kontenjan" %}</th>
+        <th scope="col">{% trans "Öğretim üyesi" %}</th>
+        {% if user.is_authenticated and user.role == "student" %}
+        <th scope="col">{% trans "Önkoşul / çakışma" %}</th>
+        {% endif %}
+        <th scope="col"></th>
     </tr>
     </thead>
     <tbody>
@@ -20,21 +73,48 @@
             <td>{{ s.offering.course.code }} — {{ s.offering.course.name }}</td>
             <td>{{ s.offering.semester }}</td>
             <td>{{ s.offering.section }}</td>
-            <td>{{ s.active_enrollment_count }} / {% if s.max_enrollment %}{{ s.max_enrollment }}{% else %}{{ s.offering.quota }}{% endif %}</td>
-            <td>{% if s.offering.instructor %}{{ s.offering.instructor.user.get_full_name|default:s.offering.instructor.user.username }}{% else %}-{% endif %}</td>
             <td>
-                {% if user.is_authenticated and user.role == 'student' %}
+                <span class="small">{{ s.active_enrollment_count }} / {{ s.effective_quota }}</span>
+                {% if s.effective_quota %}
+                <div class="phase14-capacity-bar mt-1 {% if s.capacity_pct >= 100 %}is-full{% elif s.capacity_pct >= 85 %}is-warn{% endif %}" aria-hidden="true">
+                    <span style="width: {% if s.capacity_pct > 100 %}100{% else %}{{ s.capacity_pct }}{% endif %}%;"></span>
+                </div>
+                {% endif %}
+            </td>
+            <td>{% if s.offering.instructor %}{{ s.offering.instructor.user.get_full_name|default:s.offering.instructor.user.username }}{% else %}-{% endif %}</td>
+            {% if user.is_authenticated and user.role == "student" %}
+            <td>
+                {% if s.enrollment_preview %}
+                    {% if s.enrollment_preview.eligible %}
+                        <span class="badge text-bg-success">{% trans "Uygun" %}</span>
+                    {% else %}
+                        <ul class="small mb-0 ps-3 text-danger">
+                            {% for msg in s.enrollment_preview.blockers %}
+                                <li>{{ msg }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                {% else %}
+                    <span class="text-muted">—</span>
+                {% endif %}
+            </td>
+            {% endif %}
+            <td>
+                {% if user.is_authenticated and user.role == "student" %}
                 <form method="post" action="{% url 'enrollments:enroll' %}" class="d-inline">
                     {% csrf_token %}
                     <input type="hidden" name="section_id" value="{{ s.pk }}">
-                    <button type="submit" class="btn btn-sm btn-primary">{% trans "Kayıt ol" %}</button>
+                    <button type="submit" class="btn btn-sm btn-primary" {% if s.enrollment_preview and not s.enrollment_preview.eligible %}disabled aria-disabled="true" title="{% trans 'Önkoşul, çakışma veya kontenjan nedeniyle kayıt mümkün değil' %}"{% endif %} aria-label="{% trans 'Bu şubeye ders kaydı yap' %} {{ s.offering.course.code }}">
+                        {% trans "Ders kaydı" %}
+                    </button>
                 </form>
                 {% endif %}
             </td>
         </tr>
     {% empty %}
-        <tr><td colspan="6">{% trans "Listelenecek şube yok." %}</td></tr>
+        <tr><td colspan="{% if user.is_authenticated and user.role == 'student' %}7{% else %}6{% endif %}" class="text-center text-muted">{% trans "Listelenecek şube yok." %}</td></tr>
     {% endfor %}
     </tbody>
 </table>
+</div>
 {% endblock %}

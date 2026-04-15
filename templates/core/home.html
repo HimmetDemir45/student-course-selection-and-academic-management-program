@@ -26,9 +26,24 @@
         <div class="card shadow-sm border-0 phase11-card h-100">
             <div class="card-body">
                 <h2 class="h6 text-secondary">{% trans "Özet" %}</h2>
-                <p class="small text-muted mb-0">
+                <p class="small text-muted mb-2">
                     {% trans "Aktif ders teklifleri (önbellekli)" %}: <strong>{{ active_offering_count }}</strong>
                 </p>
+                {% if user.is_authenticated and user.role == "student" %}
+                    {% if home_any_add_drop_open %}
+                        <p class="small text-success mb-2">{% trans "Ders kaydı penceresi açık olabilir; şubeleri kontrol edin." %}</p>
+                    {% endif %}
+                    {% if home_student_enrollments is not None %}
+                        <p class="small mb-0">{% trans "Kayıtlı şube sayısı" %}: <strong>{{ home_student_enrollments }}</strong></p>
+                    {% endif %}
+                {% elif user.is_authenticated and user.role == "instructor" %}
+                    {% if home_instructor_pending_grades is not None %}
+                        <p class="small mb-1">{% trans "Not bekleyen kayıt" %}: <strong>{{ home_instructor_pending_grades }}</strong></p>
+                    {% endif %}
+                    {% if home_instructor_offerings is not None %}
+                        <p class="small mb-0">{% trans "Aktif teklif" %}: <strong>{{ home_instructor_offerings }}</strong></p>
+                    {% endif %}
+                {% endif %}
             </div>
         </div>
     </div>
