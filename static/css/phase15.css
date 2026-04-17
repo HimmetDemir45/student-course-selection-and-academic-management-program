@@ -1,0 +1,44 @@
+/* Phase 15: menü aktif durumu, breadcrumb, transkript yazdırma. Rollback: base.html linkini kaldırın. */
+
+.phase15-nav-link.active {
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.2rem;
+}
+
+.dropdown-item.active {
+  font-weight: 600;
+  background-color: rgba(13, 110, 253, 0.12);
+}
+
+.phase15-breadcrumb .breadcrumb {
+  --bs-breadcrumb-divider: "›";
+}
+
+.phase15-alert {
+  border-radius: 0.375rem;
+}
+
+.phase15-quota-badge {
+  font-size: 0.75rem;
+}
+
+.phase15-blocker-pill {
+  font-size: 0.75rem;
+  white-space: normal;
+  text-align: left;
+}
+
+@media print {
+  .navbar,
+  .phase15-breadcrumb,
+  .phase15-no-print {
+    display: none !important;
+  }
+  .transcript-print {
+    max-width: 100% !important;
+  }
+  .phase14-main {
+    padding-bottom: 0 !important;
+  }
+}

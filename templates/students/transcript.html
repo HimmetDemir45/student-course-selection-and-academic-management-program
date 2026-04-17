@@ -2,16 +2,18 @@
 {% load i18n %}
 {% block title %}{% trans "Transkript" %}{% endblock %}
 {% block content %}
+<div class="transcript-print">
 <h1 class="h4 mb-3">{% trans "Akademik transkript" %}</h1>
 {% if no_profile %}
     <p class="text-warning" role="alert">{% trans "Öğrenci profiliniz tanımlı değil." %}</p>
 {% else %}
-    <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
-        <p class="mb-0"><strong>{% trans "Kümülatif GPA" %}:</strong> {{ gpa }} <span class="text-muted">({{ gpa_credits }} {% trans "kredi" %})</span></p>
-        <button type="button" class="btn btn-sm btn-outline-secondary ms-auto" disabled title="{% trans 'Dışa aktarma yakında etkinleştirilecek' %}" aria-disabled="true">
-            {% trans "Yazdır / dışa aktar" %}
+    <div class="d-flex flex-wrap gap-2 align-items-center mb-3 phase15-no-print">
+        <p class="mb-0"><strong>{% trans "Genel GPA" %}:</strong> {{ gpa }} <span class="text-muted">({{ gpa_credits }} {% trans "kredi" %})</span></p>
+        <button type="button" class="btn btn-sm btn-outline-secondary ms-auto" onclick="window.print()">
+            {% trans "Yazdır" %}
         </button>
     </div>
+    <div class="d-none d-print-block mb-2 small text-muted">{% trans "Genel GPA" %}: {{ gpa }} ({{ gpa_credits }} {% trans "kredi" %})</div>
     {% if not semester_blocks %}
     <p class="text-muted">{% trans "Kayıt bulunmuyor." %}</p>
     {% endif %}
@@ -21,7 +23,7 @@
             <h2 class="h6 mb-0" id="sem-h-{{ block.semester.pk }}">{{ block.semester }}</h2>
             <div class="small text-muted">
                 <span class="me-2"><strong>{% trans "Dönem GPA" %}:</strong> {{ block.semester_gpa }} ({{ block.semester_credits }} {% trans "kredi" %})</span>
-                <span><strong>{% trans "Kümülatif GPA" %}:</strong> {{ block.cumulative_gpa }}</span>
+                <span><strong>{% trans "Genel GPA (kümülatif)" %}:</strong> {{ block.cumulative_gpa }}</span>
             </div>
         </div>
         <div class="card-body p-0">
@@ -51,4 +53,5 @@
     </section>
     {% endfor %}
 {% endif %}
+</div>
 {% endblock %}

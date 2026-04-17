@@ -38,3 +38,21 @@ class PageUsabilityFlowsTests(Phase4FactoriesMixin, TestCase):
         client.force_login(ins.user)
         r = client.get(reverse("students:transcript"))
         self.assertEqual(r.status_code, 302)
+
+    def test_enrollment_browse_pagination_returns_200(self):
+        inst = self._instructor()
+        c = self._course("USAP1", "Pagination A")
+        off = self._offering(c, instructor=inst)
+        self._section(off)
+        st = self._student("USAP_ST")
+        client = Client()
+        client.force_login(st.user)
+        r = client.get(reverse("enrollments:browse"), {"page": "1", "q": "USA"})
+        self.assertEqual(r.status_code, 200)
+
+    def test_non_founder_admin_gets_403_on_admin_request_queue(self):
+        u = self._user("USAB_PLAIN", User.Role.ADMIN, is_staff=True)
+        client = Client()
+        client.force_login(u)
+        r = client.get(reverse("dashboard:admin_requests"))
+        self.assertEqual(r.status_code, 403)

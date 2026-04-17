@@ -6,11 +6,14 @@ from django.db import IntegrityError
 from django.db.models import Count, ExpressionWrapper, F, IntegerField, Q
 from django.db.models.functions import Coalesce
 from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse
 from django.utils.decorators import method_decorator
+from django.utils.translation import gettext as _
 from django.views import View
 from django.views.generic import ListView
 
 from academic.models import CourseSection, Department, Semester
+from core.breadcrumbs import home, items
 from core.permissions import StudentRequiredMixin
 from core.services.audit import EVENT_ENROLLMENT_CREATED, audit_enrollment_event
 from core.services.enrollment_atomic import (
@@ -29,6 +32,7 @@ class SectionBrowseView(LoginRequiredMixin, ListView):
     model = CourseSection
     template_name = "enrollments/section_list.html"
     context_object_name = "sections"
+    paginate_by = 25
 
     def get_queryset(self):
         active_status_q = Q(
@@ -86,6 +90,11 @@ class SectionBrowseView(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
+        ctx["breadcrumb_items"] = items(
+            home(),
+            {"label": _("Pano"), "url": reverse("dashboard:index")},
+            {"label": _("Ders kaydı (şubeler)"), "url": None},
+        )
         ctx["filter_semesters"] = Semester.objects.filter(is_active=True).order_by(
             "-academic_year", "term"
         )
@@ -123,12 +132,12 @@ class _StudentEnrollViewBase(StudentRequiredMixin, View):
         try:
             profile = request.user.student_profile
         except ObjectDoesNotExist:
-            messages.error(request, "Ogrenci profiliniz bulunamadi.")
+            messages.error(request, _("Öğrenci profiliniz bulunamadı."))
             return redirect("enrollments:browse")
         try:
             enr = enroll_student_in_section_atomic(profile, request.POST.get("section_id"))
         except CourseSection.DoesNotExist:
-            messages.error(request, "Section bulunamadi veya aktif degil.")
+            messages.error(request, _("Şube bulunamadı veya etkin değil."))
         except IntegrityError:
             messages.error(request, enroll_student_integrity_message())
         except ValidationError as exc:
@@ -140,7 +149,7 @@ class _StudentEnrollViewBase(StudentRequiredMixin, View):
                 enrollment=enr,
                 request=request,
             )
-            messages.success(request, "Derse kayit alindiniz.")
+            messages.success(request, _("Ders kaydı alındı."))
         return redirect("enrollments:browse")
 
 
@@ -162,7 +171,7 @@ class StudentDropEnrollmentView(StudentRequiredMixin, View):
         try:
             profile = request.user.student_profile
         except ObjectDoesNotExist:
-            messages.error(request, "Ogrenci profiliniz bulunamadi.")
+            messages.error(request, _("Öğrenci profiliniz bulunamadı."))
             return redirect("enrollments:browse")
         enr = get_object_or_404(Enrollment, pk=pk, student=profile)
         try:
@@ -175,7 +184,7 @@ class StudentDropEnrollmentView(StudentRequiredMixin, View):
         except ValidationError as exc:
             messages.error(request, _validation_message(exc))
         else:
-            messages.success(request, "Ders birakildi.")
+            messages.success(request, _("Ders bırakıldı."))
         return redirect("enrollments:browse")
 
 

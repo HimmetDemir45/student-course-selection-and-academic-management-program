@@ -1,47 +1,89 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Course Offering List{% endblock %}
+{% block title %}{% if user.role == "instructor" %}{% trans "Verdiğim ders teklifleri" %}{% else %}{% trans "Ders teklifleri" %}{% endif %}{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="h4 mb-0">Course Offerings</h2>
-    {% if user.role == "admin" %}
-        <a class="btn btn-primary btn-sm" href="{% url 'courses:offering_create' %}">Yeni Offering</a>
-    {% endif %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h1 class="h4 mb-0">{% if user.role == "instructor" %}{% trans "Verdiğim ders teklifleri" %}{% else %}{% trans "Ders teklifleri" %}{% endif %}</h1>
+    <div class="d-flex flex-wrap gap-2">
+        {% if user.role == "instructor" %}
+        <a class="btn btn-outline-secondary btn-sm" href="{% url 'academic:announcement_list' %}">{% trans "Duyurular" %}</a>
+        <a class="btn btn-outline-primary btn-sm" href="{% url 'academic:instructor_enrollments' %}">{% trans "Öğrenci kayıtları ve notlar" %}</a>
+        {% endif %}
+        {% if user.role == "admin" %}
+        <a class="btn btn-primary btn-sm" href="{% url 'courses:offering_create' %}">{% trans "Yeni ders teklifi" %}</a>
+        {% endif %}
+    </div>
 </div>
-<table class="table table-striped">
+
+<form class="row g-2 align-items-end mb-3" method="get" role="search" aria-label="{% trans 'Ders teklifi filtreleri' %}">
+    <div class="col-md-4">
+        <label for="off-q" class="form-label small mb-0">{% trans "Arama" %}</label>
+        <input id="off-q" class="form-control form-control-sm" type="search" name="q" value="{{ current_filters.q }}" placeholder="{% trans 'Kod veya ders adı' %}">
+    </div>
+    <div class="col-md-3">
+        <label for="off-sem" class="form-label small mb-0">{% trans "Dönem" %}</label>
+        <select id="off-sem" class="form-select form-select-sm" name="semester">
+            <option value="">{% trans "Tümü" %}</option>
+            {% for s in filter_semesters %}
+            <option value="{{ s.pk }}" {% if current_filters.semester == s.pk|stringformat:"s" %}selected{% endif %}>{{ s }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label for="off-sort" class="form-label small mb-0">{% trans "Sıralama" %}</label>
+        <select id="off-sort" class="form-select form-select-sm" name="sort">
+            <option value="code" {% if current_filters.sort == "code" %}selected{% endif %}>{% trans "Ders kodu" %}</option>
+            <option value="semester" {% if current_filters.sort == "semester" %}selected{% endif %}>{% trans "Dönem" %}</option>
+            <option value="section" {% if current_filters.sort == "section" %}selected{% endif %}>{% trans "Şube" %}</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-sm btn-primary w-100">{% trans "Uygula" %}</button>
+    </div>
+</form>
+
+{% if not offerings %}
+<div class="alert alert-info" role="status">{% trans "Kriterlere uygun ders teklifi bulunamadı." %}</div>
+{% endif %}
+
+<div class="table-responsive table-responsive-stack">
+<table class="table table-striped table-hover phase11-table align-middle">
     <thead>
         <tr>
-            <th>Course</th>
-            <th>Semester</th>
-            <th>Section</th>
-            <th>Instructor</th>
-            <th>Quota</th>
-            <th>Active</th>
-            <th></th>
+            <th scope="col">{% trans "Ders" %}</th>
+            <th scope="col">{% trans "Dönem" %}</th>
+            <th scope="col">{% trans "Şube" %}</th>
+            <th scope="col">{% trans "Öğretim elemanı" %}</th>
+            <th scope="col">{% trans "Kontenjan" %}</th>
+            <th scope="col">{% trans "Etkin" %}</th>
+            <th scope="col"></th>
         </tr>
     </thead>
     <tbody>
         {% for obj in offerings %}
             <tr>
-                <td>{{ obj.course.code }}</td>
+                <td>{{ obj.course.code }} — {{ obj.course.name }}</td>
                 <td>{{ obj.semester }}</td>
                 <td>{{ obj.section }}</td>
-                <td>{{ obj.instructor|default:"-" }}</td>
+                <td>{% if obj.instructor %}{{ obj.instructor.user.get_full_name|default:obj.instructor.user.username }}{% else %}-{% endif %}</td>
                 <td>{{ obj.quota }}</td>
-                <td>{{ obj.is_active }}</td>
+                <td>{% if obj.is_active %}{% trans "Evet" %}{% else %}{% trans "Hayır" %}{% endif %}</td>
                 <td class="text-end">
                     {% if user.role == "admin" %}
-                        <a class="btn btn-outline-secondary btn-sm" href="{% url 'courses:offering_update' obj.pk %}">Edit</a>
-                        <a class="btn btn-outline-danger btn-sm" href="{% url 'courses:offering_delete' obj.pk %}">Delete</a>
+                        <a class="btn btn-outline-secondary btn-sm" href="{% url 'courses:offering_update' obj.pk %}">{% trans "Düzenle" %}</a>
+                        <a class="btn btn-outline-danger btn-sm" href="{% url 'courses:offering_delete' obj.pk %}">{% trans "Sil" %}</a>
                     {% endif %}
                 </td>
             </tr>
         {% empty %}
             <tr>
-                <td colspan="7">Kayit bulunamadi.</td>
+                <td colspan="7" class="text-center text-muted">{% trans "Kayıt bulunamadı." %}</td>
             </tr>
         {% endfor %}
     </tbody>
 </table>
+</div>
+{% include "includes/pagination.html" %}
 {% endblock %}

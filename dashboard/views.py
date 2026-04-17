@@ -9,6 +9,7 @@ from django.views import View
 from django.views.generic import ListView, TemplateView
 
 from accounts.models import AdminRequest, User
+from core.breadcrumbs import home, items
 from academic.models import Announcement, Semester
 from audit_logs.services import log_event
 from courses.models import CourseOffering
@@ -75,6 +76,10 @@ class DashboardIndexView(LoginRequiredMixin, TemplateView):
                 Announcement.objects.filter(is_active=True).order_by("-created_at")[:3]
             )
 
+        ctx["breadcrumb_items"] = items(
+            home(),
+            {"label": _("Pano"), "url": None},
+        )
         return ctx
 
 

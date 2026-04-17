@@ -3,16 +3,18 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
+from django.utils.translation import gettext as _
 from django.views import View
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 
+from core.breadcrumbs import home, items
 from core.permissions import AdminRequiredMixin, InstructorRequiredMixin
 
 from enrollments.models import Enrollment
 
 from .forms import AnnouncementForm, DepartmentForm, GradeForm
-from .models import Announcement, Department, Grade
+from .models import Announcement, Department, Grade, Semester
 from core.services.audit import audit_grade_event
 from core.services.enrollment_workflow import transition_enrollment_status
 
@@ -21,6 +23,29 @@ class DepartmentListView(LoginRequiredMixin, ListView):
     model = Department
     template_name = "academic/department_list.html"
     context_object_name = "departments"
+    paginate_by = 25
+
+    def get_queryset(self):
+        qs = Department.objects.all()
+        q = (self.request.GET.get("q") or "").strip()
+        if q:
+            qs = qs.filter(Q(code__icontains=q) | Q(name__icontains=q))
+        sort = self.request.GET.get("sort") or "code"
+        if sort == "name":
+            return qs.order_by("name", "code")
+        return qs.order_by("code")
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["current_filters"] = {
+            "q": self.request.GET.get("q", "").strip(),
+            "sort": self.request.GET.get("sort", "code"),
+        }
+        ctx["breadcrumb_items"] = items(
+            home(),
+            {"label": _("Bölümler"), "url": None},
+        )
+        return ctx
 
 
 class DepartmentCreateView(AdminRequiredMixin, CreateView):
@@ -47,15 +72,40 @@ class AnnouncementListView(LoginRequiredMixin, ListView):
     model = Announcement
     template_name = "academic/announcement_list.html"
     context_object_name = "announcements"
+    paginate_by = 25
 
     def get_queryset(self):
         qs = Announcement.objects.select_related("semester", "department", "published_by")
         user = self.request.user
         if user.role == "admin":
-            return qs
+            base = qs
+        else:
+            role_filter = Q(target_role="all") | Q(target_role=user.role)
+            base = qs.filter(is_active=True).filter(role_filter)
+        q = (self.request.GET.get("q") or "").strip()
+        if q:
+            base = base.filter(Q(title__icontains=q) | Q(body__icontains=q))
+        sem = self.request.GET.get("semester")
+        if sem and str(sem).isdigit():
+            base = base.filter(semester_id=int(sem))
+        sort = self.request.GET.get("sort") or "new"
+        if sort == "title":
+            return base.order_by("title", "-created_at")
+        return base.order_by("-created_at")
 
-        role_filter = Q(target_role="all") | Q(target_role=user.role)
-        return qs.filter(is_active=True).filter(role_filter)
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["filter_semesters"] = Semester.objects.filter(is_active=True).order_by("-academic_year", "term")
+        ctx["current_filters"] = {
+            "q": self.request.GET.get("q", "").strip(),
+            "semester": self.request.GET.get("semester", ""),
+            "sort": self.request.GET.get("sort", "new"),
+        }
+        ctx["breadcrumb_items"] = items(
+            home(),
+            {"label": _("Duyurular"), "url": None},
+        )
+        return ctx
 
 
 class AnnouncementCreateView(AdminRequiredMixin, CreateView):
@@ -99,6 +149,7 @@ class InstructorEnrollmentListView(InstructorRequiredMixin, ListView):
     model = Enrollment
     template_name = "academic/instructor_enrollment_list.html"
     context_object_name = "enrollments"
+    paginate_by = 30
 
     def get_queryset(self):
         user = self.request.user
@@ -106,14 +157,50 @@ class InstructorEnrollmentListView(InstructorRequiredMixin, ListView):
             "student__user",
             "section__offering__course",
             "section__offering__semester",
-        ).order_by("section__offering__course__code", "student__student_no")
+            "academic_grade",
+        ).order_by("section__offering__course__code", "section__offering__section", "student__student_no")
         if user.role == "admin":
-            return qs
-        try:
-            inst = user.instructor_profile
-        except ObjectDoesNotExist:
-            return Enrollment.objects.none()
-        return qs.filter(section__offering__instructor=inst)
+            pass
+        else:
+            try:
+                inst = user.instructor_profile
+            except ObjectDoesNotExist:
+                return Enrollment.objects.none()
+            qs = qs.filter(section__offering__instructor=inst)
+        q = (self.request.GET.get("q") or "").strip()
+        if q:
+            qs = qs.filter(
+                Q(section__offering__course__code__icontains=q)
+                | Q(section__offering__course__name__icontains=q)
+                | Q(student__student_no__icontains=q)
+                | Q(student__user__username__icontains=q)
+            )
+        return qs
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["current_filters"] = {"q": self.request.GET.get("q", "").strip()}
+        ctx["breadcrumb_items"] = items(
+            home(),
+            {"label": _("Pano"), "url": reverse("dashboard:index")},
+            {"label": _("Öğrenci kayıtları ve notlar"), "url": None},
+        )
+        seen = set()
+        quick = []
+        for e in ctx["enrollments"]:
+            sid = e.section_id
+            if sid in seen:
+                continue
+            seen.add(sid)
+            o = e.section.offering
+            quick.append(
+                {
+                    "anchor": f"sec-{sid}",
+                    "label": f"{o.course.code} / {o.section}",
+                }
+            )
+        ctx["section_quick_links"] = quick
+        return ctx
 
 
 class GradeEntryView(InstructorRequiredMixin, View):
@@ -128,12 +215,25 @@ class GradeEntryView(InstructorRequiredMixin, View):
             pk=enrollment_id,
         )
         _assert_can_grade(request.user, enrollment)
-        grade, _ = Grade.objects.get_or_create(enrollment=enrollment)
+        grade, _created = Grade.objects.get_or_create(enrollment=enrollment)
         form = GradeForm(instance=grade)
         return render(
             request,
             self.template_name,
-            {"form": form, "enrollment": enrollment, "grade": grade},
+            {
+                "form": form,
+                "enrollment": enrollment,
+                "grade": grade,
+                "breadcrumb_items": items(
+                    home(),
+                    {"label": _("Pano"), "url": reverse("dashboard:index")},
+                    {
+                        "label": _("Öğrenci kayıtları ve notlar"),
+                        "url": reverse("academic:instructor_enrollments"),
+                    },
+                    {"label": _("Not girişi"), "url": None},
+                ),
+            },
         )
 
     def post(self, request, enrollment_id):
@@ -142,8 +242,9 @@ class GradeEntryView(InstructorRequiredMixin, View):
             pk=enrollment_id,
         )
         _assert_can_grade(request.user, enrollment)
-        grade, _ = Grade.objects.get_or_create(enrollment=enrollment)
+        grade, _created = Grade.objects.get_or_create(enrollment=enrollment)
         form = GradeForm(request.POST, instance=grade)
+        inline_quick = bool(request.POST.get("inline_quick"))
         if form.is_valid():
             form.save()
             snapshot = {
@@ -171,12 +272,46 @@ class GradeEntryView(InstructorRequiredMixin, View):
                     return render(
                         request,
                         self.template_name,
-                        {"form": form, "enrollment": enrollment, "grade": grade},
+                        {
+                            "form": form,
+                            "enrollment": enrollment,
+                            "grade": grade,
+                            "breadcrumb_items": items(
+                                home(),
+                                {"label": _("Pano"), "url": reverse("dashboard:index")},
+                                {
+                                    "label": _("Öğrenci kayıtları ve notlar"),
+                                    "url": reverse("academic:instructor_enrollments"),
+                                },
+                                {"label": _("Not girişi"), "url": None},
+                            ),
+                        },
                     )
-            messages.success(request, "Not kaydedildi.")
+            messages.success(request, _("Not kaydedildi."))
+            return redirect("academic:instructor_enrollments")
+        if inline_quick:
+            parts = []
+            if form.non_field_errors():
+                parts.extend(form.non_field_errors())
+            for field, errs in form.errors.items():
+                parts.extend(f"{field}: {e}" for e in errs)
+            messages.error(request, "; ".join(parts) if parts else _("Geçersiz not bilgisi."))
             return redirect("academic:instructor_enrollments")
         return render(
             request,
             self.template_name,
-            {"form": form, "enrollment": enrollment, "grade": grade},
+            {
+                "form": form,
+                "enrollment": enrollment,
+                "grade": grade,
+                "breadcrumb_items": items(
+                    home(),
+                    {"label": _("Pano"), "url": reverse("dashboard:index")},
+                    {
+                        "label": _("Öğrenci kayıtları ve notlar"),
+                        "url": reverse("academic:instructor_enrollments"),
+                    },
+                    {"label": _("Not girişi"), "url": None},
+                ),
+            },
         )
