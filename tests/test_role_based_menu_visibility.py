@@ -35,3 +35,19 @@ class RoleBasedMenuVisibilityTests(Phase4FactoriesMixin, TestCase):
         client.force_login(u)
         html = client.get(reverse("core:home")).content.decode("utf-8")
         self.assertIn('id="navAdmin"', html)
+
+    def test_admin_does_not_see_student_or_instructor_nav(self):
+        u = self._user("MENU_A2", User.Role.ADMIN, is_staff=True)
+        client = Client()
+        client.force_login(u)
+        html = client.get(reverse("core:home")).content.decode("utf-8")
+        self.assertNotIn('id="navStudent"', html)
+        self.assertNotIn('id="navInstructor"', html)
+
+    def test_student_does_not_see_instructor_nav(self):
+        st = self._student("MENU_S2")
+        client = Client()
+        client.force_login(st.user)
+        html = client.get(reverse("core:home")).content.decode("utf-8")
+        self.assertNotIn('id="navInstructor"', html)
+        self.assertNotIn('id="navAdmin"', html)

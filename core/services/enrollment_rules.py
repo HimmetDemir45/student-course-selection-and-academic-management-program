@@ -212,11 +212,37 @@ def collect_enrollment_preview_messages(student_profile, section) -> dict:
             else:
                 blockers.append(str(exc))
     has_room = cap > 0 and used < cap
+    blockers_display = [humanize_enrollment_blocker(m) for m in blockers]
     return {
         "capacity_used": used,
         "capacity_cap": cap,
         "capacity_pct": pct,
         "has_capacity": has_room,
         "blockers": blockers,
+        "blockers_display": blockers_display,
         "eligible": (not blockers) and has_room,
     }
+
+
+def humanize_enrollment_blocker(message: str) -> dict:
+    """Önizleme metinleri — kullanıcı dilinde kısa etiket + açıklama (iş kuralı çıktısı değişmez)."""
+    msg = (message or "").strip()
+    lower = msg.lower()
+    if "onkosul" in lower or "önkoşul" in msg:
+        detail = msg.split(":", 1)[-1].strip() if ":" in msg else msg
+        return {"kind": "prerequisite", "title": "Önkoşul", "detail": detail}
+    if "zaman" in lower and "cakismasi" in lower:
+        return {
+            "kind": "conflict",
+            "title": "Çakışma",
+            "detail": "Bu şube, kayıtlı olduğunuz başka bir dersle aynı gün ve saatte üst üste biniyor.",
+        }
+    if "kapasitesi dolu" in lower or ("kapasite" in lower and "dolu" in lower):
+        return {"kind": "capacity", "title": "Kontenjan", "detail": "Bu şubenin kontenjanı dolu."}
+    if "kayit ekleme donemi kapali" in lower or "kayıt ekleme dönemi kapalı" in lower:
+        return {
+            "kind": "window",
+            "title": "Ders kaydı penceresi",
+            "detail": "Ders kaydı veya ders bırakma için tanımlı zaman aralığında değilsiniz.",
+        }
+    return {"kind": "other", "title": "Uyarı", "detail": msg}

@@ -2,8 +2,11 @@ from itertools import groupby
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
+from django.urls import reverse
+from django.utils.translation import gettext as _
 from django.views.generic import TemplateView
 
+from core.breadcrumbs import home, items
 from core.permissions import StudentRequiredMixin
 from core.services.gpa import gpa_from_completed_enrollments
 
@@ -23,6 +26,11 @@ class TranscriptView(StudentRequiredMixin, TemplateView):
             ctx["gpa_credits"] = 0
             ctx["no_profile"] = True
             ctx["semester_blocks"] = []
+            ctx["breadcrumb_items"] = items(
+                home(),
+                {"label": _("Öğrenci alanı"), "url": reverse("students:index")},
+                {"label": _("Transkript"), "url": None},
+            )
             return ctx
         qs = (
             Enrollment.objects.filter(student=profile)
@@ -58,7 +66,7 @@ class TranscriptView(StudentRequiredMixin, TemplateView):
                 if e.status == Enrollment.Status.COMPLETED
                 and e.section.offering.semester.start_date <= sem.start_date
             ]
-            cumulative_gpa, _ = gpa_from_completed_enrollments(cum_completed)
+            cumulative_gpa, _unused_credits = gpa_from_completed_enrollments(cum_completed)
             semester_blocks.append(
                 {
                     "semester": sem,
@@ -69,6 +77,11 @@ class TranscriptView(StudentRequiredMixin, TemplateView):
                 }
             )
         ctx["semester_blocks"] = semester_blocks
+        ctx["breadcrumb_items"] = items(
+            home(),
+            {"label": _("Öğrenci alanı"), "url": reverse("students:index")},
+            {"label": _("Transkript"), "url": None},
+        )
         return ctx
 
 

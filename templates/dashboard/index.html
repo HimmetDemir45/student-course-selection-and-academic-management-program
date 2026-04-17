@@ -11,26 +11,27 @@
     <div class="col-md-6">
         <div class="card h-100 shadow-sm border-0 phase11-card">
             <div class="card-body">
-                <h2 class="h6">{% trans "Bugün ne yapmalıyım?" %}</h2>
+                <h2 class="h6">{% trans "Ders kaydı ve transkript" %}</h2>
                 {% if any_add_drop_open %}
                     <p class="small text-success mb-2">{% trans "Ders kaydı / ders bırakma penceresi açık görünüyor." %}</p>
                 {% else %}
                     <p class="small text-muted mb-2">{% trans "Şu an için açık bir kayıt penceresi bilgisi yok veya pencere kapalı." %}</p>
                 {% endif %}
                 <a class="btn btn-primary btn-sm" href="{% url 'enrollments:browse' %}">{% trans "Ders kaydına git" %}</a>
-                <a class="btn btn-outline-secondary btn-sm ms-1" href="{% url 'students:transcript' %}">{% trans "Transkript" %}</a>
+                <a class="btn btn-outline-secondary btn-sm ms-1" href="{% url 'students:transcript' %}">{% trans "Transkripti görüntüle" %}</a>
             </div>
         </div>
     </div>
     <div class="col-md-6">
         <div class="card h-100 shadow-sm border-0 phase11-card">
             <div class="card-body">
-                <h2 class="h6 text-secondary">{% trans "Özet" %}</h2>
+                <h2 class="h6 text-secondary">{% trans "Kayıt özeti" %}</h2>
                 {% if student_enrollment_active is not None %}
-                    <p class="small mb-0">{% trans "Aktif veya bekleyen ders kaydı sayısı" %}: <strong>{{ student_enrollment_active }}</strong></p>
+                    <p class="small mb-2">{% trans "Aktif veya bekleyen ders kaydı" %}: <strong>{{ student_enrollment_active }}</strong></p>
                 {% else %}
-                    <p class="small text-warning mb-0">{% trans "Öğrenci profili eksik." %}</p>
+                    <p class="small text-warning mb-2">{% trans "Öğrenci profili eksik." %}</p>
                 {% endif %}
+                <a class="btn btn-outline-primary btn-sm" href="{% url 'courses:course_list' %}">{% trans "Ders kataloğunu aç" %}</a>
             </div>
         </div>
     </div>
@@ -40,22 +41,22 @@
     <div class="col-md-6">
         <div class="card h-100 shadow-sm border-0 phase11-card">
             <div class="card-body">
-                <h2 class="h6">{% trans "Bekleyen işler" %}</h2>
+                <h2 class="h6">{% trans "Not girişi" %}</h2>
                 {% if instructor_pending_grades is not None %}
-                    <p class="small mb-2">{% trans "Not girişi bekleyen kayıt" %}: <strong>{{ instructor_pending_grades }}</strong></p>
+                    <p class="small mb-2">{% trans "Not bekleyen kayıt" %}: <strong>{{ instructor_pending_grades }}</strong></p>
                 {% endif %}
-                <a class="btn btn-primary btn-sm" href="{% url 'academic:instructor_enrollments' %}">{% trans "Öğrenciler ve notlar" %}</a>
+                <a class="btn btn-primary btn-sm" href="{% url 'academic:instructor_enrollments' %}">{% trans "Öğrenci kayıtları ve notlar" %}</a>
             </div>
         </div>
     </div>
     <div class="col-md-6">
         <div class="card h-100 shadow-sm border-0 phase11-card">
             <div class="card-body">
-                <h2 class="h6 text-secondary">{% trans "Verdiğim dersler" %}</h2>
+                <h2 class="h6 text-secondary">{% trans "Ders teklifleri ve duyurular" %}</h2>
                 {% if instructor_offering_count is not None %}
                     <p class="small mb-2">{% trans "Aktif ders teklifi" %}: <strong>{{ instructor_offering_count }}</strong></p>
                 {% endif %}
-                <a class="btn btn-outline-primary btn-sm" href="{% url 'courses:offering_list' %}">{% trans "Ders tekliflerim" %}</a>
+                <a class="btn btn-outline-primary btn-sm" href="{% url 'courses:offering_list' %}">{% trans "Verdiğim ders teklifleri" %}</a>
                 <a class="btn btn-outline-secondary btn-sm ms-1" href="{% url 'academic:announcement_list' %}">{% trans "Duyurular" %}</a>
             </div>
         </div>
@@ -67,7 +68,7 @@
         <div class="card h-100 shadow-sm border-0 phase11-card">
             <div class="card-body">
                 <h2 class="h6 text-secondary">{% trans "Akademik" %}</h2>
-                <p class="small text-muted mb-2">{% trans "Bölümler ve duyurular" %}</p>
+                <p class="small text-muted mb-2">{% trans "Bölüm ve duyuru yönetimi" %}</p>
                 <a class="btn btn-outline-primary btn-sm" href="{% url 'academic:department_list' %}">{% trans "Bölümler" %}</a>
                 <a class="btn btn-outline-primary btn-sm ms-1" href="{% url 'academic:announcement_list' %}">{% trans "Duyurular" %}</a>
             </div>

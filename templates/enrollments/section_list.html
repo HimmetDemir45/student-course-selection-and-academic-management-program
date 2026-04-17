@@ -2,7 +2,15 @@
 {% load i18n %}
 {% block title %}{% trans "Ders kaydı — şubeler" %}{% endblock %}
 {% block content %}
-<h1 class="h4 mb-3">{% trans "Ders kaydı — açılan şubeler" %}</h1>
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h1 class="h4 mb-0">{% trans "Ders kaydı — açılan şubeler" %}</h1>
+    <div class="btn-group btn-group-sm phase15-no-print" role="group" aria-label="{% trans 'Hızlı işlemler' %}">
+        <a class="btn btn-outline-secondary" href="{% url 'dashboard:index' %}">{% trans "Panele dön" %}</a>
+        {% if user.role == "student" %}
+        <a class="btn btn-outline-primary" href="{% url 'students:transcript' %}">{% trans "Transkript" %}</a>
+        {% endif %}
+    </div>
+</div>
 
 <form class="row g-2 align-items-end mb-3" method="get" role="search" aria-label="{% trans 'Şube filtreleri' %}">
     <div class="col-md-3">
@@ -60,7 +68,7 @@
         <th scope="col">{% trans "Dönem" %}</th>
         <th scope="col">{% trans "Şube" %}</th>
         <th scope="col">{% trans "Kontenjan" %}</th>
-        <th scope="col">{% trans "Öğretim üyesi" %}</th>
+        <th scope="col">{% trans "Öğretim elemanı" %}</th>
         {% if user.is_authenticated and user.role == "student" %}
         <th scope="col">{% trans "Önkoşul / çakışma" %}</th>
         {% endif %}
@@ -74,25 +82,44 @@
             <td>{{ s.offering.semester }}</td>
             <td>{{ s.offering.section }}</td>
             <td>
-                <span class="small">{{ s.active_enrollment_count }} / {{ s.effective_quota }}</span>
-                {% if s.effective_quota %}
-                <div class="phase14-capacity-bar mt-1 {% if s.capacity_pct >= 100 %}is-full{% elif s.capacity_pct >= 85 %}is-warn{% endif %}" aria-hidden="true">
-                    <span style="width: {% if s.capacity_pct > 100 %}100{% else %}{{ s.capacity_pct }}{% endif %}%;"></span>
+                <div class="d-flex flex-column gap-1">
+                    <span class="small">{{ s.active_enrollment_count }} / {{ s.effective_quota }}</span>
+                    {% if s.open_seats is not None %}
+                        {% if s.open_seats <= 0 %}
+                            <span class="badge text-bg-danger phase15-quota-badge">{% trans "Kontenjan: Dolu" %}</span>
+                        {% elif s.open_seats <= 3 %}
+                            <span class="badge text-bg-warning text-dark phase15-quota-badge">{% trans "Kontenjan: Son yerler" %}</span>
+                        {% else %}
+                            <span class="badge text-bg-success phase15-quota-badge">{% trans "Kontenjan: Uygun" %}</span>
+                        {% endif %}
+                    {% endif %}
+                    {% if s.effective_quota %}
+                    <div class="phase14-capacity-bar mt-1 {% if s.capacity_pct >= 100 %}is-full{% elif s.capacity_pct >= 85 %}is-warn{% endif %}" aria-hidden="true">
+                        <span style="width: {% if s.capacity_pct > 100 %}100{% else %}{{ s.capacity_pct }}{% endif %}%;"></span>
+                    </div>
+                    {% endif %}
                 </div>
-                {% endif %}
             </td>
             <td>{% if s.offering.instructor %}{{ s.offering.instructor.user.get_full_name|default:s.offering.instructor.user.username }}{% else %}-{% endif %}</td>
             {% if user.is_authenticated and user.role == "student" %}
             <td>
                 {% if s.enrollment_preview %}
                     {% if s.enrollment_preview.eligible %}
-                        <span class="badge text-bg-success">{% trans "Uygun" %}</span>
+                        <span class="badge text-bg-success">{% trans "Ders kaydına uygun" %}</span>
                     {% else %}
-                        <ul class="small mb-0 ps-3 text-danger">
-                            {% for msg in s.enrollment_preview.blockers %}
-                                <li>{{ msg }}</li>
-                            {% endfor %}
-                        </ul>
+                        <div class="d-flex flex-column gap-1">
+                            {% if s.enrollment_preview.blockers_display %}
+                                {% for b in s.enrollment_preview.blockers_display %}
+                                <span class="badge phase15-blocker-pill {% if b.kind == 'prerequisite' %}text-bg-secondary{% elif b.kind == 'conflict' %}text-bg-danger{% elif b.kind == 'capacity' %}text-bg-warning text-dark{% elif b.kind == 'window' %}text-bg-info text-dark{% else %}text-bg-light text-dark border{% endif %}">
+                                    {{ b.title }}: {{ b.detail }}
+                                </span>
+                                {% endfor %}
+                            {% else %}
+                                {% for msg in s.enrollment_preview.blockers %}
+                                <span class="badge text-bg-danger phase15-blocker-pill">{{ msg }}</span>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
                     {% endif %}
                 {% else %}
                     <span class="text-muted">—</span>
@@ -104,7 +131,7 @@
                 <form method="post" action="{% url 'enrollments:enroll' %}" class="d-inline">
                     {% csrf_token %}
                     <input type="hidden" name="section_id" value="{{ s.pk }}">
-                    <button type="submit" class="btn btn-sm btn-primary" {% if s.enrollment_preview and not s.enrollment_preview.eligible %}disabled aria-disabled="true" title="{% trans 'Önkoşul, çakışma veya kontenjan nedeniyle kayıt mümkün değil' %}"{% endif %} aria-label="{% trans 'Bu şubeye ders kaydı yap' %} {{ s.offering.course.code }}">
+                    <button type="submit" class="btn btn-sm btn-primary" {% if s.enrollment_preview and not s.enrollment_preview.eligible %}disabled aria-disabled="true" title="{% trans 'Önkoşul, çakışma veya kontenjan nedeniyle ders kaydı mümkün değil' %}"{% endif %} aria-label="{% trans 'Bu şubeye ders kaydı yap' %} {{ s.offering.course.code }}">
                         {% trans "Ders kaydı" %}
                     </button>
                 </form>
@@ -117,4 +144,5 @@
     </tbody>
 </table>
 </div>
+{% include "includes/pagination.html" %}
 {% endblock %}

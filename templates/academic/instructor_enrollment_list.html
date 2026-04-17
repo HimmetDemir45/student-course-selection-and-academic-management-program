@@ -2,8 +2,36 @@
 {% load i18n %}
 {% block title %}{% trans "Öğrenci kayıtları ve notlar" %}{% endblock %}
 {% block content %}
-<h1 class="h4 mb-3">{% trans "Öğrenci kayıtları ve notlar" %}</h1>
-<p class="text-muted small mb-3">{% trans "Her satırda not girişine gidebilirsiniz." %}</p>
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+    <h1 class="h4 mb-0">{% trans "Öğrenci kayıtları ve notlar" %}</h1>
+    <div class="btn-group btn-group-sm" role="group" aria-label="{% trans 'Kısayollar' %}">
+        <a class="btn btn-outline-secondary" href="{% url 'courses:offering_list' %}">{% trans "Verdiğim ders teklifleri" %}</a>
+        <a class="btn btn-outline-secondary" href="{% url 'academic:announcement_list' %}">{% trans "Duyurular" %}</a>
+        <a class="btn btn-outline-primary" href="{% url 'dashboard:index' %}">{% trans "Panele dön" %}</a>
+    </div>
+</div>
+
+{% if section_quick_links %}
+<nav class="mb-3 p-2 bg-white border rounded small phase15-no-print" aria-label="{% trans 'Şubeye geçiş' %}">
+    <span class="text-muted me-2">{% trans "Şube:" %}</span>
+    {% for s in section_quick_links %}
+        <a class="me-2" href="#{{ s.anchor }}">{{ s.label }}</a>
+    {% endfor %}
+</nav>
+{% endif %}
+
+<form class="row g-2 align-items-end mb-3" method="get" role="search" aria-label="{% trans 'Kayıt arama' %}">
+    <div class="col-md-6">
+        <label for="enr-q" class="form-label small mb-0">{% trans "Arama" %}</label>
+        <input id="enr-q" class="form-control form-control-sm" type="search" name="q" value="{{ current_filters.q }}" placeholder="{% trans 'Ders kodu, adı veya öğrenci no' %}">
+    </div>
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-sm btn-primary w-100">{% trans "Uygula" %}</button>
+    </div>
+</form>
+
+<p class="text-muted small mb-3">{% trans "Tabloda harf notunu hızlı kaydedebilir veya ayrıntılı not girişi için düğmeyi kullanabilirsiniz." %}</p>
+
 <div class="table-responsive table-responsive-stack">
 <table class="table table-striped table-hover phase11-table align-middle">
     <thead>
@@ -11,7 +39,7 @@
         <th scope="col">{% trans "Öğrenci" %}</th>
         <th scope="col">{% trans "Ders / şube" %}</th>
         <th scope="col">{% trans "Durum" %}</th>
-        <th scope="col">{% trans "Not" %}</th>
+        <th scope="col">{% trans "Not (hızlı)" %}</th>
         <th scope="col">{% trans "İşlem" %}</th>
     </tr>
     </thead>
@@ -19,11 +47,22 @@
     {% for e in enrollments %}
         <tr>
             <td>{{ e.student.student_no }} — {{ e.student.user.get_full_name|default:e.student.user.username }}</td>
-            <td>{{ e.section.offering.course.code }} / {{ e.section.offering.section }}</td>
-            <td>{{ e.get_status_display }}</td>
-            <td>{% if e.academic_grade %}{{ e.academic_grade.letter_grade|default:"-" }}{% else %}-{% endif %}</td>
             <td>
-                <a class="btn btn-sm btn-primary" href="{% url 'academic:grade_entry' enrollment_id=e.pk %}" aria-label="{% trans 'Not gir' %} {{ e.student.student_no }}">{% trans "Not gir" %}</a>
+                {% ifchanged e.section_id %}<span id="sec-{{ e.section_id }}"></span>{% endifchanged %}
+                {{ e.section.offering.course.code }} / {{ e.section.offering.section }}
+            </td>
+            <td>{{ e.get_status_display }}</td>
+            <td>
+                <form method="post" action="{% url 'academic:grade_entry' enrollment_id=e.pk %}" class="d-flex flex-wrap gap-1 align-items-center">
+                    {% csrf_token %}
+                    <input type="hidden" name="inline_quick" value="1">
+                    <label class="visually-hidden" for="lg-{{ e.pk }}">{% trans "Harf notu" %} {{ e.student.student_no }}</label>
+                    <input id="lg-{{ e.pk }}" name="letter_grade" class="form-control form-control-sm" style="max-width:4rem" maxlength="2" value="{% if e.academic_grade %}{{ e.academic_grade.letter_grade }}{% endif %}" autocomplete="off" aria-label="{% trans 'Harf notu' %}">
+                    <button type="submit" class="btn btn-sm btn-outline-primary">{% trans "Kaydet" %}</button>
+                </form>
+            </td>
+            <td>
+                <a class="btn btn-sm btn-primary" href="{% url 'academic:grade_entry' enrollment_id=e.pk %}" aria-label="{% trans 'Ayrıntılı not gir' %} {{ e.student.student_no }}">{% trans "Ayrıntılı not" %}</a>
             </td>
         </tr>
     {% empty %}
@@ -32,4 +71,5 @@
     </tbody>
 </table>
 </div>
+{% include "includes/pagination.html" %}
 {% endblock %}

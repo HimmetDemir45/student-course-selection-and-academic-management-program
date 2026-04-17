@@ -1,21 +1,45 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Department List{% endblock %}
+{% block title %}{% trans "Bölümler" %}{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="h4 mb-0">Departments</h2>
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h1 class="h4 mb-0">{% trans "Bölümler" %}</h1>
     {% if user.role == "admin" %}
-        <a class="btn btn-primary btn-sm" href="{% url 'academic:department_create' %}">Yeni Department</a>
+    <a class="btn btn-primary btn-sm" href="{% url 'academic:department_create' %}">{% trans "Yeni bölüm" %}</a>
     {% endif %}
 </div>
-<table class="table table-striped">
+
+<form class="row g-2 align-items-end mb-3" method="get" role="search" aria-label="{% trans 'Bölüm filtreleri' %}">
+    <div class="col-md-5">
+        <label for="dep-q" class="form-label small mb-0">{% trans "Arama" %}</label>
+        <input id="dep-q" class="form-control form-control-sm" type="search" name="q" value="{{ current_filters.q }}" placeholder="{% trans 'Kod veya ad' %}">
+    </div>
+    <div class="col-md-3">
+        <label for="dep-sort" class="form-label small mb-0">{% trans "Sıralama" %}</label>
+        <select id="dep-sort" class="form-select form-select-sm" name="sort">
+            <option value="code" {% if current_filters.sort == "code" %}selected{% endif %}>{% trans "Koda göre" %}</option>
+            <option value="name" {% if current_filters.sort == "name" %}selected{% endif %}>{% trans "Ada göre" %}</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-sm btn-primary w-100">{% trans "Uygula" %}</button>
+    </div>
+</form>
+
+{% if not departments %}
+<div class="alert alert-info" role="status">{% trans "Kriterlere uygun bölüm bulunamadı." %}</div>
+{% endif %}
+
+<div class="table-responsive table-responsive-stack">
+<table class="table table-striped table-hover phase11-table align-middle">
     <thead>
         <tr>
-            <th>Code</th>
-            <th>Name</th>
-            <th>Active</th>
-            <th></th>
+            <th scope="col">{% trans "Kod" %}</th>
+            <th scope="col">{% trans "Ad" %}</th>
+            <th scope="col">{% trans "Etkin" %}</th>
+            <th scope="col"></th>
         </tr>
     </thead>
     <tbody>
@@ -23,19 +47,21 @@
             <tr>
                 <td>{{ obj.code }}</td>
                 <td>{{ obj.name }}</td>
-                <td>{{ obj.is_active }}</td>
+                <td>{% if obj.is_active %}{% trans "Evet" %}{% else %}{% trans "Hayır" %}{% endif %}</td>
                 <td class="text-end">
                     {% if user.role == "admin" %}
-                        <a class="btn btn-outline-secondary btn-sm" href="{% url 'academic:department_update' obj.pk %}">Edit</a>
-                        <a class="btn btn-outline-danger btn-sm" href="{% url 'academic:department_delete' obj.pk %}">Delete</a>
+                        <a class="btn btn-outline-secondary btn-sm" href="{% url 'academic:department_update' obj.pk %}">{% trans "Düzenle" %}</a>
+                        <a class="btn btn-outline-danger btn-sm" href="{% url 'academic:department_delete' obj.pk %}">{% trans "Sil" %}</a>
                     {% endif %}
                 </td>
             </tr>
         {% empty %}
             <tr>
-                <td colspan="4">Kayit bulunamadi.</td>
+                <td colspan="4" class="text-center text-muted">{% trans "Kayıt bulunamadı." %}</td>
             </tr>
         {% endfor %}
     </tbody>
 </table>
+</div>
+{% include "includes/pagination.html" %}
 {% endblock %}

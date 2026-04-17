@@ -1,0 +1,16 @@
+{% load i18n %}
+{% if breadcrumb_items %}
+<nav class="phase15-breadcrumb" aria-label="{% trans 'Sayfa yolu' %}">
+    <ol class="breadcrumb small mb-2">
+        {% for item in breadcrumb_items %}
+        <li class="breadcrumb-item{% if item.is_last %} active{% endif %}"{% if item.is_last %} aria-current="page"{% endif %}>
+            {% if item.url and not item.is_last %}
+            <a href="{{ item.url }}">{{ item.label }}</a>
+            {% else %}
+            {{ item.label }}
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ol>
+</nav>
+{% endif %}

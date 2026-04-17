@@ -1,10 +1,12 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
+from django.utils.translation import gettext as _
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 
-from academic.models import Department
+from academic.models import Department, Semester
+from core.breadcrumbs import home, items
 from core.permissions import AdminRequiredMixin
 
 from .forms import CourseForm, CourseOfferingForm
@@ -15,6 +17,7 @@ class CourseListView(LoginRequiredMixin, ListView):
     model = Course
     template_name = "courses/course_list.html"
     context_object_name = "courses"
+    paginate_by = 25
 
     def get_queryset(self):
         qs = Course.objects.select_related("department", "program")
@@ -43,6 +46,10 @@ class CourseListView(LoginRequiredMixin, ListView):
             "department": self.request.GET.get("department", ""),
             "sort": self.request.GET.get("sort", "code"),
         }
+        ctx["breadcrumb_items"] = items(
+            home(),
+            {"label": _("Ders kataloğu"), "url": None},
+        )
         return ctx
 
 
@@ -70,6 +77,7 @@ class CourseOfferingListView(LoginRequiredMixin, ListView):
     model = CourseOffering
     template_name = "courses/courseoffering_list.html"
     context_object_name = "offerings"
+    paginate_by = 25
 
     def get_queryset(self):
         qs = CourseOffering.objects.select_related(
@@ -81,16 +89,49 @@ class CourseOfferingListView(LoginRequiredMixin, ListView):
         )
         user = self.request.user
         if user.role == "admin":
-            return qs
-        if user.role == "instructor":
+            pass
+        elif user.role == "instructor":
             try:
                 profile = user.instructor_profile
             except ObjectDoesNotExist:
                 profile = None
             if profile:
-                return qs.filter(instructor=profile)
-            return qs.none()
-        return qs.filter(is_active=True)
+                qs = qs.filter(instructor=profile)
+            else:
+                qs = qs.none()
+        else:
+            qs = qs.filter(is_active=True)
+        rq = self.request.GET
+        q = (rq.get("q") or "").strip()
+        if q:
+            qs = qs.filter(Q(course__code__icontains=q) | Q(course__name__icontains=q))
+        sem = rq.get("semester")
+        if sem and str(sem).isdigit():
+            qs = qs.filter(semester_id=int(sem))
+        sort = rq.get("sort") or "code"
+        if sort == "semester":
+            qs = qs.order_by("-semester__academic_year", "semester__term", "course__code", "section")
+        elif sort == "section":
+            qs = qs.order_by("section", "course__code")
+        else:
+            qs = qs.order_by("course__code", "section")
+        return qs
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["filter_semesters"] = Semester.objects.filter(is_active=True).order_by("-academic_year", "term")
+        ctx["current_filters"] = {
+            "q": self.request.GET.get("q", "").strip(),
+            "semester": self.request.GET.get("semester", ""),
+            "sort": self.request.GET.get("sort", "code"),
+        }
+        label = _("Verdiğim ders teklifleri") if self.request.user.role == "instructor" else _("Ders teklifleri")
+        ctx["breadcrumb_items"] = items(
+            home(),
+            {"label": _("Pano"), "url": reverse("dashboard:index")},
+            {"label": label, "url": None},
+        )
+        return ctx
 
 
 class CourseOfferingCreateView(AdminRequiredMixin, CreateView):
