@@ -520,6 +520,16 @@ Enrollment, GPA ve transkript iş kurallarına dokunulmadan dokümantasyon odakl
 
 ---
 
+## Phase 16 (Kalite ve sürdürülebilirlik)
+
+- Ortak template parçaları eklendi: `includes/alert_messages.html`, `includes/form_errors.html`, `includes/empty_state.html`, `includes/table_toolbar.html`.
+- Liste sayfalarında arama/filtre/sıralama + pagination davranışı aynı pattern'e çekildi.
+- Dashboard operasyon kartları role göre genişletildi (admin kritik olaylar, instructor bekleyen notlar, student sonraki adım önerisi).
+- Audit metadata alanları standartlaştırıldı (`event_type`, `actor_id`, `target`, `status`, `request_id`).
+- RBAC görünürlük, kullanılabilirlik smoke ve query count regresyon testleri genişletildi.
+
+---
+
 ## 17) Katkı Rehberi
 
 Dal adlandırma, commit formatı ve PR checklist: **`docs/CONTRIBUTING.md`**. PR açılırken `.github/pull_request_template.md` doldurulmalıdır.

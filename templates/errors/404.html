@@ -2,9 +2,13 @@
 {% load i18n %}
 {% block title %}{% trans "Sayfa bulunamadı" %}{% endblock %}
 {% block content %}
-<div class="text-center py-5">
-    <h1 class="display-6">404</h1>
-    <p class="lead">{% trans "Aradığınız sayfa bulunamadı veya taşınmış olabilir." %}</p>
-    <a class="btn btn-primary" href="{% url 'core:home' %}">{% trans "Ana sayfaya dön" %}</a>
+<div class="py-5 text-center">
+    <h1 class="display-6 mb-3">404</h1>
+    <p class="lead mb-2">{% trans "Aradığınız sayfa bulunamadı veya taşınmış olabilir." %}</p>
+    <p class="text-muted mb-3">{% trans "Sonraki adım: Menüden ilgili modülü açın veya URL adresini kontrol edip tekrar deneyin." %}</p>
+    <div class="d-flex justify-content-center gap-2 flex-wrap">
+        <a class="btn btn-primary" href="{% url 'core:home' %}">{% trans "Ana sayfaya dön" %}</a>
+        <a class="btn btn-outline-secondary" href="{% url 'dashboard:index' %}">{% trans "Panele git" %}</a>
+    </div>
 </div>
 {% endblock %}

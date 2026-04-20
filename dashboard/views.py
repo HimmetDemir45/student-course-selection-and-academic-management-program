@@ -11,6 +11,7 @@ from django.views.generic import ListView, TemplateView
 from accounts.models import AdminRequest, User
 from core.breadcrumbs import home, items
 from academic.models import Announcement, Semester
+from audit_logs.models import AuditLog
 from audit_logs.services import log_event
 from courses.models import CourseOffering
 from core.permissions import FounderAdminRequiredMixin
@@ -34,7 +35,7 @@ class DashboardIndexView(LoginRequiredMixin, TemplateView):
         ctx["is_founder"] = bool(getattr(u, "is_founder_admin", False))
         ctx["pending_admin_request_count"] = (
             AdminRequest.objects.filter(status=AdminRequest.Status.PENDING).count()
-            if ctx["is_founder"]
+            if role == "admin"
             else 0
         )
         today = timezone.localdate()
@@ -48,8 +49,16 @@ class DashboardIndexView(LoginRequiredMixin, TemplateView):
                     student=sp,
                     status__in=(Enrollment.Status.ENROLLED, Enrollment.Status.PENDING),
                 ).count()
+                ctx["student_next_step"] = (
+                    _("Ders bırakma / ekleme penceresi açıkken kayıtlarınızı kontrol edin.")
+                    if ctx["any_add_drop_open"]
+                    else _("Pencere kapalıysa transkriptinizi kontrol edip sonraki dönem için plan yapın.")
+                )
             except Exception:
                 ctx["student_enrollment_active"] = None
+                ctx["student_next_step"] = _(
+                    "Profiliniz eksik görünüyor. Öğrenci işlerinizle iletişime geçin."
+                )
 
         if role == "instructor":
             try:
@@ -74,6 +83,19 @@ class DashboardIndexView(LoginRequiredMixin, TemplateView):
         if role == "admin":
             ctx["recent_announcements"] = list(
                 Announcement.objects.filter(is_active=True).order_by("-created_at")[:3]
+            )
+            ctx["recent_critical_events"] = list(
+                AuditLog.objects.select_related("actor")
+                .filter(
+                    event_type__in=[
+                        "admin_request_approved",
+                        "admin_request_rejected",
+                        "enrollment_created",
+                        "enrollment_status_changed",
+                        "grade_entry",
+                    ]
+                )
+                .order_by("-created_at")[:5]
             )
 
         ctx["breadcrumb_items"] = items(
@@ -139,6 +161,7 @@ class AdminRequestApproveView(_AdminRequestDecisionView):
                     "target_user_id": target.pk,
                     "target_username": target.username,
                 },
+                request=request,
             )
 
         messages.success(request, _("Talep onaylandı; kullanıcıya yönetici rolü verildi."))
@@ -167,6 +190,7 @@ class AdminRequestRejectView(_AdminRequestDecisionView):
                 target_type="accounts.AdminRequest",
                 target_id=str(req.pk),
                 metadata={"target_user_id": req.user_id},
+                request=request,
             )
 
         messages.success(request, _("Talep reddedildi."))

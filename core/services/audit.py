@@ -46,6 +46,7 @@ def audit_enrollment_event(
         target_type="enrollments.Enrollment",
         target_id=str(enrollment.pk),
         metadata=meta,
+        request=request,
     )
 
 
@@ -68,4 +69,5 @@ def audit_grade_event(
         target_type="academic.Grade",
         target_id=str(enrollment.pk),
         metadata=meta,
+        request=request,
     )

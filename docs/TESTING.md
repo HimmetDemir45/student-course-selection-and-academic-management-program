@@ -69,3 +69,17 @@ Phase 9 iş akışı: `.github/workflows/phase9-ci.yml` (pytest marker’lar, mi
 | MySQL bağlantı hatası | `DATABASE_URL` veya `DB_*`, `cryptography` kurulu mu |
 | CI’da migration | `config.settings.ci` ve boş test veritabanı |
 | pytest bulunamadı | `pip install -r requirements-dev.txt` |
+
+## Phase 16 odaklı test paketi
+
+```powershell
+$env:DJANGO_SETTINGS_MODULE = "config.settings.dev"
+python manage.py test tests.test_role_based_menu_visibility tests.test_page_usability_flows tests.test_admin_request
+```
+
+Opsiyonel query regresyon kontrolü (liste sayfaları):
+
+```powershell
+$env:DJANGO_SETTINGS_MODULE = "config.settings.dev"
+python manage.py test tests.test_page_usability_flows.PageUsabilityFlowsTests.test_section_list_query_count_regression_guard
+```

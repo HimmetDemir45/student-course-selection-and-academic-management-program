@@ -17,35 +17,15 @@
     </div>
 </div>
 
-<form class="row g-2 align-items-end mb-3" method="get" role="search" aria-label="{% trans 'Ders teklifi filtreleri' %}">
-    <div class="col-md-4">
-        <label for="off-q" class="form-label small mb-0">{% trans "Arama" %}</label>
-        <input id="off-q" class="form-control form-control-sm" type="search" name="q" value="{{ current_filters.q }}" placeholder="{% trans 'Kod veya ders adı' %}">
-    </div>
-    <div class="col-md-3">
-        <label for="off-sem" class="form-label small mb-0">{% trans "Dönem" %}</label>
-        <select id="off-sem" class="form-select form-select-sm" name="semester">
-            <option value="">{% trans "Tümü" %}</option>
-            {% for s in filter_semesters %}
-            <option value="{{ s.pk }}" {% if current_filters.semester == s.pk|stringformat:"s" %}selected{% endif %}>{{ s }}</option>
-            {% endfor %}
-        </select>
-    </div>
-    <div class="col-md-3">
-        <label for="off-sort" class="form-label small mb-0">{% trans "Sıralama" %}</label>
-        <select id="off-sort" class="form-select form-select-sm" name="sort">
-            <option value="code" {% if current_filters.sort == "code" %}selected{% endif %}>{% trans "Ders kodu" %}</option>
-            <option value="semester" {% if current_filters.sort == "semester" %}selected{% endif %}>{% trans "Dönem" %}</option>
-            <option value="section" {% if current_filters.sort == "section" %}selected{% endif %}>{% trans "Şube" %}</option>
-        </select>
-    </div>
-    <div class="col-md-2">
-        <button type="submit" class="btn btn-sm btn-primary w-100">{% trans "Uygula" %}</button>
-    </div>
-</form>
+{% trans "Ders teklifi filtreleri" as offering_toolbar_aria %}
+{% trans "Kod veya ders adı" as offering_toolbar_placeholder %}
+{% trans "Ders teklifi ara" as offering_toolbar_search_aria %}
+{% include "includes/table_toolbar.html" with toolbar_aria_label=offering_toolbar_aria toolbar_search_id="off-q" toolbar_search_placeholder=offering_toolbar_placeholder toolbar_search_aria_label=offering_toolbar_search_aria toolbar_filters_template="includes/toolbars/offering_filters.html" toolbar_reset_url=request.path %}
 
 {% if not offerings %}
-<div class="alert alert-info" role="status">{% trans "Kriterlere uygun ders teklifi bulunamadı." %}</div>
+{% trans "Kayıt bulunamadı" as offering_empty_title %}
+{% trans "Kriterlere uygun ders teklifi bulunamadı. Filtreleri temizleyip tekrar deneyin." as offering_empty_message %}
+{% include "includes/empty_state.html" with empty_title=offering_empty_title empty_message=offering_empty_message %}
 {% endif %}
 
 <div class="table-responsive table-responsive-stack">
