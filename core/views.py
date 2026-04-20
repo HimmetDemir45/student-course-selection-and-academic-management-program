@@ -1,7 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import connection
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from django.shortcuts import render
 from django.utils import timezone
 from django.views.decorators.http import require_GET
@@ -84,38 +84,16 @@ def home(request):
     return render(request, "core/home.html", ctx)
 
 
-def _html_error_page(title: str, body: str, status: int) -> HttpResponse:
-    html = (
-        "<!DOCTYPE html><html lang='tr'><head><meta charset='utf-8'>"
-        f"<meta name='viewport' content='width=device-width, initial-scale=1'>"
-        f"<title>{title}</title>"
-        "<link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css'>"
-        "</head><body class='bg-light'><main class='container py-5 text-center'>"
-        f"<h1 class='display-6'>{title}</h1><p class='lead'>{body}</p>"
-        "<a class='btn btn-primary' href='/'>Ana sayfaya dön</a>"
-        "</main></body></html>"
-    )
-    return HttpResponse(html, status=status, content_type="text/html; charset=utf-8")
-
-
 def handler403(request, exception=None):
-    return _html_error_page("403 — Erişim reddedildi", "Bu işlem için yetkiniz yok.", 403)
+    return render(request, "errors/403.html", status=403)
 
 
 def handler404(request, exception=None):
-    return _html_error_page(
-        "404 — Sayfa bulunamadı",
-        "Aradığınız sayfa bulunamadı veya taşınmış olabilir.",
-        404,
-    )
+    return render(request, "errors/404.html", status=404)
 
 
 def handler500(request):
-    return _html_error_page(
-        "500 — Sunucu hatası",
-        "Beklenmeyen bir hata oluştu. Lütfen daha sonra tekrar deneyin.",
-        500,
-    )
+    return render(request, "errors/500.html", status=500)
 
 
 @login_required

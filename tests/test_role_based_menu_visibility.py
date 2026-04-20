@@ -51,3 +51,28 @@ class RoleBasedMenuVisibilityTests(Phase4FactoriesMixin, TestCase):
         html = client.get(reverse("core:home")).content.decode("utf-8")
         self.assertNotIn('id="navInstructor"', html)
         self.assertNotIn('id="navAdmin"', html)
+
+    def test_student_cannot_access_admin_only_pages(self):
+        st = self._student("MENU_S3")
+        client = Client()
+        client.force_login(st.user)
+        self.assertIn(
+            client.get(reverse("audit_logs:index")).status_code,
+            (302, 403),
+        )
+        self.assertEqual(client.get(reverse("dashboard:admin_requests")).status_code, 403)
+
+    def test_instructor_cannot_access_student_transcript(self):
+        ins = self._instructor("MENU_I2")
+        client = Client()
+        client.force_login(ins.user)
+        self.assertEqual(client.get(reverse("students:transcript")).status_code, 302)
+
+    def test_admin_sees_management_links_only(self):
+        u = self._user("MENU_A3", User.Role.ADMIN, is_staff=True)
+        client = Client()
+        client.force_login(u)
+        html = client.get(reverse("core:home")).content.decode("utf-8")
+        self.assertIn(reverse("courses:course_list"), html)
+        self.assertIn(reverse("audit_logs:index"), html)
+        self.assertNotIn(reverse("students:transcript"), html)

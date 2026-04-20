@@ -110,6 +110,7 @@ def admin_request_view(request):
                 target_type="accounts.AdminRequest",
                 target_id=str(ar.pk),
                 metadata={"username": request.user.username},
+                request=request,
             )
             messages.success(request, _("Talebiniz alındı. Kurucu yönetici inceleyecektir."))
             return redirect("accounts:admin_request")

@@ -31,20 +31,10 @@
     </table>
 </div>
 {% else %}
-<p class="text-muted">{% trans "Kayıt yok." %}</p>
+{% trans "Kayıt yok" as audit_empty_title %}
+{% trans "Henüz görüntülenecek denetim olayı bulunmuyor." as audit_empty_message %}
+{% include "includes/empty_state.html" with empty_title=audit_empty_title empty_message=audit_empty_message %}
 {% endif %}
 
-{% if is_paginated %}
-<nav class="mt-3" aria-label="Pagination">
-    <ul class="pagination pagination-sm">
-        {% if page_obj.has_previous %}
-            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">{% trans "Önceki" %}</a></li>
-        {% endif %}
-        <li class="page-item disabled"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
-        {% if page_obj.has_next %}
-            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">{% trans "Sonraki" %}</a></li>
-        {% endif %}
-    </ul>
-</nav>
-{% endif %}
+{% include "includes/pagination.html" %}
 {% endblock %}

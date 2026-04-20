@@ -4,7 +4,9 @@ Rollback: ilgili view/şablonlar geri alınırsa senaryolar güncellenmeli.
 """
 
 import pytest
+from django.db import connection
 from django.test import Client, TestCase
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 
 from accounts.models import User
@@ -56,3 +58,30 @@ class PageUsabilityFlowsTests(Phase4FactoriesMixin, TestCase):
         client.force_login(u)
         r = client.get(reverse("dashboard:admin_requests"))
         self.assertEqual(r.status_code, 403)
+
+    def test_list_pages_render_standard_toolbar_and_empty_state(self):
+        u = self._user("USAB_TOOL", User.Role.ADMIN, is_staff=True)
+        client = Client()
+        client.force_login(u)
+
+        response = client.get(
+            reverse("courses:course_list"),
+            {"q": "NO_MATCH_XXX", "sort": "code"},
+        )
+        html = response.content.decode("utf-8")
+        self.assertContains(response, "phase16-toolbar")
+        self.assertIn("phase16-empty-state", html)
+
+    def test_section_list_query_count_regression_guard(self):
+        inst = self._instructor("USAB_QI")
+        student = self._student("USAB_QS")
+        for idx in range(12):
+            c = self._course(f"QRY{idx:02d}", f"Query Course {idx}")
+            off = self._offering(c, instructor=inst)
+            self._section(off)
+        client = Client()
+        client.force_login(student.user)
+        with CaptureQueriesContext(connection) as ctx:
+            r = client.get(reverse("enrollments:browse"), {"sort": "code"})
+        self.assertEqual(r.status_code, 200)
+        self.assertLess(len(ctx), 70)

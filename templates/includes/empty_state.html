@@ -1,0 +1,10 @@
+{% load i18n %}
+<div class="alert alert-info phase16-empty-state" role="status">
+    <p class="mb-1 fw-semibold">{{ empty_title }}</p>
+    <p class="mb-0">{{ empty_message }}</p>
+    {% if empty_action_url and empty_action_label %}
+    <div class="mt-2">
+        <a class="btn btn-sm btn-outline-primary" href="{{ empty_action_url }}">{{ empty_action_label }}</a>
+    </div>
+    {% endif %}
+</div>

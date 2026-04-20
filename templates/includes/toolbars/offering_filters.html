@@ -1,0 +1,18 @@
+{% load i18n %}
+<div class="col-md-2">
+    <label for="off-sem" class="form-label small mb-0">{% trans "Dönem" %}</label>
+    <select id="off-sem" class="form-select form-select-sm" name="semester" aria-label="{% trans 'Dönem filtresi' %}">
+        <option value="">{% trans "Tümü" %}</option>
+        {% for s in filter_semesters %}
+        <option value="{{ s.pk }}" {% if current_filters.semester == s.pk|stringformat:"s" %}selected{% endif %}>{{ s }}</option>
+        {% endfor %}
+    </select>
+</div>
+<div class="col-md-2">
+    <label for="off-sort" class="form-label small mb-0">{% trans "Sıralama" %}</label>
+    <select id="off-sort" class="form-select form-select-sm" name="sort" aria-label="{% trans 'Sıralama' %}">
+        <option value="code" {% if current_filters.sort == "code" %}selected{% endif %}>{% trans "Ders kodu" %}</option>
+        <option value="semester" {% if current_filters.sort == "semester" %}selected{% endif %}>{% trans "Dönem" %}</option>
+        <option value="section" {% if current_filters.sort == "section" %}selected{% endif %}>{% trans "Şube" %}</option>
+    </select>
+</div>

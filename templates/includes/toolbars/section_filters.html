@@ -1,0 +1,33 @@
+{% load i18n %}
+<div class="col-md-2">
+    <label for="filter-semester" class="form-label small mb-0">{% trans "Dönem" %}</label>
+    <select id="filter-semester" class="form-select form-select-sm" name="semester" aria-label="{% trans 'Dönem filtresi' %}">
+        <option value="">{% trans "Tümü" %}</option>
+        {% for s in filter_semesters %}
+            <option value="{{ s.pk }}" {% if current_filters.semester == s.pk|stringformat:"s" %}selected{% endif %}>{{ s }}</option>
+        {% endfor %}
+    </select>
+</div>
+<div class="col-md-2">
+    <label for="filter-dept" class="form-label small mb-0">{% trans "Bölüm" %}</label>
+    <select id="filter-dept" class="form-select form-select-sm" name="department" aria-label="{% trans 'Bölüm filtresi' %}">
+        <option value="">{% trans "Tümü" %}</option>
+        {% for d in filter_departments %}
+            <option value="{{ d.pk }}" {% if current_filters.department == d.pk|stringformat:"s" %}selected{% endif %}>{{ d.code }} — {{ d.name }}</option>
+        {% endfor %}
+    </select>
+</div>
+<div class="col-md-2">
+    <label for="filter-sort" class="form-label small mb-0">{% trans "Sıralama" %}</label>
+    <select id="filter-sort" class="form-select form-select-sm" name="sort" aria-label="{% trans 'Sıralama' %}">
+        <option value="code" {% if current_filters.sort == "code" %}selected{% endif %}>{% trans "Ders kodu (A→Z)" %}</option>
+        <option value="code_desc" {% if current_filters.sort == "code_desc" %}selected{% endif %}>{% trans "Ders kodu (Z→A)" %}</option>
+        <option value="semester" {% if current_filters.sort == "semester" %}selected{% endif %}>{% trans "Dönem" %}</option>
+        <option value="cap" {% if current_filters.sort == "cap" %}selected{% endif %}>{% trans "Kontenjan (önce uygun)" %}</option>
+        <option value="cap_desc" {% if current_filters.sort == "cap_desc" %}selected{% endif %}>{% trans "Kontenjan (önce dolu)" %}</option>
+    </select>
+</div>
+<div class="col-md-2 form-check mt-4">
+    <input class="form-check-input" type="checkbox" name="avail" value="1" id="filter-avail" {% if current_filters.avail == "1" %}checked{% endif %}>
+    <label class="form-check-label small" for="filter-avail">{% trans "Yalnızca kontenjanı uygun şubeler" %}</label>
+</div>

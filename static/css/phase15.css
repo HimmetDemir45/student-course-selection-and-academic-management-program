@@ -29,6 +29,26 @@
   text-align: left;
 }
 
+.phase16-alert {
+  margin-bottom: 1rem;
+}
+
+.phase16-form-errors {
+  border-left: 3px solid var(--bs-danger);
+  padding-left: 0.5rem;
+}
+
+.phase16-empty-state p:last-child {
+  margin-bottom: 0;
+}
+
+.phase16-toolbar {
+  border: 1px solid var(--bs-border-color);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  background-color: var(--bs-light);
+}
+
 @media print {
   .navbar,
   .phase15-breadcrumb,

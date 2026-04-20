@@ -2,9 +2,13 @@
 {% load i18n %}
 {% block title %}{% trans "Sunucu hatası" %}{% endblock %}
 {% block content %}
-<div class="text-center py-5">
-    <h1 class="display-6">500</h1>
-    <p class="lead">{% trans "Beklenmeyen bir hata oluştu. Lütfen daha sonra tekrar deneyin." %}</p>
-    <a class="btn btn-primary" href="{% url 'core:home' %}">{% trans "Ana sayfaya dön" %}</a>
+<div class="py-5 text-center">
+    <h1 class="display-6 mb-3">500</h1>
+    <p class="lead mb-2">{% trans "Beklenmeyen bir hata oluştu. Lütfen daha sonra tekrar deneyin." %}</p>
+    <p class="text-muted mb-3">{% trans "Sonraki adım: Sorun devam ederse destek ekibine tarayıcıdaki X-Request-ID bilgisini iletin." %}</p>
+    <div class="d-flex justify-content-center gap-2 flex-wrap">
+        <a class="btn btn-primary" href="{% url 'core:home' %}">{% trans "Ana sayfaya dön" %}</a>
+        <a class="btn btn-outline-secondary" href="{% url 'dashboard:index' %}">{% trans "Panele git" %}</a>
+    </div>
 </div>
 {% endblock %}

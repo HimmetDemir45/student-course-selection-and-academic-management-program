@@ -41,6 +41,12 @@ Bu dosya üretim ve ders ortamı için **tek sayfalık** özet sağlar. Ayrınt�
 
 Yükseltme: `docs/runbooks/incident-response.md`, `SECURITY.md` (secret sızıntısı).
 
+## Phase 16 operasyon notu
+
+- UI geri bildirimi için tekil partial'lar kullanılır: `includes/alert_messages.html`, `includes/empty_state.html`, `includes/table_toolbar.html`, `includes/form_errors.html`.
+- Audit olaylarında metadata standardı korunur: `event_type`, `actor_id`, `target`, `status`, `request_id`.
+- Hata sayfaları (`403`, `404`, `500`) kullanıcıya kısa "sonraki adım" metni içerir; canlı incident sırasında kullanıcıya bu yönlendirmeleri paylaşın.
+
 ## Canary ve sentetik kontrol
 
 - Zamanlanmış: `.github/workflows/canary.yml` (`CANARY_BASE_URL` secret).

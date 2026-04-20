@@ -31,6 +31,7 @@
                 {% else %}
                     <p class="small text-warning mb-2">{% trans "Öğrenci profili eksik." %}</p>
                 {% endif %}
+                <p class="small text-muted mb-2">{{ student_next_step }}</p>
                 <a class="btn btn-outline-primary btn-sm" href="{% url 'courses:course_list' %}">{% trans "Ders kataloğunu aç" %}</a>
             </div>
         </div>
@@ -93,6 +94,23 @@
             </div>
         </div>
     </div>
+    {% if recent_critical_events %}
+    <div class="col-12">
+        <div class="card shadow-sm border-0 phase11-card">
+            <div class="card-body">
+                <h2 class="h6 mb-2">{% trans "Son kritik olaylar" %}</h2>
+                <ul class="small mb-0">
+                    {% for ev in recent_critical_events %}
+                        <li>
+                            <code>{{ ev.event_type }}</code>
+                            {% if ev.actor %} — {{ ev.actor.username }}{% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    {% endif %}
     {% if recent_announcements %}
     <div class="col-12">
         <div class="card shadow-sm border-0 phase11-card">
@@ -108,19 +126,21 @@
         </div>
     </div>
     {% endif %}
-    {% if is_founder %}
     <div class="col-md-6 col-lg-4">
         <div class="card h-100 shadow-sm border-0 border-primary phase11-card">
             <div class="card-body">
-                <h2 class="h6">{% trans "Kurucu yönetici" %}</h2>
+                <h2 class="h6">{% trans "Yönetici talepleri" %}</h2>
                 <p class="small text-muted mb-2">
                     {% trans "Bekleyen talep:" %} <strong>{{ pending_admin_request_count }}</strong>
                 </p>
+                {% if is_founder %}
                 <a class="btn btn-primary btn-sm" href="{% url 'dashboard:admin_requests' %}">{% trans "Yönetici taleplerini yönet" %}</a>
+                {% else %}
+                <p class="small text-muted mb-0">{% trans "Yalnızca kurucu yönetici talepleri işleyebilir." %}</p>
+                {% endif %}
             </div>
         </div>
     </div>
-    {% endif %}
 </div>
 {% else %}
 <p class="text-muted">{% trans "Pano içeriği rolünüz için yapılandırılmadı." %}</p>
