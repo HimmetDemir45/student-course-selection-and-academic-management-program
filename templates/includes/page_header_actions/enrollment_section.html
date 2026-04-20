@@ -1,0 +1,7 @@
+{% load i18n %}
+<div class="btn-group btn-group-sm phase15-no-print" role="group" aria-label="{% trans 'Hızlı işlemler' %}">
+  <a class="btn btn-outline-secondary" href="{% url 'dashboard:index' %}">{% trans "Panele dön" %}</a>
+  {% if user.role == "student" %}
+  <a class="btn btn-outline-primary" href="{% url 'students:transcript' %}">{% trans "Transkript" %}</a>
+  {% endif %}
+</div>

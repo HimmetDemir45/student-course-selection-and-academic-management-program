@@ -9,11 +9,12 @@
     <link rel="stylesheet" href="{% static 'css/phase11.css' %}">
     <link rel="stylesheet" href="{% static 'css/phase14.css' %}">
     <link rel="stylesheet" href="{% static 'css/phase15.css' %}">
+    <link rel="stylesheet" href="{% static 'css/phase17.css' %}">
     {% block extra_head %}{% endblock %}
 </head>
-<body class="bg-light">
-    {# Rollback: tek ul yapısına dönün (phase öncesi). #}
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-3 phase11-nav" role="navigation" aria-label="{% trans 'Ana menü' %}">
+<body class="{% if user.is_authenticated %}phase17-app phase17-role--{{ user.role }}{% else %}phase17-app{% endif %} bg-light">
+    {# Rollback: phase17.css linkini ve gövde sınıflarını kaldırın. #}
+    <nav class="navbar navbar-expand-lg navbar-dark mb-3 phase11-nav phase17-navbar{% if user.is_authenticated %} phase17-nav--{{ user.role }}{% endif %}" role="navigation" aria-label="{% trans 'Ana menü' %}">
         <div class="container">
             <a class="navbar-brand fw-semibold" href="{% url 'core:home' %}">{% trans "Akademik yönetim" %}</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="{% trans 'Menüyü aç veya kapat' %}">
@@ -32,7 +33,7 @@
                         <a class="nav-link phase15-nav-link {% if nav_namespace == 'academic' and nav_url_name == 'announcement_list' %}active{% endif %}" role="menuitem" href="{% url 'academic:announcement_list' %}">{% trans "Duyurular" %}</a>
                     </li>
                     {% if user.role == "student" %}
-                    <li class="nav-item dropdown" role="none">
+                    <li class="nav-item dropdown phase17-role-menu phase17-role-menu--student" role="none">
                         <a class="nav-link dropdown-toggle phase15-nav-link {% if nav_namespace == 'students' or nav_namespace == 'enrollments' or nav_namespace == 'courses' and nav_url_name == 'course_list' %}active{% endif %}" href="#" id="navStudent" role="menuitem" data-bs-toggle="dropdown" aria-expanded="false">{% trans "Öğrenci" %}</a>
                         <ul class="dropdown-menu" role="menu" aria-labelledby="navStudent">
                             <li role="none"><a class="dropdown-item {% if nav_namespace == 'students' and nav_url_name == 'index' %}active{% endif %}" role="menuitem" href="{% url 'students:index' %}">{% trans "Öğrenci alanı" %}</a></li>
@@ -42,7 +43,7 @@
                         </ul>
                     </li>
                     {% elif user.role == "instructor" %}
-                    <li class="nav-item dropdown" role="none">
+                    <li class="nav-item dropdown phase17-role-menu phase17-role-menu--instructor" role="none">
                         <a class="nav-link dropdown-toggle phase15-nav-link {% if nav_namespace == 'instructors' or nav_namespace == 'courses' and nav_url_name == 'offering_list' or nav_namespace == 'academic' and nav_url_name == 'instructor_enrollments' or nav_namespace == 'academic' and nav_url_name == 'grade_entry' %}active{% endif %}" href="#" id="navInstructor" role="menuitem" data-bs-toggle="dropdown" aria-expanded="false">{% trans "Akademisyen" %}</a>
                         <ul class="dropdown-menu" role="menu" aria-labelledby="navInstructor">
                             <li role="none"><a class="dropdown-item {% if nav_namespace == 'instructors' and nav_url_name == 'index' %}active{% endif %}" role="menuitem" href="{% url 'instructors:index' %}">{% trans "Akademisyen alanı" %}</a></li>
@@ -51,7 +52,7 @@
                         </ul>
                     </li>
                     {% elif user.role == "admin" %}
-                    <li class="nav-item dropdown" role="none">
+                    <li class="nav-item dropdown phase17-role-menu phase17-role-menu--admin" role="none">
                         <a class="nav-link dropdown-toggle phase15-nav-link {% if nav_namespace == 'courses' or nav_namespace == 'enrollments' and nav_url_name == 'browse' or nav_namespace == 'audit_logs' or nav_namespace == 'academic' and 'department' in nav_url_name %}active{% endif %}" href="#" id="navAdmin" role="menuitem" data-bs-toggle="dropdown" aria-expanded="false">{% trans "Yönetim" %}</a>
                         <ul class="dropdown-menu" role="menu" aria-labelledby="navAdmin">
                             <li role="none"><a class="dropdown-item {% if nav_namespace == 'academic' and nav_url_name == 'department_list' %}active{% endif %}" role="menuitem" href="{% url 'academic:department_list' %}">{% trans "Bölümler" %}</a></li>
@@ -84,7 +85,7 @@
         </div>
     </nav>
 
-    <main class="container phase14-main">
+    <main class="container phase14-main phase17-main">
         {% block breadcrumb_outer %}
         {% include "includes/breadcrumb.html" %}
         {% endblock %}
