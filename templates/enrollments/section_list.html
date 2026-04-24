@@ -2,15 +2,8 @@
 {% load i18n %}
 {% block title %}{% trans "Ders kaydı — şubeler" %}{% endblock %}
 {% block content %}
-<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-    <h1 class="h4 mb-0">{% trans "Ders kaydı — açılan şubeler" %}</h1>
-    <div class="btn-group btn-group-sm phase15-no-print" role="group" aria-label="{% trans 'Hızlı işlemler' %}">
-        <a class="btn btn-outline-secondary" href="{% url 'dashboard:index' %}">{% trans "Panele dön" %}</a>
-        {% if user.role == "student" %}
-        <a class="btn btn-outline-primary" href="{% url 'students:transcript' %}">{% trans "Transkript" %}</a>
-        {% endif %}
-    </div>
-</div>
+{% trans "Ders kaydı — açılan şubeler" as section_title %}
+{% include "includes/page_header.html" with header_title=section_title header_actions_template="includes/page_header_actions/enrollment_section.html" %}
 
 {% trans "Şube filtreleri" as section_toolbar_aria %}
 {% trans "Kod veya ders adı" as section_toolbar_placeholder %}
@@ -23,8 +16,9 @@
 {% include "includes/empty_state.html" with empty_title=section_empty_title empty_message=section_empty_message %}
 {% endif %}
 
+<div class="phase17-table-wrap">
 <div class="table-responsive table-responsive-stack">
-<table class="table table-striped table-hover phase11-table align-middle">
+<table class="table table-striped table-hover phase11-table phase17-table phase17-table--sticky align-middle">
     <thead>
     <tr>
         <th scope="col">{% trans "Ders" %}</th>
@@ -106,6 +100,7 @@
     {% endfor %}
     </tbody>
 </table>
+</div>
 </div>
 {% include "includes/pagination.html" %}
 {% endblock %}

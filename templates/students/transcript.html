@@ -3,22 +3,20 @@
 {% block title %}{% trans "Transkript" %}{% endblock %}
 {% block content %}
 <div class="transcript-print">
-<h1 class="h4 mb-3">{% trans "Akademik transkript" %}</h1>
+{% trans "Akademik transkript" as transcript_title %}
+{% include "includes/page_header.html" with header_title=transcript_title header_actions_template="includes/page_header_actions/transcript.html" %}
 {% if no_profile %}
-    <p class="text-warning" role="alert">{% trans "Öğrenci profiliniz tanımlı değil." %}</p>
+    <div class="alert alert-warning phase17-alert" role="alert">{% trans "Öğrenci profiliniz tanımlı değil." %}</div>
 {% else %}
-    <div class="d-flex flex-wrap gap-2 align-items-center mb-3 phase15-no-print">
+    <div class="d-flex flex-wrap gap-3 align-items-center mb-4 phase15-no-print phase17-transcript-meta">
         <p class="mb-0"><strong>{% trans "Genel GPA" %}:</strong> {{ gpa }} <span class="text-muted">({{ gpa_credits }} {% trans "kredi" %})</span></p>
-        <button type="button" class="btn btn-sm btn-outline-secondary ms-auto" onclick="window.print()">
-            {% trans "Yazdır" %}
-        </button>
     </div>
     <div class="d-none d-print-block mb-2 small text-muted">{% trans "Genel GPA" %}: {{ gpa }} ({{ gpa_credits }} {% trans "kredi" %})</div>
     {% if not semester_blocks %}
     <p class="text-muted">{% trans "Kayıt bulunmuyor." %}</p>
     {% endif %}
     {% for block in semester_blocks %}
-    <section class="card shadow-sm border-0 mb-3" aria-labelledby="sem-h-{{ block.semester.pk }}">
+    <section class="card shadow-sm border-0 mb-3 phase17-transcript-section" aria-labelledby="sem-h-{{ block.semester.pk }}">
         <div class="card-header bg-white d-flex flex-wrap justify-content-between align-items-center gap-2">
             <h2 class="h6 mb-0" id="sem-h-{{ block.semester.pk }}">{{ block.semester }}</h2>
             <div class="small text-muted">
@@ -28,7 +26,7 @@
         </div>
         <div class="card-body p-0">
             <div class="table-responsive table-responsive-stack">
-            <table class="table table-sm mb-0 align-middle">
+            <table class="table table-sm mb-0 align-middle phase17-table">
                 <thead class="table-light">
                 <tr>
                     <th scope="col">{% trans "Ders" %}</th>

@@ -4,12 +4,13 @@
 {% block title %}{% trans "Pano" %}{% endblock %}
 
 {% block content %}
-<h1 class="h4 mb-4">{% trans "Pano" %}</h1>
+{% trans "Pano" as dashboard_title %}
+{% include "includes/page_header.html" with header_title=dashboard_title %}
 
 {% if role == "student" %}
 <div class="row g-3 mb-4">
     <div class="col-md-6">
-        <div class="card h-100 shadow-sm border-0 phase11-card">
+        <div class="card h-100 shadow-sm border-0 phase11-card phase17-card">
             <div class="card-body">
                 <h2 class="h6">{% trans "Ders kaydı ve transkript" %}</h2>
                 {% if any_add_drop_open %}
@@ -23,7 +24,7 @@
         </div>
     </div>
     <div class="col-md-6">
-        <div class="card h-100 shadow-sm border-0 phase11-card">
+        <div class="card h-100 shadow-sm border-0 phase11-card phase17-card">
             <div class="card-body">
                 <h2 class="h6 text-secondary">{% trans "Kayıt özeti" %}</h2>
                 {% if student_enrollment_active is not None %}
@@ -40,7 +41,7 @@
 {% elif role == "instructor" %}
 <div class="row g-3 mb-4">
     <div class="col-md-6">
-        <div class="card h-100 shadow-sm border-0 phase11-card">
+        <div class="card h-100 shadow-sm border-0 phase11-card phase17-card">
             <div class="card-body">
                 <h2 class="h6">{% trans "Not girişi" %}</h2>
                 {% if instructor_pending_grades is not None %}
@@ -51,7 +52,7 @@
         </div>
     </div>
     <div class="col-md-6">
-        <div class="card h-100 shadow-sm border-0 phase11-card">
+        <div class="card h-100 shadow-sm border-0 phase11-card phase17-card">
             <div class="card-body">
                 <h2 class="h6 text-secondary">{% trans "Ders teklifleri ve duyurular" %}</h2>
                 {% if instructor_offering_count is not None %}
@@ -66,7 +67,7 @@
 {% elif role == "admin" %}
 <div class="row g-3">
     <div class="col-md-6 col-lg-4">
-        <div class="card h-100 shadow-sm border-0 phase11-card">
+        <div class="card h-100 shadow-sm border-0 phase11-card phase17-card">
             <div class="card-body">
                 <h2 class="h6 text-secondary">{% trans "Akademik" %}</h2>
                 <p class="small text-muted mb-2">{% trans "Bölüm ve duyuru yönetimi" %}</p>
@@ -76,7 +77,7 @@
         </div>
     </div>
     <div class="col-md-6 col-lg-4">
-        <div class="card h-100 shadow-sm border-0 phase11-card">
+        <div class="card h-100 shadow-sm border-0 phase11-card phase17-card">
             <div class="card-body">
                 <h2 class="h6 text-secondary">{% trans "Dersler" %}</h2>
                 <p class="small text-muted mb-2">{% trans "Katalog ve teklifler" %}</p>
@@ -86,7 +87,7 @@
         </div>
     </div>
     <div class="col-md-6 col-lg-4">
-        <div class="card h-100 shadow-sm border-0 phase11-card">
+        <div class="card h-100 shadow-sm border-0 phase11-card phase17-card">
             <div class="card-body">
                 <h2 class="h6 text-secondary">{% trans "Denetim" %}</h2>
                 <p class="small text-muted mb-2">{% trans "Sistem olay günlüğü" %}</p>
@@ -96,7 +97,7 @@
     </div>
     {% if recent_critical_events %}
     <div class="col-12">
-        <div class="card shadow-sm border-0 phase11-card">
+        <div class="card shadow-sm border-0 phase11-card phase17-card">
             <div class="card-body">
                 <h2 class="h6 mb-2">{% trans "Son kritik olaylar" %}</h2>
                 <ul class="small mb-0">
@@ -113,7 +114,7 @@
     {% endif %}
     {% if recent_announcements %}
     <div class="col-12">
-        <div class="card shadow-sm border-0 phase11-card">
+        <div class="card shadow-sm border-0 phase11-card phase17-card">
             <div class="card-body">
                 <h2 class="h6">{% trans "Son duyurular" %}</h2>
                 <ul class="small mb-0">
@@ -127,7 +128,7 @@
     </div>
     {% endif %}
     <div class="col-md-6 col-lg-4">
-        <div class="card h-100 shadow-sm border-0 border-primary phase11-card">
+        <div class="card h-100 shadow-sm border-0 phase11-card phase17-card phase17-card-highlight">
             <div class="card-body">
                 <h2 class="h6">{% trans "Yönetici talepleri" %}</h2>
                 <p class="small text-muted mb-2">

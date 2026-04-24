@@ -1,0 +1,8 @@
+{% load i18n %}
+{% if user.role == "instructor" %}
+<a class="btn btn-outline-secondary btn-sm" href="{% url 'academic:announcement_list' %}">{% trans "Duyurular" %}</a>
+<a class="btn btn-outline-primary btn-sm" href="{% url 'academic:instructor_enrollments' %}">{% trans "Öğrenci kayıtları ve notlar" %}</a>
+{% endif %}
+{% if user.role == "admin" %}
+<a class="btn btn-primary btn-sm" href="{% url 'courses:offering_create' %}">{% trans "Yeni ders teklifi" %}</a>
+{% endif %}
