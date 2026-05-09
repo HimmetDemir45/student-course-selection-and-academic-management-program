@@ -2,13 +2,13 @@
 {% if messages %}
     {% for message in messages %}
         {% if message.tags == 'error' %}
-            <div class="alert alert-danger phase15-alert phase16-alert" role="alert">{{ message }}</div>
+            <div class="alert alert-danger phase15-alert phase16-alert phase17-alert" role="alert">{{ message }}</div>
         {% elif message.tags == 'success' %}
-            <div class="alert alert-success phase15-alert phase16-alert" role="status">{{ message }}</div>
+            <div class="alert alert-success phase15-alert phase16-alert phase17-alert" role="status">{{ message }}</div>
         {% elif message.tags == 'warning' %}
-            <div class="alert alert-warning phase15-alert phase16-alert" role="alert">{{ message }}</div>
+            <div class="alert alert-warning phase15-alert phase16-alert phase17-alert" role="alert">{{ message }}</div>
         {% else %}
-            <div class="alert alert-{{ message.tags|default:'info' }} phase15-alert phase16-alert" role="status">{{ message }}</div>
+            <div class="alert alert-{{ message.tags|default:'info' }} phase15-alert phase16-alert phase17-alert" role="status">{{ message }}</div>
         {% endif %}
     {% endfor %}
 {% endif %}

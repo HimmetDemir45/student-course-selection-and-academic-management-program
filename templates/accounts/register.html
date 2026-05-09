@@ -4,40 +4,70 @@
 {% block title %}{% trans "Kayıt ol" %}{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <h1 class="h4 mb-3">{% trans "Kayıt ol" %}</h1>
-        <form id="register-form" method="post" novalidate>
-            {% csrf_token %}
-            {{ form.non_field_errors }}
-            <div class="mb-3">
-                <label class="form-label" for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label>
-                {{ form.first_name }}
-                <div class="text-danger small">{{ form.first_name.errors }}</div>
-            </div>
-            <div class="mb-3">
-                <label class="form-label" for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}</label>
-                {{ form.last_name }}
-                <div class="text-danger small">{{ form.last_name.errors }}</div>
-            </div>
-            <div class="mb-3">
-                <label class="form-label" for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
-                {{ form.email }}
-                <div id="email-hint" class="form-text">{% trans "E-posta benzersiz olmalıdır." %}</div>
-                <div class="text-danger small">{{ form.email.errors }}</div>
-            </div>
-            <div class="mb-3">
-                <label class="form-label" for="{{ form.password1.id_for_label }}">{{ form.password1.label }}</label>
-                {{ form.password1 }}
-                <div class="text-danger small">{{ form.password1.errors }}</div>
-            </div>
-            <div class="mb-3">
-                <label class="form-label" for="{{ form.password2.id_for_label }}">{{ form.password2.label }}</label>
-                {{ form.password2 }}
-                <div class="text-danger small">{{ form.password2.errors }}</div>
-            </div>
-            <button type="submit" class="btn btn-primary">{% trans "Kayıt ol" %}</button>
-        </form>
-    </div>
+<div class="mb-6">
+    <h1 class="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">{% trans "Hesap oluştur" %}</h1>
+    <p class="mt-2 text-sm text-slate-600 dark:text-white/70">{% trans "Sistemi kullanmak için temel bilgilerinizi girin." %}</p>
 </div>
+
+<form id="register-form" method="post" novalidate class="space-y-4">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+            <label class="block text-sm font-medium text-slate-800 dark:text-white/80 mb-2" for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label>
+            {{ form.first_name }}
+            <div class="text-rose-600 text-xs mt-1">{{ form.first_name.errors }}</div>
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-slate-800 dark:text-white/80 mb-2" for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}</label>
+            {{ form.last_name }}
+            <div class="text-rose-600 text-xs mt-1">{{ form.last_name.errors }}</div>
+        </div>
+    </div>
+
+    <div>
+        <label class="block text-sm font-medium text-slate-800 dark:text-white/80 mb-2" for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+        <div class="relative">
+            <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500 dark:text-white/50">
+                <i data-lucide="mail" class="h-4 w-4"></i>
+            </span>
+            {{ form.email }}
+        </div>
+        <div id="email-hint" class="mt-2 text-xs text-slate-500 dark:text-white/50">{% trans "E-posta benzersiz olmalıdır." %}</div>
+        <div class="text-rose-600 text-xs mt-1">{{ form.email.errors }}</div>
+    </div>
+
+    <div>
+        <label class="block text-sm font-medium text-slate-800 dark:text-white/80 mb-2" for="{{ form.password1.id_for_label }}">{{ form.password1.label }}</label>
+        <div class="relative">
+            <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500 dark:text-white/50">
+                <i data-lucide="key-round" class="h-4 w-4"></i>
+            </span>
+            {{ form.password1 }}
+        </div>
+        <div class="text-rose-600 text-xs mt-1">{{ form.password1.errors }}</div>
+    </div>
+
+    <div>
+        <label class="block text-sm font-medium text-slate-800 dark:text-white/80 mb-2" for="{{ form.password2.id_for_label }}">{{ form.password2.label }}</label>
+        <div class="relative">
+            <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500 dark:text-white/50">
+                <i data-lucide="shield-check" class="h-4 w-4"></i>
+            </span>
+            {{ form.password2 }}
+        </div>
+        <div class="text-rose-600 text-xs mt-1">{{ form.password2.errors }}</div>
+    </div>
+
+    <button type="submit" class="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 via-violet-600 to-cyan-500 px-4 py-2.5 text-sm font-semibold text-white shadow-[0_18px_60px_rgba(99,102,241,.35)] hover:brightness-110 transition">
+        <i data-lucide="sparkles" class="h-4 w-4"></i>
+        {% trans "Kayıt ol" %}
+    </button>
+
+    <div class="pt-2 text-sm text-slate-600 dark:text-white/70">
+        {% trans "Zaten hesabınız var mı?" %}
+        <a class="font-semibold text-slate-900 dark:text-white hover:opacity-90" href="{% url 'accounts:login' %}">{% trans "Giriş yap" %}</a>
+    </div>
+</form>
 {% endblock %}

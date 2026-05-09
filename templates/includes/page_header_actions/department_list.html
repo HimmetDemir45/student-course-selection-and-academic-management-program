@@ -1,0 +1,4 @@
+{% load i18n %}
+{% if user.role == "admin" %}
+<a class="btn btn-primary btn-sm" href="{% url 'academic:department_create' %}">{% trans "Yeni bölüm" %}</a>
+{% endif %}

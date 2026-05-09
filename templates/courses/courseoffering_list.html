@@ -4,18 +4,12 @@
 {% block title %}{% if user.role == "instructor" %}{% trans "Verdiğim ders teklifleri" %}{% else %}{% trans "Ders teklifleri" %}{% endif %}{% endblock %}
 
 {% block content %}
-<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-    <h1 class="h4 mb-0">{% if user.role == "instructor" %}{% trans "Verdiğim ders teklifleri" %}{% else %}{% trans "Ders teklifleri" %}{% endif %}</h1>
-    <div class="d-flex flex-wrap gap-2">
-        {% if user.role == "instructor" %}
-        <a class="btn btn-outline-secondary btn-sm" href="{% url 'academic:announcement_list' %}">{% trans "Duyurular" %}</a>
-        <a class="btn btn-outline-primary btn-sm" href="{% url 'academic:instructor_enrollments' %}">{% trans "Öğrenci kayıtları ve notlar" %}</a>
-        {% endif %}
-        {% if user.role == "admin" %}
-        <a class="btn btn-primary btn-sm" href="{% url 'courses:offering_create' %}">{% trans "Yeni ders teklifi" %}</a>
-        {% endif %}
-    </div>
-</div>
+{% if user.role == "instructor" %}
+{% trans "Verdiğim ders teklifleri" as offering_title %}
+{% else %}
+{% trans "Ders teklifleri" as offering_title %}
+{% endif %}
+{% include "includes/page_header.html" with header_title=offering_title header_actions_template="includes/page_header_actions/courseoffering_list.html" %}
 
 {% trans "Ders teklifi filtreleri" as offering_toolbar_aria %}
 {% trans "Kod veya ders adı" as offering_toolbar_placeholder %}
@@ -28,8 +22,9 @@
 {% include "includes/empty_state.html" with empty_title=offering_empty_title empty_message=offering_empty_message %}
 {% endif %}
 
+<div class="phase17-table-wrap">
 <div class="table-responsive table-responsive-stack">
-<table class="table table-striped table-hover phase11-table align-middle">
+<table class="table table-striped table-hover phase11-table phase17-table phase17-table--sticky align-middle">
     <thead>
         <tr>
             <th scope="col">{% trans "Ders" %}</th>
@@ -64,6 +59,7 @@
         {% endfor %}
     </tbody>
 </table>
+</div>
 </div>
 {% include "includes/pagination.html" %}
 {% endblock %}

@@ -4,12 +4,8 @@
 {% block title %}{% trans "Ders kataloğu" %}{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-    <h1 class="h4 mb-0">{% trans "Ders kataloğu" %}</h1>
-    {% if user.role == "admin" %}
-        <a class="btn btn-primary btn-sm" href="{% url 'courses:course_create' %}">{% trans "Yeni ders" %}</a>
-    {% endif %}
-</div>
+{% trans "Ders kataloğu" as course_catalog_title %}
+{% include "includes/page_header.html" with header_title=course_catalog_title header_actions_template="includes/page_header_actions/course_list.html" %}
 
 {% trans "Ders filtreleri" as course_toolbar_aria %}
 {% trans "Kod veya ad" as course_toolbar_placeholder %}
@@ -22,8 +18,9 @@
 {% include "includes/empty_state.html" with empty_title=course_empty_title empty_message=course_empty_message %}
 {% endif %}
 
+<div class="phase17-table-wrap">
 <div class="table-responsive table-responsive-stack">
-<table class="table table-striped table-hover phase11-table align-middle">
+<table class="table table-striped table-hover phase11-table phase17-table phase17-table--sticky align-middle">
     <thead>
         <tr>
             <th scope="col">{% trans "Kod" %}</th>
@@ -56,6 +53,7 @@
         {% endfor %}
     </tbody>
 </table>
+</div>
 </div>
 {% include "includes/pagination.html" %}
 {% endblock %}
