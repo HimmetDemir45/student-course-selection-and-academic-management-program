@@ -16,7 +16,17 @@ ALLOWED_HOSTS = env.list(  # noqa: F405
     default=env.list("ALLOWED_HOSTS", default=["127.0.0.1", "localhost"]),
 )
 
-CSRF_TRUSTED_ORIGINS = env.list("DJANGO_CSRF_TRUSTED_ORIGINS", default=[])
+# Yerel geliştiricide Origin/HTTPS varyasyonlarında CSRF doğrulamasının düşmesini önlemek için
+# varsayılan kökenler; üretimde prod.py kullanılır (.env ile üzerine yazılabilir).
+CSRF_TRUSTED_ORIGINS = env.list(
+    "DJANGO_CSRF_TRUSTED_ORIGINS",
+    default=[
+        "http://127.0.0.1:8000",
+        "http://localhost:8000",
+        "http://[::1]:8000",
+        "http://testserver",  # Django test istemcisinin gönderdiği Origin/Referrer
+    ],
+)
 
 if "test" in sys.argv or _PYTEST_LOADED:
     # core/urls.py test rotalari: DEBUG kapali olsa da testlerde reverse() calissin.

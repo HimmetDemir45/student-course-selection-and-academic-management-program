@@ -1,31 +1,43 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Giris Yap{% endblock %}
+{% block title %}{% trans "Giriş yap" %}{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-md-6">
-        <h2>Giris Yap</h2>
-        <form method="post" novalidate>
-            {% csrf_token %}
-            {{ form.non_field_errors }}
-            <div class="mb-3">
-                <label class="form-label">{{ form.login.label }}</label>
-                {{ form.login }}
-                <div class="text-danger small">{{ form.login.errors }}</div>
+    <div class="col-md-6 col-lg-5">
+        <div class="card phase11-card shadow-sm border-0">
+            <div class="card-body p-4 p-md-5">
+                <h1 class="h4 mb-1">{% trans "Giriş yap" %}</h1>
+                <p class="text-muted small mb-4">{% trans "E-postanızı veya kullanıcı adınızı kullanarak oturum açın." %}</p>
+                <form id="login-form" method="post" action="{% url 'accounts:login' %}" novalidate>
+                    {% csrf_token %}
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger phase16-form-errors mb-3" role="alert">
+                        {{ form.non_field_errors }}
+                    </div>
+                    {% endif %}
+                    <div class="mb-3">
+                        <label class="form-label" for="{{ form.login.id_for_label }}">{{ form.login.label }}</label>
+                        {{ form.login }}
+                        <div class="text-danger small">{{ form.login.errors }}</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="{{ form.password.id_for_label }}">{{ form.password.label }}</label>
+                        {{ form.password }}
+                        <div class="text-danger small">{{ form.password.errors }}</div>
+                    </div>
+                    <div class="form-check mb-4">
+                        {{ form.remember_me }}
+                        <label class="form-check-label" for="{{ form.remember_me.id_for_label }}">{{ form.remember_me.label }}</label>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">{% trans "Giriş yap" %}</button>
+                        <a class="btn btn-link" href="{% url 'accounts:password_reset' %}">{% trans "Şifremi unuttum" %}</a>
+                    </div>
+                </form>
             </div>
-            <div class="mb-3">
-                <label class="form-label">{{ form.password.label }}</label>
-                {{ form.password }}
-                <div class="text-danger small">{{ form.password.errors }}</div>
-            </div>
-            <div class="form-check mb-3">
-                {{ form.remember_me }}
-                <label class="form-check-label">{{ form.remember_me.label }}</label>
-            </div>
-            <button type="submit" class="btn btn-primary">Giris Yap</button>
-            <a class="btn btn-link" href="{% url 'accounts:password_reset' %}">Sifremi unuttum</a>
-        </form>
+        </div>
     </div>
 </div>
 {% endblock %}

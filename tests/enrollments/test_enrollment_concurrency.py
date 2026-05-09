@@ -27,12 +27,12 @@ def _create_student(username: str, student_no: str, department: Department, prog
         password="pass12345",
         role="student",
     )
-    return StudentProfile.objects.create(
-        user=user,
-        student_no=student_no,
-        department=department,
-        program=program,
-    )
+    sp = StudentProfile.objects.get(user=user)
+    sp.student_no = student_no
+    sp.department = department
+    sp.program = program
+    sp.save()
+    return sp
 
 
 def _attempt_enroll(student_id: int, section_id: int, q: Queue):

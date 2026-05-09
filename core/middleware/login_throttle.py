@@ -1,7 +1,7 @@
 from django.contrib import messages
 from django.shortcuts import redirect
 
-from accounts.login_throttle import is_login_locked
+from accounts.services.login_throttle import is_login_locked
 
 
 class LoginBruteForceMiddleware:

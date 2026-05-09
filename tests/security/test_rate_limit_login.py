@@ -4,7 +4,7 @@ from django.core.cache import cache
 from django.test import Client, override_settings
 from django.urls import reverse
 
-from accounts.login_throttle import is_login_locked
+from accounts.services.login_throttle import is_login_locked
 
 pytestmark = [pytest.mark.security, pytest.mark.integration]
 
