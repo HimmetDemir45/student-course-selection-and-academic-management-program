@@ -2,10 +2,36 @@
 {% load i18n %}
 {% block title %}{% trans "Öğrenci alanı" %}{% endblock %}
 {% block content %}
-<h1 class="h4 mb-3">{% trans "Öğrenci alanı" %}</h1>
-<div class="list-group shadow-sm">
-    <a class="list-group-item list-group-item-action" href="{% url 'students:transcript' %}">{% trans "Transkript ve GPA" %}</a>
-    <a class="list-group-item list-group-item-action" href="{% url 'courses:course_list' %}">{% trans "Ders kataloğu" %}</a>
-    <a class="list-group-item list-group-item-action" href="{% url 'enrollments:browse' %}">{% trans "Ders kaydı" %}</a>
+<h1 class="h4 mb-1">{% trans "Öğrenci alanı" %}</h1>
+<p class="text-muted mb-4">{% trans "Ders seçimi, transkript ve katalog kısayolları." %}</p>
+
+<div class="row g-3">
+    <div class="col-md-4">
+        <div class="card h-100 shadow-sm border-0 phase11-card phase17-card">
+            <div class="card-body">
+                <h2 class="h6">{% trans "Ders kaydı" %}</h2>
+                <p class="small text-muted mb-3">{% trans "Açılan şubelerden ders seçin." %}</p>
+                <a class="btn btn-primary btn-sm" href="{% url 'enrollments:browse' %}">{% trans "Ders kaydına git" %}</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 shadow-sm border-0 phase11-card phase17-card">
+            <div class="card-body">
+                <h2 class="h6">{% trans "Transkript" %}</h2>
+                <p class="small text-muted mb-3">{% trans "Notlarınızı ve GPA’nizi görüntüleyin." %}</p>
+                <a class="btn btn-outline-primary btn-sm" href="{% url 'students:transcript' %}">{% trans "Transkripti aç" %}</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 shadow-sm border-0 phase11-card phase17-card">
+            <div class="card-body">
+                <h2 class="h6">{% trans "Ders kataloğu" %}</h2>
+                <p class="small text-muted mb-3">{% trans "Tüm dersleri inceleyin." %}</p>
+                <a class="btn btn-outline-secondary btn-sm" href="{% url 'courses:course_list' %}">{% trans "Kataloğu aç" %}</a>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

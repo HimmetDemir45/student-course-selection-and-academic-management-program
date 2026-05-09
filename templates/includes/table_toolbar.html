@@ -1,24 +1,48 @@
 {% load i18n %}
-<form class="row g-2 align-items-end mb-4 phase16-toolbar phase17-toolbar" method="get" role="search" aria-label="{{ toolbar_aria_label }}">
-    <div class="col-md-4">
-        <label for="{{ toolbar_search_id|default:'toolbar-q' }}" class="form-label small mb-0">{% trans "Arama" %}</label>
-        <input
-            id="{{ toolbar_search_id|default:'toolbar-q' }}"
-            class="form-control form-control-sm"
-            type="search"
-            name="q"
-            value="{{ current_filters.q }}"
-            placeholder="{{ toolbar_search_placeholder }}"
-            aria-label="{{ toolbar_search_aria_label }}"
-        >
-    </div>
-    {% if toolbar_filters_template %}
-        {% include toolbar_filters_template %}
-    {% endif %}
-    <div class="col-md-2">
-        <button type="submit" class="btn btn-sm btn-primary w-100">{% trans "Uygula" %}</button>
-    </div>
-    <div class="col-md-2">
-        <a class="btn btn-sm btn-outline-secondary w-100" href="{{ toolbar_reset_url }}">{% trans "Temizle" %}</a>
+<form class="mb-5 rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/70 dark:bg-white/5 backdrop-blur-xl shadow-[0_22px_90px_rgba(2,6,23,.10)]"
+      method="get"
+      role="search"
+      aria-label="{{ toolbar_aria_label }}">
+    <div class="p-4">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+            <div class="md:col-span-5">
+                <label for="{{ toolbar_search_id|default:'toolbar-q' }}" class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-white/50 mb-2">
+                    {% trans "Arama" %}
+                </label>
+                <div class="relative">
+                    <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500 dark:text-white/45">
+                        <i data-lucide="search" class="h-4 w-4"></i>
+                    </span>
+                    <input
+                        id="{{ toolbar_search_id|default:'toolbar-q' }}"
+                        class="w-full rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/60 dark:bg-white/5 px-10 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/40 focus:outline-none focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500/30 transition"
+                        type="search"
+                        name="q"
+                        value="{{ current_filters.q }}"
+                        placeholder="{{ toolbar_search_placeholder }}"
+                        aria-label="{{ toolbar_search_aria_label }}"
+                    >
+                </div>
+            </div>
+
+            {% if toolbar_filters_template %}
+                {% include toolbar_filters_template %}
+            {% endif %}
+
+            <div class="md:col-span-2">
+                <button type="submit"
+                        class="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 via-violet-600 to-cyan-500 px-4 py-2.5 text-sm font-semibold text-white shadow-[0_18px_60px_rgba(99,102,241,.25)] hover:brightness-110 transition">
+                    <i data-lucide="sliders-horizontal" class="h-4 w-4"></i>
+                    {% trans "Uygula" %}
+                </button>
+            </div>
+            <div class="md:col-span-2">
+                <a class="w-full inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/60 dark:bg-white/5 px-4 py-2.5 text-sm font-semibold text-slate-900 dark:text-white hover:bg-white/80 dark:hover:bg-white/10 transition"
+                   href="{{ toolbar_reset_url }}">
+                    <i data-lucide="x" class="h-4 w-4"></i>
+                    {% trans "Temizle" %}
+                </a>
+            </div>
+        </div>
     </div>
 </form>

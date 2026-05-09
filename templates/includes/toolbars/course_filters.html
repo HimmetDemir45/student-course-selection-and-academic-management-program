@@ -1,16 +1,22 @@
 {% load i18n %}
-<div class="col-md-2">
-    <label for="course-dept" class="form-label small mb-0">{% trans "Bölüm" %}</label>
-    <select id="course-dept" class="form-select form-select-sm" name="department" aria-label="{% trans 'Bölüm filtresi' %}">
+<div class="md:col-span-3">
+    <label for="course-dept" class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-white/50 mb-2">{% trans "Bölüm" %}</label>
+    <select id="course-dept"
+            class="w-full rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/60 dark:bg-white/5 px-3 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500/30 transition"
+            name="department"
+            aria-label="{% trans 'Bölüm filtresi' %}">
         <option value="">{% trans "Tümü" %}</option>
         {% for d in filter_departments %}
             <option value="{{ d.pk }}" {% if current_filters.department == d.pk|stringformat:"s" %}selected{% endif %}>{{ d.code }} — {{ d.name }}</option>
         {% endfor %}
     </select>
 </div>
-<div class="col-md-2">
-    <label for="course-sort" class="form-label small mb-0">{% trans "Sıralama" %}</label>
-    <select id="course-sort" class="form-select form-select-sm" name="sort" aria-label="{% trans 'Sıralama' %}">
+<div class="md:col-span-2">
+    <label for="course-sort" class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-white/50 mb-2">{% trans "Sıralama" %}</label>
+    <select id="course-sort"
+            class="w-full rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/60 dark:bg-white/5 px-3 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500/30 transition"
+            name="sort"
+            aria-label="{% trans 'Sıralama' %}">
         <option value="code" {% if current_filters.sort == "code" %}selected{% endif %}>{% trans "Kod (A→Z)" %}</option>
         <option value="name" {% if current_filters.sort == "name" %}selected{% endif %}>{% trans "Ada göre" %}</option>
         <option value="dept" {% if current_filters.sort == "dept" %}selected{% endif %}>{% trans "Bölüme göre" %}</option>

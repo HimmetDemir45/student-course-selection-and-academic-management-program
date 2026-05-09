@@ -5,94 +5,431 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{% trans "Akademik yönetim sistemi" %}{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+      // Tailwind Play CDN config (class-based dark mode)
+      tailwind = {
+        config: {
+          darkMode: "class",
+          theme: {
+            extend: {
+              fontFamily: { sans: ["Inter", "ui-sans-serif", "system-ui", "Segoe UI", "Roboto", "Helvetica Neue", "Arial"] },
+              colors: {
+                navy: { 950: "#050816", 900: "#0B1220", 800: "#0F172A" },
+              },
+              boxShadow: {
+                glow: "0 0 0 1px rgba(99,102,241,.25), 0 16px 60px rgba(2,6,23,.45)",
+              },
+              borderRadius: { "2xl": "1.25rem" }
+            }
+          }
+        }
+      };
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="{% static 'css/phase11.css' %}">
     <link rel="stylesheet" href="{% static 'css/phase14.css' %}">
     <link rel="stylesheet" href="{% static 'css/phase15.css' %}">
     <link rel="stylesheet" href="{% static 'css/phase17.css' %}">
+    <link rel="stylesheet" href="{% static 'css/ui-modern.css' %}">
+    <link rel="stylesheet" href="{% static 'css/portal-2025.css' %}">
     {% block extra_head %}{% endblock %}
 </head>
 <body class="{% if user.is_authenticated %}phase17-app phase17-role--{{ user.role }}{% else %}phase17-app{% endif %} bg-light">
     {# Rollback: phase17.css linkini ve gövde sınıflarını kaldırın. #}
-    <nav class="navbar navbar-expand-lg navbar-dark mb-3 phase11-nav phase17-navbar{% if user.is_authenticated %} phase17-nav--{{ user.role }}{% endif %}" role="navigation" aria-label="{% trans 'Ana menü' %}">
-        <div class="container">
-            <a class="navbar-brand fw-semibold" href="{% url 'core:home' %}">{% trans "Akademik yönetim" %}</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="{% trans 'Menüyü aç veya kapat' %}">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="mainNav">
-                {% if user.is_authenticated %}
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0 flex-wrap align-items-lg-center gap-lg-1" role="menubar">
-                    <li class="nav-item" role="none">
-                        <a class="nav-link phase15-nav-link {% if nav_namespace == 'core' and nav_url_name == 'home' %}active{% endif %}" role="menuitem" href="{% url 'core:home' %}">{% trans "Ana sayfa" %}</a>
-                    </li>
-                    <li class="nav-item" role="none">
-                        <a class="nav-link phase15-nav-link {% if nav_namespace == 'dashboard' and nav_url_name == 'index' %}active{% endif %}" role="menuitem" href="{% url 'dashboard:index' %}">{% trans "Pano" %}</a>
-                    </li>
-                    <li class="nav-item" role="none">
-                        <a class="nav-link phase15-nav-link {% if nav_namespace == 'academic' and nav_url_name == 'announcement_list' %}active{% endif %}" role="menuitem" href="{% url 'academic:announcement_list' %}">{% trans "Duyurular" %}</a>
-                    </li>
-                    {% if user.role == "student" %}
-                    <li class="nav-item dropdown phase17-role-menu phase17-role-menu--student" role="none">
-                        <a class="nav-link dropdown-toggle phase15-nav-link {% if nav_namespace == 'students' or nav_namespace == 'enrollments' or nav_namespace == 'courses' and nav_url_name == 'course_list' %}active{% endif %}" href="#" id="navStudent" role="menuitem" data-bs-toggle="dropdown" aria-expanded="false">{% trans "Öğrenci" %}</a>
-                        <ul class="dropdown-menu" role="menu" aria-labelledby="navStudent">
-                            <li role="none"><a class="dropdown-item {% if nav_namespace == 'students' and nav_url_name == 'index' %}active{% endif %}" role="menuitem" href="{% url 'students:index' %}">{% trans "Öğrenci alanı" %}</a></li>
-                            <li role="none"><a class="dropdown-item {% if nav_namespace == 'courses' and nav_url_name == 'course_list' %}active{% endif %}" role="menuitem" href="{% url 'courses:course_list' %}">{% trans "Ders kataloğu" %}</a></li>
-                            <li role="none"><a class="dropdown-item {% if nav_namespace == 'enrollments' and nav_url_name == 'browse' %}active{% endif %}" role="menuitem" href="{% url 'enrollments:browse' %}">{% trans "Ders kaydı" %}</a></li>
-                            <li role="none"><a class="dropdown-item {% if nav_namespace == 'students' and nav_url_name == 'transcript' %}active{% endif %}" role="menuitem" href="{% url 'students:transcript' %}">{% trans "Transkript" %}</a></li>
-                        </ul>
-                    </li>
-                    {% elif user.role == "instructor" %}
-                    <li class="nav-item dropdown phase17-role-menu phase17-role-menu--instructor" role="none">
-                        <a class="nav-link dropdown-toggle phase15-nav-link {% if nav_namespace == 'instructors' or nav_namespace == 'courses' and nav_url_name == 'offering_list' or nav_namespace == 'academic' and nav_url_name == 'instructor_enrollments' or nav_namespace == 'academic' and nav_url_name == 'grade_entry' %}active{% endif %}" href="#" id="navInstructor" role="menuitem" data-bs-toggle="dropdown" aria-expanded="false">{% trans "Akademisyen" %}</a>
-                        <ul class="dropdown-menu" role="menu" aria-labelledby="navInstructor">
-                            <li role="none"><a class="dropdown-item {% if nav_namespace == 'instructors' and nav_url_name == 'index' %}active{% endif %}" role="menuitem" href="{% url 'instructors:index' %}">{% trans "Akademisyen alanı" %}</a></li>
-                            <li role="none"><a class="dropdown-item {% if nav_namespace == 'courses' and nav_url_name == 'offering_list' %}active{% endif %}" role="menuitem" href="{% url 'courses:offering_list' %}">{% trans "Verdiğim ders teklifleri" %}</a></li>
-                            <li role="none"><a class="dropdown-item {% if nav_namespace == 'academic' and nav_url_name == 'instructor_enrollments' or nav_namespace == 'academic' and nav_url_name == 'grade_entry' %}active{% endif %}" role="menuitem" href="{% url 'academic:instructor_enrollments' %}">{% trans "Öğrenci kayıtları ve notlar" %}</a></li>
-                        </ul>
-                    </li>
-                    {% elif user.role == "admin" %}
-                    <li class="nav-item dropdown phase17-role-menu phase17-role-menu--admin" role="none">
-                        <a class="nav-link dropdown-toggle phase15-nav-link {% if nav_namespace == 'courses' or nav_namespace == 'enrollments' and nav_url_name == 'browse' or nav_namespace == 'audit_logs' or nav_namespace == 'academic' and 'department' in nav_url_name %}active{% endif %}" href="#" id="navAdmin" role="menuitem" data-bs-toggle="dropdown" aria-expanded="false">{% trans "Yönetim" %}</a>
-                        <ul class="dropdown-menu" role="menu" aria-labelledby="navAdmin">
-                            <li role="none"><a class="dropdown-item {% if nav_namespace == 'academic' and nav_url_name == 'department_list' %}active{% endif %}" role="menuitem" href="{% url 'academic:department_list' %}">{% trans "Bölümler" %}</a></li>
-                            <li role="none"><a class="dropdown-item {% if nav_namespace == 'courses' and nav_url_name == 'course_list' %}active{% endif %}" role="menuitem" href="{% url 'courses:course_list' %}">{% trans "Dersler" %}</a></li>
-                            <li role="none"><a class="dropdown-item {% if nav_namespace == 'courses' and nav_url_name == 'offering_list' %}active{% endif %}" role="menuitem" href="{% url 'courses:offering_list' %}">{% trans "Ders teklifleri" %}</a></li>
-                            <li role="none"><a class="dropdown-item {% if nav_namespace == 'enrollments' and nav_url_name == 'browse' %}active{% endif %}" role="menuitem" href="{% url 'enrollments:browse' %}">{% trans "Şube / kayıt izleme" %}</a></li>
-                            <li role="none"><a class="dropdown-item {% if nav_namespace == 'audit_logs' %}active{% endif %}" role="menuitem" href="{% url 'audit_logs:index' %}">{% trans "Denetim günlüğü" %}</a></li>
-                        </ul>
-                    </li>
-                    {% endif %}
-                </ul>
-                <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center gap-lg-1" aria-label="{% trans 'Hesap ve oturum' %}">
-                    {% if user.role != "admin" %}
-                    <li class="nav-item"><a class="nav-link" href="{% url 'accounts:admin_request' %}">{% trans "Yönetici talebi" %}</a></li>
-                    {% endif %}
-                    <li class="nav-item mt-2 mt-lg-0">
-                        <form method="post" action="{% url 'accounts:logout' %}" class="d-inline">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-sm btn-outline-light" aria-label="{% trans 'Çıkış yap' %}">{% trans "Çıkış" %}</button>
-                        </form>
-                    </li>
-                </ul>
-                {% else %}
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="{% url 'accounts:login' %}">{% trans "Giriş" %}</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'accounts:register' %}">{% trans "Kayıt ol" %}</a></li>
-                </ul>
-                {% endif %}
-            </div>
-        </div>
-    </nav>
+    {% if user.is_authenticated %}
+    <div class="ui-shell ui-shell--authed">
+        <aside class="d-none d-lg:block h-screen sticky top-0 border-r border-white/10 bg-gradient-to-b from-[#0B1220] to-[#0A1020] text-white/90">
+            <div class="h-full w-[19.5rem] portal-sidebar px-3 py-4 flex flex-col">
+                <div class="flex items-center justify-between gap-3 px-2">
+                    <a class="flex items-center gap-3 no-underline text-white/95 hover:text-white transition" href="{% url 'core:home' %}">
+                        <span class="h-9 w-9 rounded-xl bg-gradient-to-br from-indigo-500 via-violet-500 to-cyan-400 shadow-[0_20px_60px_rgba(99,102,241,.35)]"></span>
+                        <div class="min-w-0 portal-sidebar__label">
+                            <div class="text-sm font-semibold tracking-tight">{% trans "Akademik Yönetim" %}</div>
+                            <div class="text-[11px] text-white/55 truncate">{% trans "University portal" %}</div>
+                        </div>
+                    </a>
+                    <button type="button" class="inline-flex items-center justify-center h-9 w-9 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition" data-ui-sidebar-toggle aria-label="{% trans 'Menüyü daralt veya genişlet' %}">
+                        <i data-lucide="panel-left" class="h-4 w-4"></i>
+                    </button>
+                </div>
 
-    <main class="container phase14-main phase17-main">
-        {% block breadcrumb_outer %}
-        {% include "includes/breadcrumb.html" %}
-        {% endblock %}
-        {% include "includes/alert_messages.html" %}
-        {% block content %}{% endblock %}
-    </main>
+                <nav class="mt-4 px-2 flex-1 overflow-y-auto portal-scroll" aria-label="{% trans 'Ana menü' %}">
+                    <div class="portal-nav-section">{% trans "Genel" %}</div>
+                    <a class="portal-nav-link {% if nav_namespace == 'core' and nav_url_name == 'home' %}is-active{% endif %}" href="{% url 'core:home' %}" title="{% trans 'Ana sayfa' %}">
+                        <span class="portal-nav-ic"><i data-lucide="home" class="h-4 w-4"></i></span>
+                        <span class="portal-sidebar__label">{% trans "Ana sayfa" %}</span>
+                    </a>
+                    <a class="portal-nav-link {% if nav_namespace == 'dashboard' and nav_url_name == 'index' %}is-active{% endif %}" href="{% url 'dashboard:index' %}" title="{% trans 'Pano' %}">
+                        <span class="portal-nav-ic"><i data-lucide="layout-dashboard" class="h-4 w-4"></i></span>
+                        <span class="portal-sidebar__label">{% trans "Pano" %}</span>
+                    </a>
+                    <a class="portal-nav-link {% if nav_namespace == 'academic' and nav_url_name == 'announcement_list' %}is-active{% endif %}" href="{% url 'academic:announcement_list' %}" title="{% trans 'Duyurular' %}">
+                        <span class="portal-nav-ic"><i data-lucide="bell" class="h-4 w-4"></i></span>
+                        <span class="portal-sidebar__label">{% trans "Duyurular" %}</span>
+                    </a>
+
+                    {% if user.role == "student" %}
+                        <div class="portal-nav-section mt-5">{% trans "Öğrenci" %}</div>
+                        <a class="portal-nav-link {% if nav_namespace == 'students' and nav_url_name == 'index' %}is-active{% endif %}" href="{% url 'students:index' %}" title="{% trans 'Öğrenci alanı' %}">
+                            <span class="portal-nav-ic"><i data-lucide="user" class="h-4 w-4"></i></span>
+                            <span class="portal-sidebar__label">{% trans "Öğrenci alanı" %}</span>
+                        </a>
+                        <a class="portal-nav-link {% if nav_namespace == 'courses' and nav_url_name == 'course_list' %}is-active{% endif %}" href="{% url 'courses:course_list' %}" title="{% trans 'Ders kataloğu' %}">
+                            <span class="portal-nav-ic"><i data-lucide="book-open" class="h-4 w-4"></i></span>
+                            <span class="portal-sidebar__label">{% trans "Ders kataloğu" %}</span>
+                        </a>
+                        <a class="portal-nav-link {% if nav_namespace == 'enrollments' and nav_url_name == 'browse' %}is-active{% endif %}" href="{% url 'enrollments:browse' %}" title="{% trans 'Ders kaydı' %}">
+                            <span class="portal-nav-ic"><i data-lucide="graduation-cap" class="h-4 w-4"></i></span>
+                            <span class="portal-sidebar__label">{% trans "Ders kaydı" %}</span>
+                        </a>
+                        <a class="portal-nav-link {% if nav_namespace == 'students' and nav_url_name == 'transcript' %}is-active{% endif %}" href="{% url 'students:transcript' %}" title="{% trans 'Transkript' %}">
+                            <span class="portal-nav-ic"><i data-lucide="file-text" class="h-4 w-4"></i></span>
+                            <span class="portal-sidebar__label">{% trans "Transkript" %}</span>
+                        </a>
+                    {% elif user.role == "instructor" %}
+                        <div class="portal-nav-section mt-5">{% trans "Akademisyen" %}</div>
+                        <a class="portal-nav-link {% if nav_namespace == 'instructors' and nav_url_name == 'index' %}is-active{% endif %}" href="{% url 'instructors:index' %}" title="{% trans 'Akademisyen alanı' %}">
+                            <span class="portal-nav-ic"><i data-lucide="user-round" class="h-4 w-4"></i></span>
+                            <span class="portal-sidebar__label">{% trans "Akademisyen alanı" %}</span>
+                        </a>
+                        <a class="portal-nav-link {% if nav_namespace == 'courses' and nav_url_name == 'offering_list' %}is-active{% endif %}" href="{% url 'courses:offering_list' %}" title="{% trans 'Verdiğim ders teklifleri' %}">
+                            <span class="portal-nav-ic"><i data-lucide="book" class="h-4 w-4"></i></span>
+                            <span class="portal-sidebar__label">{% trans "Verdiğim ders teklifleri" %}</span>
+                        </a>
+                        <a class="portal-nav-link {% if nav_namespace == 'academic' and nav_url_name == 'instructor_enrollments' or nav_namespace == 'academic' and nav_url_name == 'grade_entry' %}is-active{% endif %}" href="{% url 'academic:instructor_enrollments' %}" title="{% trans 'Öğrenci kayıtları ve notlar' %}">
+                            <span class="portal-nav-ic"><i data-lucide="clipboard-check" class="h-4 w-4"></i></span>
+                            <span class="portal-sidebar__label">{% trans "Öğrenci kayıtları ve notlar" %}</span>
+                        </a>
+                    {% elif user.role == "admin" %}
+                        <div class="portal-nav-section mt-5">{% trans "Yönetim" %}</div>
+                        <a class="portal-nav-link {% if nav_namespace == 'academic' and nav_url_name == 'department_list' %}is-active{% endif %}" href="{% url 'academic:department_list' %}" title="{% trans 'Bölümler' %}">
+                            <span class="portal-nav-ic"><i data-lucide="building-2" class="h-4 w-4"></i></span>
+                            <span class="portal-sidebar__label">{% trans "Bölümler" %}</span>
+                        </a>
+                        <a class="portal-nav-link {% if nav_namespace == 'courses' and nav_url_name == 'course_list' %}is-active{% endif %}" href="{% url 'courses:course_list' %}" title="{% trans 'Dersler' %}">
+                            <span class="portal-nav-ic"><i data-lucide="book-open" class="h-4 w-4"></i></span>
+                            <span class="portal-sidebar__label">{% trans "Dersler" %}</span>
+                        </a>
+                        <a class="portal-nav-link {% if nav_namespace == 'courses' and nav_url_name == 'offering_list' %}is-active{% endif %}" href="{% url 'courses:offering_list' %}" title="{% trans 'Ders teklifleri' %}">
+                            <span class="portal-nav-ic"><i data-lucide="layers" class="h-4 w-4"></i></span>
+                            <span class="portal-sidebar__label">{% trans "Ders teklifleri" %}</span>
+                        </a>
+                        <a class="portal-nav-link {% if nav_namespace == 'enrollments' and nav_url_name == 'browse' %}is-active{% endif %}" href="{% url 'enrollments:browse' %}" title="{% trans 'Şube / kayıt izleme' %}">
+                            <span class="portal-nav-ic"><i data-lucide="scan-search" class="h-4 w-4"></i></span>
+                            <span class="portal-sidebar__label">{% trans "Şube / kayıt izleme" %}</span>
+                        </a>
+                        <a class="portal-nav-link {% if nav_namespace == 'audit_logs' %}is-active{% endif %}" href="{% url 'audit_logs:index' %}" title="{% trans 'Denetim günlüğü' %}">
+                            <span class="portal-nav-ic"><i data-lucide="shield" class="h-4 w-4"></i></span>
+                            <span class="portal-sidebar__label">{% trans "Denetim günlüğü" %}</span>
+                        </a>
+                    {% endif %}
+                </nav>
+
+                <div class="mt-4 px-2">
+                    <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-3 shadow-[0_18px_70px_rgba(2,6,23,.35)]">
+                        <div class="flex items-center gap-3">
+                            <div class="h-10 w-10 rounded-2xl bg-gradient-to-br from-indigo-500/35 via-violet-500/25 to-cyan-400/25 border border-white/10 flex items-center justify-center">
+                                <i data-lucide="user-circle-2" class="h-5 w-5 text-white/80"></i>
+                            </div>
+                            <div class="min-w-0 portal-sidebar__label">
+                                <div class="text-sm font-semibold truncate">{{ user.get_full_name|default:user.username }}</div>
+                                <div class="text-[11px] text-white/55 truncate">{{ user.get_role_display }}</div>
+                            </div>
+                        </div>
+
+                        <div class="mt-3 grid grid-cols-2 gap-2 portal-sidebar__label">
+                            <button type="button" class="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 px-3 py-2 text-xs font-semibold text-white/85 transition" data-ui-theme-toggle>
+                                <i data-lucide="moon" class="h-4 w-4"></i>
+                                {% trans "Tema" %}
+                            </button>
+                            <form method="post" action="{% url 'accounts:logout' %}">
+                                {% csrf_token %}
+                                <button type="submit" class="w-full inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 px-3 py-2 text-xs font-semibold text-white/85 transition">
+                                    <i data-lucide="log-out" class="h-4 w-4"></i>
+                                    {% trans "Çıkış" %}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <div class="ui-main">
+            <header class="sticky top-0 z-[1030] lg:hidden">
+                <div class="mx-auto max-w-[72rem] px-4">
+                    <div class="mt-3 mb-3 rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/70 dark:bg-white/5 backdrop-blur-xl shadow-[0_22px_90px_rgba(2,6,23,.12)]">
+                        <div class="px-3 py-2 flex items-center justify-between gap-3">
+                            <button class="inline-flex items-center justify-center h-10 w-10 rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/60 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-white/10 transition"
+                                    type="button"
+                                    data-bs-toggle="offcanvas"
+                                    data-bs-target="#uiSidebarMobile"
+                                    aria-controls="uiSidebarMobile"
+                                    aria-label="{% trans 'Menüyü aç' %}">
+                                <i data-lucide="menu" class="h-5 w-5 text-slate-800 dark:text-white/80"></i>
+                            </button>
+
+                            <a class="flex items-center gap-2 no-underline min-w-0" href="{% url 'core:home' %}">
+                                <span class="h-8 w-8 rounded-xl bg-gradient-to-br from-indigo-500 via-violet-500 to-cyan-400 shadow-[0_20px_60px_rgba(99,102,241,.25)]"></span>
+                                <span class="truncate text-sm font-semibold tracking-tight text-slate-900 dark:text-white/90">{% trans "Akademik Yönetim" %}</span>
+                            </a>
+
+                            <div class="flex items-center gap-2">
+                                <button type="button"
+                                        class="inline-flex items-center justify-center h-10 w-10 rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/60 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-white/10 transition"
+                                        data-ui-theme-toggle
+                                        aria-label="{% trans 'Tema değiştir' %}">
+                                    <i data-lucide="moon" class="h-5 w-5 text-slate-800 dark:text-white/80"></i>
+                                </button>
+                                <form method="post" action="{% url 'accounts:logout' %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit"
+                                            class="inline-flex items-center justify-center h-10 w-10 rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/60 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-white/10 transition"
+                                            aria-label="{% trans 'Çıkış' %}">
+                                        <i data-lucide="log-out" class="h-5 w-5 text-slate-800 dark:text-white/80"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="offcanvas offcanvas-start border-0 text-white" tabindex="-1" id="uiSidebarMobile" aria-label="{% trans 'Sol menü' %}" style="background: linear-gradient(180deg, #0B1220 0%, #0A1020 100%);">
+                <div class="offcanvas-header border-bottom border-white/10">
+                    <a class="flex items-center gap-3 no-underline text-white/95 hover:text-white transition" href="{% url 'core:home' %}">
+                        <span class="h-9 w-9 rounded-xl bg-gradient-to-br from-indigo-500 via-violet-500 to-cyan-400 shadow-[0_20px_60px_rgba(99,102,241,.35)]"></span>
+                        <div class="leading-tight">
+                            <div class="text-sm font-semibold tracking-tight">{% trans "Akademik Yönetim" %}</div>
+                            <div class="text-[11px] text-white/55">{% trans "University portal" %}</div>
+                        </div>
+                    </a>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="{% trans 'Kapat' %}"></button>
+                </div>
+                <div class="offcanvas-body p-3">
+                    <nav class="px-2 portal-scroll" aria-label="{% trans 'Ana menü' %}">
+                        <div class="portal-nav-section">{% trans "Genel" %}</div>
+                        <a class="portal-nav-link {% if nav_namespace == 'core' and nav_url_name == 'home' %}is-active{% endif %}" href="{% url 'core:home' %}">
+                            <span class="portal-nav-ic"><i data-lucide="home" class="h-4 w-4"></i></span>
+                            <span class="portal-sidebar__label">{% trans "Ana sayfa" %}</span>
+                        </a>
+                        <a class="portal-nav-link {% if nav_namespace == 'dashboard' and nav_url_name == 'index' %}is-active{% endif %}" href="{% url 'dashboard:index' %}">
+                            <span class="portal-nav-ic"><i data-lucide="layout-dashboard" class="h-4 w-4"></i></span>
+                            <span class="portal-sidebar__label">{% trans "Pano" %}</span>
+                        </a>
+                        <a class="portal-nav-link {% if nav_namespace == 'academic' and nav_url_name == 'announcement_list' %}is-active{% endif %}" href="{% url 'academic:announcement_list' %}">
+                            <span class="portal-nav-ic"><i data-lucide="bell" class="h-4 w-4"></i></span>
+                            <span class="portal-sidebar__label">{% trans "Duyurular" %}</span>
+                        </a>
+
+                        {% if user.role == "student" %}
+                            <div class="portal-nav-section mt-5">{% trans "Öğrenci" %}</div>
+                            <a class="portal-nav-link {% if nav_namespace == 'students' and nav_url_name == 'index' %}is-active{% endif %}" href="{% url 'students:index' %}">
+                                <span class="portal-nav-ic"><i data-lucide="user" class="h-4 w-4"></i></span>
+                                <span class="portal-sidebar__label">{% trans "Öğrenci alanı" %}</span>
+                            </a>
+                            <a class="portal-nav-link {% if nav_namespace == 'courses' and nav_url_name == 'course_list' %}is-active{% endif %}" href="{% url 'courses:course_list' %}">
+                                <span class="portal-nav-ic"><i data-lucide="book-open" class="h-4 w-4"></i></span>
+                                <span class="portal-sidebar__label">{% trans "Ders kataloğu" %}</span>
+                            </a>
+                            <a class="portal-nav-link {% if nav_namespace == 'enrollments' and nav_url_name == 'browse' %}is-active{% endif %}" href="{% url 'enrollments:browse' %}">
+                                <span class="portal-nav-ic"><i data-lucide="graduation-cap" class="h-4 w-4"></i></span>
+                                <span class="portal-sidebar__label">{% trans "Ders kaydı" %}</span>
+                            </a>
+                            <a class="portal-nav-link {% if nav_namespace == 'students' and nav_url_name == 'transcript' %}is-active{% endif %}" href="{% url 'students:transcript' %}">
+                                <span class="portal-nav-ic"><i data-lucide="file-text" class="h-4 w-4"></i></span>
+                                <span class="portal-sidebar__label">{% trans "Transkript" %}</span>
+                            </a>
+                        {% elif user.role == "instructor" %}
+                            <div class="portal-nav-section mt-5">{% trans "Akademisyen" %}</div>
+                            <a class="portal-nav-link {% if nav_namespace == 'instructors' and nav_url_name == 'index' %}is-active{% endif %}" href="{% url 'instructors:index' %}">
+                                <span class="portal-nav-ic"><i data-lucide="user-round" class="h-4 w-4"></i></span>
+                                <span class="portal-sidebar__label">{% trans "Akademisyen alanı" %}</span>
+                            </a>
+                            <a class="portal-nav-link {% if nav_namespace == 'courses' and nav_url_name == 'offering_list' %}is-active{% endif %}" href="{% url 'courses:offering_list' %}">
+                                <span class="portal-nav-ic"><i data-lucide="book" class="h-4 w-4"></i></span>
+                                <span class="portal-sidebar__label">{% trans "Verdiğim ders teklifleri" %}</span>
+                            </a>
+                            <a class="portal-nav-link {% if nav_namespace == 'academic' and nav_url_name == 'instructor_enrollments' or nav_namespace == 'academic' and nav_url_name == 'grade_entry' %}is-active{% endif %}" href="{% url 'academic:instructor_enrollments' %}">
+                                <span class="portal-nav-ic"><i data-lucide="clipboard-check" class="h-4 w-4"></i></span>
+                                <span class="portal-sidebar__label">{% trans "Öğrenci kayıtları ve notlar" %}</span>
+                            </a>
+                        {% elif user.role == "admin" %}
+                            <div class="portal-nav-section mt-5">{% trans "Yönetim" %}</div>
+                            <a class="portal-nav-link {% if nav_namespace == 'academic' and nav_url_name == 'department_list' %}is-active{% endif %}" href="{% url 'academic:department_list' %}">
+                                <span class="portal-nav-ic"><i data-lucide="building-2" class="h-4 w-4"></i></span>
+                                <span class="portal-sidebar__label">{% trans "Bölümler" %}</span>
+                            </a>
+                            <a class="portal-nav-link {% if nav_namespace == 'courses' and nav_url_name == 'course_list' %}is-active{% endif %}" href="{% url 'courses:course_list' %}">
+                                <span class="portal-nav-ic"><i data-lucide="book-open" class="h-4 w-4"></i></span>
+                                <span class="portal-sidebar__label">{% trans "Dersler" %}</span>
+                            </a>
+                            <a class="portal-nav-link {% if nav_namespace == 'courses' and nav_url_name == 'offering_list' %}is-active{% endif %}" href="{% url 'courses:offering_list' %}">
+                                <span class="portal-nav-ic"><i data-lucide="layers" class="h-4 w-4"></i></span>
+                                <span class="portal-sidebar__label">{% trans "Ders teklifleri" %}</span>
+                            </a>
+                            <a class="portal-nav-link {% if nav_namespace == 'enrollments' and nav_url_name == 'browse' %}is-active{% endif %}" href="{% url 'enrollments:browse' %}">
+                                <span class="portal-nav-ic"><i data-lucide="scan-search" class="h-4 w-4"></i></span>
+                                <span class="portal-sidebar__label">{% trans "Şube / kayıt izleme" %}</span>
+                            </a>
+                            <a class="portal-nav-link {% if nav_namespace == 'audit_logs' %}is-active{% endif %}" href="{% url 'audit_logs:index' %}">
+                                <span class="portal-nav-ic"><i data-lucide="shield" class="h-4 w-4"></i></span>
+                                <span class="portal-sidebar__label">{% trans "Denetim günlüğü" %}</span>
+                            </a>
+                        {% endif %}
+                    </nav>
+
+                    <div class="mt-4 px-2">
+                        <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-3 shadow-[0_18px_70px_rgba(2,6,23,.35)]">
+                            <div class="flex items-center gap-3">
+                                <div class="h-10 w-10 rounded-2xl bg-gradient-to-br from-indigo-500/35 via-violet-500/25 to-cyan-400/25 border border-white/10 flex items-center justify-center">
+                                    <i data-lucide="user-circle-2" class="h-5 w-5 text-white/80"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <div class="text-sm font-semibold truncate">{{ user.get_full_name|default:user.username }}</div>
+                                    <div class="text-[11px] text-white/55 truncate">{{ user.get_role_display }}</div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3 grid grid-cols-2 gap-2">
+                                <button type="button" class="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 px-3 py-2 text-xs font-semibold text-white/85 transition" data-ui-theme-toggle>
+                                    <i data-lucide="moon" class="h-4 w-4"></i>
+                                    {% trans "Tema" %}
+                                </button>
+                                <form method="post" action="{% url 'accounts:logout' %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="w-full inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 px-3 py-2 text-xs font-semibold text-white/85 transition">
+                                        <i data-lucide="log-out" class="h-4 w-4"></i>
+                                        {% trans "Çıkış" %}
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <main class="ui-content phase14-main phase17-main">
+                {% block breadcrumb_outer %}
+                {% include "includes/breadcrumb.html" %}
+                {% endblock %}
+                {% include "includes/alert_messages.html" %}
+    {% else %}
+        <main class="min-h-screen relative overflow-hidden bg-slate-50 dark:bg-navy-950">
+            <div class="portal-bg">
+                <div class="portal-bg__glow portal-bg__glow--a"></div>
+                <div class="portal-bg__glow portal-bg__glow--b"></div>
+                <div class="portal-bg__grid"></div>
+            </div>
+
+            <div class="relative z-10 mx-auto max-w-6xl px-4 py-10 lg:py-16">
+                <div class="grid lg:grid-cols-2 gap-8 lg:gap-14 items-stretch">
+                    <section class="hidden lg:flex flex-col justify-between rounded-2xl border border-white/10 bg-white/5 dark:bg-white/5 backdrop-blur-xl p-10 shadow-[0_30px_120px_rgba(2,6,23,.55)]">
+                        <div>
+                            <div class="flex items-center gap-3">
+                                <span class="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-500 via-violet-500 to-cyan-400 shadow-[0_20px_60px_rgba(99,102,241,.35)]"></span>
+                                <div class="leading-tight">
+                                    <p class="text-sm font-semibold text-slate-900 dark:text-white/90">{% trans "Akademik Yönetim Sistemi" %}</p>
+                                    <p class="text-xs text-slate-600 dark:text-white/60">{% trans "Üniversite portalı • Ders seçimi • Akademik işlemler" %}</p>
+                                </div>
+                            </div>
+                            <h1 class="mt-10 text-3xl font-semibold tracking-tight text-slate-900 dark:text-white">
+                                {% trans "Modern öğrenci bilgi sistemi deneyimi" %}
+                            </h1>
+                            <p class="mt-3 text-sm leading-6 text-slate-600 dark:text-white/70">
+                                {% trans "Ders kaydı, transkript, duyurular ve akademik süreçleri tek bir premium panelde yönetin." %}
+                            </p>
+                        </div>
+
+                        <div class="mt-10 rounded-2xl border border-white/10 bg-white/10 dark:bg-white/5 backdrop-blur-xl p-5">
+                            <p class="text-xs font-medium uppercase tracking-wider text-slate-700 dark:text-white/60">{% trans "Önizleme" %}</p>
+                            <div class="mt-4 grid grid-cols-3 gap-3">
+                                <div class="rounded-xl bg-gradient-to-b from-white/20 to-white/5 border border-white/10 p-4">
+                                    <p class="text-xs text-white/70">{% trans "Kayıt" %}</p>
+                                    <p class="mt-2 text-lg font-semibold text-white">12</p>
+                                </div>
+                                <div class="rounded-xl bg-gradient-to-b from-white/20 to-white/5 border border-white/10 p-4">
+                                    <p class="text-xs text-white/70">{% trans "GPA" %}</p>
+                                    <p class="mt-2 text-lg font-semibold text-white">3.42</p>
+                                </div>
+                                <div class="rounded-xl bg-gradient-to-b from-white/20 to-white/5 border border-white/10 p-4">
+                                    <p class="text-xs text-white/70">{% trans "Duyuru" %}</p>
+                                    <p class="mt-2 text-lg font-semibold text-white">5</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/70 dark:bg-white/5 backdrop-blur-xl shadow-[0_30px_120px_rgba(2,6,23,.35)]">
+                        <div class="p-6 sm:p-8">
+                            <div class="flex items-center justify-between gap-3 mb-6">
+                                <a class="inline-flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white/90 no-underline" href="{% url 'core:home' %}">
+                                    <span class="h-8 w-8 rounded-xl bg-gradient-to-br from-indigo-500 via-violet-500 to-cyan-400 shadow-[0_20px_60px_rgba(99,102,241,.25)]"></span>
+                                    {% trans "Akademik Yönetim" %}
+                                </a>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" data-ui-theme-toggle aria-label="{% trans 'Tema değiştir' %}">
+                                    <i data-lucide="moon" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+
+                            {% include "includes/alert_messages.html" %}
+                            {% block content %}{% endblock %}
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    {% endif %}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{% static 'js/phase14-forms.js' %}"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+      (function () {
+        const storageKey = "ui-theme";
+        const sidebarKey = "ui-sidebar";
+        const root = document.documentElement;
+        const initial = localStorage.getItem(storageKey);
+        const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const shouldBeDark = initial ? initial === "dark" : prefersDark;
+        root.classList.toggle("dark", shouldBeDark);
+
+        const sidebarPref = localStorage.getItem(sidebarKey);
+        if (sidebarPref === "collapsed") root.classList.add("ui-sidebar-collapsed");
+
+        function toggleTheme() {
+          const nextDark = !root.classList.contains("dark");
+          root.classList.toggle("dark", nextDark);
+          localStorage.setItem(storageKey, nextDark ? "dark" : "light");
+        }
+
+        function toggleSidebar() {
+          const nextCollapsed = !root.classList.contains("ui-sidebar-collapsed");
+          root.classList.toggle("ui-sidebar-collapsed", nextCollapsed);
+          localStorage.setItem(sidebarKey, nextCollapsed ? "collapsed" : "expanded");
+        }
+
+        document.addEventListener("click", (e) => {
+          const btn = e.target && e.target.closest ? e.target.closest("[data-ui-theme-toggle]") : null;
+          if (!btn) return;
+          e.preventDefault();
+          toggleTheme();
+        });
+
+        document.addEventListener("click", (e) => {
+          const btn = e.target && e.target.closest ? e.target.closest("[data-ui-sidebar-toggle]") : null;
+          if (!btn) return;
+          e.preventDefault();
+          toggleSidebar();
+        });
+
+        if (window.lucide) window.lucide.createIcons();
+      })();
+    </script>
 </body>
 </html>
