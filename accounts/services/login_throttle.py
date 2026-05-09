@@ -7,6 +7,7 @@ from django.contrib import messages
 from django.core.cache import cache
 from django.shortcuts import redirect
 
+
 def _max_failures() -> int:
     return int(getattr(settings, "LOGIN_THROTTLE_MAX_FAILURES", 5))
 

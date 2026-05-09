@@ -87,6 +87,7 @@
 ## Project-specific coding patterns
 - Keep view layer thin; avoid embedding business rules directly in templates/views.
 - Place reusable domain logic in service-oriented modules where appropriate (e.g., `services.py` per app or `core/services/`).
+- `accounts/services/` hesapla ilişkili yardımcılar için kullanılır (profil oluşturma, giriş throttle).
 - Keep ORM logic in `models.py` (or clearly structured model modules).
 - Register app routes only through each app’s `urls.py` and include them in `config/urls.py`.
 - Templates must inherit from a shared base layout (`templates/base.html`).

@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, UserManager as DjangoUserManager
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -21,6 +21,17 @@ class User(AbstractUser):
     def save(self, *args, **kwargs):
         self.email = self.email.lower().strip()
         super().save(*args, **kwargs)
+
+
+class UserManager(DjangoUserManager):
+    """Süper kullanıcıların varsayılan rolünün öğrenci kalmasını önler (otomatik öğrenci profili oluşturulmaz)."""
+
+    def create_superuser(self, username, email=None, password=None, **extra_fields):
+        extra_fields.setdefault("role", User.Role.ADMIN)
+        return super().create_superuser(username, email=email, password=password, **extra_fields)
+
+
+User.add_to_class("objects", UserManager())
 
 
 class AdminRequest(models.Model):

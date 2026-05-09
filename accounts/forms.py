@@ -69,16 +69,33 @@ class RegisterForm(forms.ModelForm):
 
 
 class LoginForm(forms.Form):
-    login = forms.CharField(label="E-posta veya kullanici adi")
-    password = forms.CharField(
-        label="Sifre",
-        widget=forms.PasswordInput(attrs={"autocomplete": "current-password"}),
+    login = forms.CharField(
+        label=_("E-posta veya kullanıcı adı"),
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "autocomplete": "username",
+            },
+        ),
     )
-    remember_me = forms.BooleanField(label="Beni hatirla", required=False)
+    password = forms.CharField(
+        label=_("Şifre"),
+        widget=forms.PasswordInput(
+            attrs={
+                "class": "form-control",
+                "autocomplete": "current-password",
+            },
+        ),
+    )
+    remember_me = forms.BooleanField(
+        label=_("Beni hatırla"),
+        required=False,
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+    )
 
     error_messages = {
-        "invalid_credentials": "Gecersiz giris bilgileri.",
-        "inactive": "Bu hesap pasif durumda.",
+        "invalid_credentials": _("Geçersiz giriş bilgileri."),
+        "inactive": _("Bu hesap pasif durumda."),
     }
 
     def __init__(self, request=None, *args, **kwargs):

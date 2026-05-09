@@ -62,20 +62,20 @@ class Phase4FactoriesMixin:
 
     def _student(self, no="S001"):
         u = self._user(f"stu_{no}", User.Role.STUDENT)
-        return StudentProfile.objects.create(
-            user=u,
-            student_no=no,
-            department=self.department,
-            program=self.program,
-        )
+        sp = StudentProfile.objects.get(user=u)
+        sp.student_no = no
+        sp.department = self.department
+        sp.program = self.program
+        sp.save()
+        return sp
 
     def _instructor(self, no="I001"):
         u = self._user(f"ins_{no}", User.Role.INSTRUCTOR)
-        return InstructorProfile.objects.create(
-            user=u,
-            employee_no=no,
-            department=self.department,
-        )
+        ip = InstructorProfile.objects.get(user=u)
+        ip.employee_no = no
+        ip.department = self.department
+        ip.save()
+        return ip
 
     def _course(self, code, name, credits=3):
         return Course.objects.create(
@@ -265,7 +265,7 @@ class RoleAccessTests(Phase4FactoriesMixin, TestCase):
 )
 class BruteforceTests(TestCase):
     def test_bruteforce_throttling_on_login(self):
-        from accounts.login_throttle import (
+        from accounts.services.login_throttle import (
             is_login_locked,
             register_login_failure,
         )

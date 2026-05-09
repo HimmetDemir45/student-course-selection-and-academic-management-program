@@ -27,12 +27,12 @@ def _build_student(dep: Department, program: Program) -> StudentProfile:
         password="pass12345",
         role="student",
     )
-    return StudentProfile.objects.create(
-        user=user,
-        student_no="GPA001",
-        department=dep,
-        program=program,
-    )
+    sp = StudentProfile.objects.get(user=user)
+    sp.student_no = "GPA001"
+    sp.department = dep
+    sp.program = program
+    sp.save()
+    return sp
 
 
 def test_grade_to_gpa_to_transcript_golden_dataset_integrity():

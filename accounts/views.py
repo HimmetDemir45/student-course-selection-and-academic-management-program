@@ -3,13 +3,14 @@ from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.shortcuts import redirect, render
 from django.utils.translation import gettext as _
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods, require_POST
 
 from audit_logs.services import log_auth_event, log_event
 
 from .forms import AdminRequestForm, LoginForm, RegisterForm
 from .models import AdminRequest, User
-from .login_throttle import clear_login_throttle, login_throttle, register_login_failure
+from .services.login_throttle import clear_login_throttle, login_throttle, register_login_failure
 
 
 @require_http_methods(["GET", "POST"])
@@ -34,6 +35,7 @@ def register_view(request):
     return render(request, "accounts/register.html", {"form": form})
 
 
+@ensure_csrf_cookie
 @login_throttle
 @require_http_methods(["GET", "POST"])
 def login_view(request):
