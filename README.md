@@ -236,7 +236,7 @@ Sürüm numaralandırma ve adımlar: **`RELEASE.md`**, değişiklik günlüğü:
 
 1. **Uygulama:** Önceki GHCR etiketi (`sha-…` veya semver) ile container’ı yeniden çalıştırın.
 2. **Veritabanı:** Kritik migrasyonlarda önce snapshot; geri dönüş genelde snapshot veya kontrollü `migrate <app> <önceki>` ile.
-3. **Olay:** `X-Request-ID` toplayın; `docs/runbooks/incident-response.md` ve **`docs/RUNBOOK.md`** özetine bakın.
+3. **Olay:** `X-Request-ID` toplayın; `docs/runbooks/incident-response.md` ve **`docs/runbooks/RUNBOOK.md`** özetine bakın (`docs/RUNBOOK.md` giriş bağlantısı).
 
 ---
 
@@ -494,7 +494,7 @@ Türkçe, üretim kalitesinde README; teknik, operasyonel ve kullanıcı odaklı
 
 ### Yapılan Çalışmalar
 
-Bu README; `docs/PHASE_HISTORY.md`, `docs/RUNBOOK.md`, `docs/CONTRIBUTING.md`, `docs/TESTING.md`, `docs/SECURITY_OVERVIEW.md`, `LICENSE`.
+Bu README; `docs/PHASE_HISTORY.md`, `docs/runbooks/RUNBOOK.md`, `docs/CONTRIBUTING.md`, `docs/TESTING.md`, `docs/SECURITY_OVERVIEW.md`, `LICENSE`.
 
 ### Teknik Kazanımlar
 

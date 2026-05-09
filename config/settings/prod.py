@@ -65,4 +65,21 @@ X_FRAME_OPTIONS = "DENY"
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REFERRER_POLICY = "same-origin"
 
-EMAIL_BACKEND = env("EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend")  # noqa: F405
+EMAIL_BACKEND = env(
+    "EMAIL_BACKEND",
+    default="django.core.mail.backends.smtp.EmailBackend",
+)  # noqa: F405
+
+# SMTP / transactional mail — boto SES SMTP vb. için ortamdan okunur; kullanılmazsa gönderim testinde eksik ayar görülür.
+EMAIL_HOST = env("EMAIL_HOST", default="")  # noqa: F405
+EMAIL_PORT = env.int("EMAIL_PORT", default=587)  # noqa: F405
+EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)  # noqa: F405
+EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", default=False)  # noqa: F405
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")  # noqa: F405
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")  # noqa: F405
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="webmaster@localhost")  # noqa: F405
+SERVER_EMAIL = env("SERVER_EMAIL", default="").strip()  # noqa: F405
+if not SERVER_EMAIL:
+    SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
+EMAIL_TIMEOUT = env.int("EMAIL_TIMEOUT", default=30)  # noqa: F405

@@ -4,55 +4,40 @@
 {% block title %}{% trans "Giriş yap" %}{% endblock %}
 
 {% block content %}
-<div class="mb-6">
-    <h1 class="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">{% trans "Giriş yap" %}</h1>
-    <p class="mt-2 text-sm text-slate-600 dark:text-white/70">{% trans "Ders seçimi ve akademik işlemler için hesabınıza giriş yapın." %}</p>
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card phase11-card shadow-sm border-0">
+            <div class="card-body p-4 p-md-5">
+                <h1 class="h4 mb-1">{% trans "Giriş yap" %}</h1>
+                <p class="text-muted small mb-4">{% trans "E-postanızı veya kullanıcı adınızı kullanarak oturum açın." %}</p>
+                <form id="login-form" method="post" action="{% url 'accounts:login' %}" novalidate>
+                    {% csrf_token %}
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger phase16-form-errors mb-3" role="alert">
+                        {{ form.non_field_errors }}
+                    </div>
+                    {% endif %}
+                    <div class="mb-3">
+                        <label class="form-label" for="{{ form.login.id_for_label }}">{{ form.login.label }}</label>
+                        {{ form.login }}
+                        <div class="text-danger small">{{ form.login.errors }}</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="{{ form.password.id_for_label }}">{{ form.password.label }}</label>
+                        {{ form.password }}
+                        <div class="text-danger small">{{ form.password.errors }}</div>
+                    </div>
+                    <div class="form-check mb-4">
+                        {{ form.remember_me }}
+                        <label class="form-check-label" for="{{ form.remember_me.id_for_label }}">{{ form.remember_me.label }}</label>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">{% trans "Giriş yap" %}</button>
+                        <a class="btn btn-link" href="{% url 'accounts:password_reset' %}">{% trans "Şifremi unuttum" %}</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
-
-<form method="post" novalidate class="space-y-4">
-    {% csrf_token %}
-    {{ form.non_field_errors }}
-
-    <div>
-        <label class="block text-sm font-medium text-slate-800 dark:text-white/80 mb-2" for="{{ form.login.id_for_label }}">{{ form.login.label }}</label>
-        <div class="relative">
-            <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500 dark:text-white/50">
-                <i data-lucide="user" class="h-4 w-4"></i>
-            </span>
-            {{ form.login }}
-        </div>
-        <div class="text-rose-600 text-xs mt-1">{{ form.login.errors }}</div>
-    </div>
-
-    <div>
-        <label class="block text-sm font-medium text-slate-800 dark:text-white/80 mb-2" for="{{ form.password.id_for_label }}">{{ form.password.label }}</label>
-        <div class="relative">
-            <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500 dark:text-white/50">
-                <i data-lucide="lock" class="h-4 w-4"></i>
-            </span>
-            {{ form.password }}
-        </div>
-        <div class="text-rose-600 text-xs mt-1">{{ form.password.errors }}</div>
-    </div>
-
-    <div class="flex items-center justify-between gap-3">
-        <label class="inline-flex items-center gap-2 text-sm text-slate-700 dark:text-white/70">
-            {{ form.remember_me }}
-            <span>{{ form.remember_me.label }}</span>
-        </label>
-        <a class="text-sm font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-300 dark:hover:text-indigo-200" href="{% url 'accounts:password_reset' %}">
-            {% trans "Şifremi unuttum" %}
-        </a>
-    </div>
-
-    <button type="submit" class="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 via-violet-600 to-cyan-500 px-4 py-2.5 text-sm font-semibold text-white shadow-[0_18px_60px_rgba(99,102,241,.35)] hover:brightness-110 transition">
-        <i data-lucide="log-in" class="h-4 w-4"></i>
-        {% trans "Giriş yap" %}
-    </button>
-
-    <div class="pt-2 text-sm text-slate-600 dark:text-white/70">
-        {% trans "Hesabınız yok mu?" %}
-        <a class="font-semibold text-slate-900 dark:text-white hover:opacity-90" href="{% url 'accounts:register' %}">{% trans "Kayıt ol" %}</a>
-    </div>
-</form>
 {% endblock %}

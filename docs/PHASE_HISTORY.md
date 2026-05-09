@@ -140,7 +140,7 @@ Bu belge mimari kararları, önemli dosya yollarını ve fazlar arası bağıml�
 
 **Hedef:** Türkçe üretim kalitesinde README; teknik/operasyonel/kullanıcı odaklı tamamlayıcı `docs/` seti; lisans dosyası.
 
-**Önemli artefaktlar:** `README.md`, `docs/PHASE_HISTORY.md`, `docs/RUNBOOK.md`, `docs/CONTRIBUTING.md`, `docs/TESTING.md`, `docs/SECURITY_OVERVIEW.md`, `LICENSE`.
+**Önemli artefaktlar:** `README.md`, `docs/PHASE_HISTORY.md`, `docs/runbooks/RUNBOOK.md`, `docs/CONTRIBUTING.md`, `docs/TESTING.md`, `docs/SECURITY_OVERVIEW.md`, `LICENSE`.
 
 **Kazanım:** Yeni geliştirici ve operatör için tek giriş noktası; faz geçmişi izlenebilir.
 
