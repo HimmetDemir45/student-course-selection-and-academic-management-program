@@ -1,14 +1,35 @@
 {% extends "base.html" %}
 {% load i18n %}
-{% block title %}{% trans "Sayfa bulunamadı" %}{% endblock %}
+
+{% block title %}{% trans "Sayfa bulunamadı — Akademik 2.0" %}{% endblock %}
+
 {% block content %}
-<div class="py-5 text-center">
-    <h1 class="display-6 mb-3">404</h1>
-    <p class="lead mb-2">{% trans "Aradığınız sayfa bulunamadı veya taşınmış olabilir." %}</p>
-    <p class="text-muted mb-3">{% trans "Sonraki adım: Menüden ilgili modülü açın veya URL adresini kontrol edip tekrar deneyin." %}</p>
-    <div class="d-flex justify-content-center gap-2 flex-wrap">
-        <a class="btn btn-primary" href="{% url 'core:home' %}">{% trans "Ana sayfaya dön" %}</a>
-        <a class="btn btn-outline-secondary" href="{% url 'dashboard:index' %}">{% trans "Panele git" %}</a>
+<div class="max-w-2xl mx-auto py-10 text-center">
+    <div class="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500/30 to-violet-500/10 border border-indigo-400/30 text-indigo-200 mb-6">
+        <i data-lucide="compass" class="h-8 w-8"></i>
+    </div>
+
+    <p class="text-7xl sm:text-8xl font-bold tracking-tight leading-none">
+        <span class="bg-gradient-to-r from-indigo-300 via-violet-300 to-cyan-300 bg-clip-text text-transparent">404</span>
+    </p>
+
+    <h1 class="mt-6 text-2xl font-semibold text-white tracking-tight">{% trans "Sayfa bulunamadı" %}</h1>
+    <p class="mt-2 text-sm text-white/70 max-w-md mx-auto">
+        {% trans "Aradığın sayfa bulunamadı veya taşınmış olabilir." %}
+    </p>
+    <p class="mt-1 text-xs text-white/50 max-w-md mx-auto">
+        {% trans "Menüden ilgili modülü açabilir veya URL adresini kontrol edip tekrar deneyebilirsin." %}
+    </p>
+
+    <div class="mt-8 flex justify-center gap-2 flex-wrap">
+        <a class="akd-btn akd-btn--primary" href="{% url 'core:home' %}">
+            <i data-lucide="home" class="h-4 w-4"></i>
+            <span>{% trans "Ana sayfaya dön" %}</span>
+        </a>
+        <a class="akd-btn akd-btn--secondary" href="{% url 'dashboard:index' %}">
+            <i data-lucide="layout-dashboard" class="h-4 w-4"></i>
+            <span>{% trans "Panele git" %}</span>
+        </a>
     </div>
 </div>
 {% endblock %}
