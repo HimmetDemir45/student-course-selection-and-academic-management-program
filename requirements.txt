@@ -7,3 +7,4 @@ django-storages==1.14.4
 boto3==1.35.99
 structlog>=24.4.0
 django-ratelimit>=4.1.0
+pytailwindcss>=0.3.0

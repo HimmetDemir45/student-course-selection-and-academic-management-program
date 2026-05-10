@@ -15,6 +15,12 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 
 COPY . .
 
+# Tailwind CSS'i derleme zamanında oluştur — container başlatılırken tekrar çalıştırılmaz
+RUN python -m pytailwindcss \
+    -i static/css/tailwind-input.css \
+    -o static/css/tailwind.css \
+    --minify
+
 RUN mkdir -p /app/staticfiles /app/media \
     && sed -i 's/\r$//' entrypoint.sh \
     && chmod +x entrypoint.sh
