@@ -1214,7 +1214,31 @@ input[type="radio"].form-check-input:checked::before {
 
 .justify-content-center { justify-content: center; }
 .justify-content-between { justify-content: space-between; }
+.justify-content-end { justify-content: flex-end; }
+.justify-content-start { justify-content: flex-start; }
 .align-items-center { align-items: center; }
+.align-items-start { align-items: flex-start; }
+.align-items-end { align-items: flex-end; }
+
+/* Display utilities — Bootstrap 5 legacy */
+.d-none { display: none !important; }
+.d-block { display: block !important; }
+.d-inline { display: inline !important; }
+.d-inline-block { display: inline-block !important; }
+.d-flex { display: flex !important; }
+.d-inline-flex { display: inline-flex !important; }
+
+/* Text alignment — Bootstrap 5 legacy */
+.text-start { text-align: left !important; }
+.text-end { text-align: right !important; }
+.text-center { text-align: center !important; }
+
+/* Table cell vertical alignment */
+.align-middle,
+.align-middle > th,
+.align-middle > td,
+.align-middle tbody th,
+.align-middle tbody td { vertical-align: middle !important; }
 
 /* Margin/padding helpers — Bootstrap legacy */
 .mb-0 { margin-bottom: 0 !important; }
@@ -1229,9 +1253,40 @@ input[type="radio"].form-check-input:checked::before {
 .mt-3 { margin-top: 1rem !important; }
 .mt-4 { margin-top: 1.5rem !important; }
 .mt-5 { margin-top: 3rem !important; }
+.ms-0 { margin-left: 0 !important; }
+.ms-1 { margin-left: 0.25rem !important; }
+.ms-2 { margin-left: 0.5rem !important; }
+.ms-3 { margin-left: 1rem !important; }
+.me-0 { margin-right: 0 !important; }
+.me-1 { margin-right: 0.25rem !important; }
+.me-2 { margin-right: 0.5rem !important; }
+.me-3 { margin-right: 1rem !important; }
+.gap-1 { gap: 0.25rem; }
 .gap-2 { gap: 0.5rem; }
 .gap-3 { gap: 1rem; }
 .shadow-sm { box-shadow: var(--akd-shadow-card); }
+
+/* Bootstrap small text helper */
+.small { font-size: 0.8125rem; }
+
+/* Table responsive wrapper — Bootstrap legacy */
+.table-responsive {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Heading helpers used as classes (e.g. <h1 class="h4">) */
+.h1 { font-size: clamp(1.75rem, 2.4vw, 2.25rem); font-weight: 700; letter-spacing: -0.02em; color: #fff; }
+.h2 { font-size: clamp(1.5rem, 2vw, 1.875rem); font-weight: 700; letter-spacing: -0.02em; color: #fff; }
+.h3 { font-size: 1.4rem; font-weight: 600; letter-spacing: -0.015em; color: #fff; }
+.h4 { font-size: 1.15rem; font-weight: 600; letter-spacing: -0.01em; color: #fff; }
+.h5 { font-size: 1rem; font-weight: 600; color: #fff; }
+.h6 { font-size: 0.875rem; font-weight: 600; color: #fff; }
+
+/* Phase11 legacy table tweak */
+.phase11-table thead th { background: rgba(255, 255, 255, 0.04); }
 
 /* Bootstrap utilities Cursor stiliyle uyumlu */
 .text-muted { color: var(--akd-text-muted) !important; }
