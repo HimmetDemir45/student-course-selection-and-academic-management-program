@@ -1,9 +1,9 @@
 {% load i18n %}
 {% if user.role == "instructor" %}
-<a class="btn btn-outline-secondary btn-sm" href="{% url 'courses:offering_list' %}">{% trans "Verdiğim ders teklifleri" %}</a>
-<a class="btn btn-outline-primary btn-sm" href="{% url 'academic:instructor_enrollments' %}">{% trans "Öğrenci kayıtları ve notlar" %}</a>
+<a class="akd-btn akd-btn--ghost akd-btn--sm" href="{% url 'courses:offering_list' %}">{% trans "Verdiğim ders teklifleri" %}</a>
+<a class="akd-btn akd-btn--secondary akd-btn--sm" href="{% url 'academic:instructor_enrollments' %}">{% trans "Öğrenci kayıtları ve notlar" %}</a>
 {% endif %}
 {% if user.role == "admin" %}
-<a class="btn btn-outline-secondary btn-sm" href="{% url 'academic:department_list' %}">{% trans "Bölümler" %}</a>
-<a class="btn btn-primary btn-sm" href="{% url 'academic:announcement_create' %}">{% trans "Yeni duyuru" %}</a>
+<a class="akd-btn akd-btn--ghost akd-btn--sm" href="{% url 'academic:department_list' %}">{% trans "Bölümler" %}</a>
+<a class="akd-btn akd-btn--primary akd-btn--sm" href="{% url 'academic:announcement_create' %}">{% trans "Yeni duyuru" %}</a>
 {% endif %}
