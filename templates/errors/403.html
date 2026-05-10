@@ -1,14 +1,35 @@
 {% extends "base.html" %}
 {% load i18n %}
-{% block title %}{% trans "Erişim reddedildi" %}{% endblock %}
+
+{% block title %}{% trans "Erişim reddedildi — Akademik 2.0" %}{% endblock %}
+
 {% block content %}
-<div class="py-5 text-center">
-    <h1 class="display-6 mb-3">403</h1>
-    <p class="lead mb-2">{% trans "Bu işlem için yetkiniz yok." %}</p>
-    <p class="text-muted mb-3">{% trans "Sonraki adım: Uygun rol ile tekrar giriş yapın veya sistem yöneticinizle iletişime geçin." %}</p>
-    <div class="d-flex justify-content-center gap-2 flex-wrap">
-        <a class="btn btn-primary" href="{% url 'core:home' %}">{% trans "Ana sayfaya dön" %}</a>
-        <a class="btn btn-outline-secondary" href="{% url 'accounts:login' %}">{% trans "Giriş sayfası" %}</a>
+<div class="max-w-2xl mx-auto py-10 text-center">
+    <div class="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500/30 to-rose-400/10 border border-rose-400/30 text-rose-200 mb-6">
+        <i data-lucide="shield-off" class="h-8 w-8"></i>
+    </div>
+
+    <p class="text-7xl sm:text-8xl font-bold tracking-tight leading-none">
+        <span class="bg-gradient-to-r from-rose-300 via-rose-200 to-amber-200 bg-clip-text text-transparent">403</span>
+    </p>
+
+    <h1 class="mt-6 text-2xl font-semibold text-white tracking-tight">{% trans "Erişim reddedildi" %}</h1>
+    <p class="mt-2 text-sm text-white/70 max-w-md mx-auto">
+        {% trans "Bu işlem için yetkin yok." %}
+    </p>
+    <p class="mt-1 text-xs text-white/50 max-w-md mx-auto">
+        {% trans "Uygun rol ile tekrar giriş yap veya sistem yöneticinle iletişime geç." %}
+    </p>
+
+    <div class="mt-8 flex justify-center gap-2 flex-wrap">
+        <a class="akd-btn akd-btn--primary" href="{% url 'core:home' %}">
+            <i data-lucide="home" class="h-4 w-4"></i>
+            <span>{% trans "Ana sayfaya dön" %}</span>
+        </a>
+        <a class="akd-btn akd-btn--secondary" href="{% url 'accounts:login' %}">
+            <i data-lucide="log-in" class="h-4 w-4"></i>
+            <span>{% trans "Giriş sayfası" %}</span>
+        </a>
     </div>
 </div>
 {% endblock %}
