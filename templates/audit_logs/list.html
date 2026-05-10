@@ -1,39 +1,63 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-{% block title %}{% trans "Denetim günlüğü" %}{% endblock %}
+{% block title %}{% trans "Denetim günlüğü — Akademik 2.0" %}{% endblock %}
 
 {% block content %}
-<h1 class="h4 mb-3">{% trans "Denetim günlüğü" %}</h1>
-<p class="text-muted small">{% trans "Yalnızca yöneticiler görüntüleyebilir." %}</p>
+<header class="akd-page-header">
+    <div class="akd-page-header__intro">
+        <span class="akd-page-header__eyebrow">
+            <i data-lucide="shield" class="h-3 w-3"></i>
+            {% trans "Yönetim" %}
+        </span>
+        <h1 class="akd-page-header__title">{% trans "Denetim günlüğü" %}</h1>
+        <p class="akd-page-header__subtitle">{% trans "Sistem olayları ve kullanıcı aksiyonları. Yalnızca yöneticiler görüntüleyebilir." %}</p>
+    </div>
+</header>
 
 {% if logs %}
-<div class="table-responsive">
-    <table class="table table-sm table-hover align-middle phase11-table">
+<div class="akd-table-wrap">
+    <table class="akd-table">
         <thead>
             <tr>
-                <th>{% trans "Zaman" %}</th>
-                <th>{% trans "Olay" %}</th>
-                <th>{% trans "Kullanıcı" %}</th>
-                <th>{% trans "Hedef" %}</th>
+                <th scope="col" style="width: 13rem;">{% trans "Zaman" %}</th>
+                <th scope="col" style="width: 16rem;">{% trans "Olay" %}</th>
+                <th scope="col" style="width: 12rem;">{% trans "Kullanıcı" %}</th>
+                <th scope="col">{% trans "Hedef" %}</th>
             </tr>
         </thead>
         <tbody>
         {% for log in logs %}
             <tr>
-                <td>{{ log.created_at }}</td>
-                <td><code>{{ log.event_type }}</code></td>
-                <td>{% if log.actor %}{{ log.actor.username }}{% else %}—{% endif %}</td>
-                <td class="small">{{ log.target_type }} #{{ log.target_id }}</td>
+                <td class="text-white/70 text-xs">{{ log.created_at }}</td>
+                <td>
+                    <span class="font-mono text-xs text-indigo-200 px-2 py-1 rounded-md bg-indigo-500/15 border border-indigo-400/25">{{ log.event_type }}</span>
+                </td>
+                <td class="text-white/85">
+                    {% if log.actor %}
+                        <div class="flex items-center gap-2">
+                            <span class="inline-flex h-6 w-6 items-center justify-center rounded-md bg-white/5 border border-white/10 text-white/70 flex-shrink-0">
+                                <i data-lucide="user" class="h-3 w-3"></i>
+                            </span>
+                            <span>{{ log.actor.username }}</span>
+                        </div>
+                    {% else %}
+                        <span class="text-white/40">—</span>
+                    {% endif %}
+                </td>
+                <td class="text-white/70 text-xs">
+                    <span class="text-white/55">{{ log.target_type }}</span>
+                    {% if log.target_id %}<span class="text-white/85 ml-1">#{{ log.target_id }}</span>{% endif %}
+                </td>
             </tr>
         {% endfor %}
         </tbody>
     </table>
 </div>
 {% else %}
-{% trans "Kayıt yok" as audit_empty_title %}
-{% trans "Henüz görüntülenecek denetim olayı bulunmuyor." as audit_empty_message %}
-{% include "includes/empty_state.html" with empty_title=audit_empty_title empty_message=audit_empty_message %}
+    {% trans "Kayıt yok" as audit_empty_title %}
+    {% trans "Henüz görüntülenecek denetim olayı bulunmuyor." as audit_empty_message %}
+    {% include "includes/empty_state.html" with empty_title=audit_empty_title empty_message=audit_empty_message empty_icon="shield-off" %}
 {% endif %}
 
 {% include "includes/pagination.html" %}

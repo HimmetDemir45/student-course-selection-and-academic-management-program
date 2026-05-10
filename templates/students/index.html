@@ -1,37 +1,64 @@
 {% extends "base.html" %}
 {% load i18n %}
-{% block title %}{% trans "Öğrenci alanı" %}{% endblock %}
-{% block content %}
-<h1 class="h4 mb-1">{% trans "Öğrenci alanı" %}</h1>
-<p class="text-muted mb-4">{% trans "Ders seçimi, transkript ve katalog kısayolları." %}</p>
 
-<div class="row g-3">
-    <div class="col-md-4">
-        <div class="card h-100 shadow-sm border-0 phase11-card phase17-card">
-            <div class="card-body">
-                <h2 class="h6">{% trans "Ders kaydı" %}</h2>
-                <p class="small text-muted mb-3">{% trans "Açılan şubelerden ders seçin." %}</p>
-                <a class="btn btn-primary btn-sm" href="{% url 'enrollments:browse' %}">{% trans "Ders kaydına git" %}</a>
-            </div>
-        </div>
+{% block title %}{% trans "Öğrenci alanı — Akademik 2.0" %}{% endblock %}
+
+{% block content %}
+<header class="akd-page-header">
+    <div class="akd-page-header__intro">
+        <span class="akd-page-header__eyebrow">
+            <i data-lucide="graduation-cap" class="h-3 w-3"></i>
+            {% trans "Öğrenci" %}
+        </span>
+        <h1 class="akd-page-header__title">{% trans "Öğrenci alanı" %}</h1>
+        <p class="akd-page-header__subtitle">{% trans "Ders kaydı, transkript ve katalog için kısayollar tek panelde." %}</p>
     </div>
-    <div class="col-md-4">
-        <div class="card h-100 shadow-sm border-0 phase11-card phase17-card">
-            <div class="card-body">
-                <h2 class="h6">{% trans "Transkript" %}</h2>
-                <p class="small text-muted mb-3">{% trans "Notlarınızı ve GPA’nizi görüntüleyin." %}</p>
-                <a class="btn btn-outline-primary btn-sm" href="{% url 'students:transcript' %}">{% trans "Transkripti aç" %}</a>
-            </div>
+</header>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <article class="akd-stat">
+        <div class="akd-stat__top">
+            <span class="akd-stat__icon akd-stat__icon--indigo"><i data-lucide="graduation-cap" class="h-5 w-5"></i></span>
         </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card h-100 shadow-sm border-0 phase11-card phase17-card">
-            <div class="card-body">
-                <h2 class="h6">{% trans "Ders kataloğu" %}</h2>
-                <p class="small text-muted mb-3">{% trans "Tüm dersleri inceleyin." %}</p>
-                <a class="btn btn-outline-secondary btn-sm" href="{% url 'courses:course_list' %}">{% trans "Kataloğu aç" %}</a>
-            </div>
+        <p class="akd-stat__label">{% trans "Ders kaydı" %}</p>
+        <p class="text-base font-semibold text-white mt-1">{% trans "Açılan şubelerden seç" %}</p>
+        <p class="akd-stat__hint">{% trans "Önkoşul, çakışma ve kontenjan kontrolüyle birlikte." %}</p>
+        <div class="mt-4">
+            <a class="akd-btn akd-btn--primary akd-btn--sm" href="{% url 'enrollments:browse' %}">
+                <i data-lucide="arrow-right" class="h-4 w-4"></i>
+                <span>{% trans "Ders kaydına git" %}</span>
+            </a>
         </div>
-    </div>
+    </article>
+
+    <article class="akd-stat">
+        <div class="akd-stat__top">
+            <span class="akd-stat__icon akd-stat__icon--violet"><i data-lucide="file-text" class="h-5 w-5"></i></span>
+        </div>
+        <p class="akd-stat__label">{% trans "Transkript" %}</p>
+        <p class="text-base font-semibold text-white mt-1">{% trans "Notlar ve GPA" %}</p>
+        <p class="akd-stat__hint">{% trans "Dönem bazında detaylı görünüm ve kümülatif GPA." %}</p>
+        <div class="mt-4">
+            <a class="akd-btn akd-btn--secondary akd-btn--sm" href="{% url 'students:transcript' %}">
+                <i data-lucide="external-link" class="h-4 w-4"></i>
+                <span>{% trans "Transkripti aç" %}</span>
+            </a>
+        </div>
+    </article>
+
+    <article class="akd-stat">
+        <div class="akd-stat__top">
+            <span class="akd-stat__icon akd-stat__icon--cyan"><i data-lucide="book-open" class="h-5 w-5"></i></span>
+        </div>
+        <p class="akd-stat__label">{% trans "Ders kataloğu" %}</p>
+        <p class="text-base font-semibold text-white mt-1">{% trans "Tüm dersleri incele" %}</p>
+        <p class="akd-stat__hint">{% trans "Bölüm ve krediye göre filtrele." %}</p>
+        <div class="mt-4">
+            <a class="akd-btn akd-btn--secondary akd-btn--sm" href="{% url 'courses:course_list' %}">
+                <i data-lucide="search" class="h-4 w-4"></i>
+                <span>{% trans "Kataloğu aç" %}</span>
+            </a>
+        </div>
+    </article>
 </div>
 {% endblock %}

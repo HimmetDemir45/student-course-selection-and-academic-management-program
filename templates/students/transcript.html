@@ -1,55 +1,112 @@
 {% extends "base.html" %}
 {% load i18n %}
-{% block title %}{% trans "Transkript" %}{% endblock %}
+
+{% block title %}{% trans "Transkript — Akademik 2.0" %}{% endblock %}
+
 {% block content %}
 <div class="transcript-print">
-{% trans "Akademik transkript" as transcript_title %}
-{% include "includes/page_header.html" with header_title=transcript_title header_actions_template="includes/page_header_actions/transcript.html" %}
-{% if no_profile %}
-    <div class="alert alert-warning phase17-alert" role="alert">{% trans "Öğrenci profiliniz tanımlı değil." %}</div>
-{% else %}
-    <div class="d-flex flex-wrap gap-3 align-items-center mb-4 phase15-no-print phase17-transcript-meta">
-        <p class="mb-0"><strong>{% trans "Genel GPA" %}:</strong> {{ gpa }} <span class="text-muted">({{ gpa_credits }} {% trans "kredi" %})</span></p>
-    </div>
-    <div class="d-none d-print-block mb-2 small text-muted">{% trans "Genel GPA" %}: {{ gpa }} ({{ gpa_credits }} {% trans "kredi" %})</div>
-    {% if not semester_blocks %}
-    <p class="text-muted">{% trans "Kayıt bulunmuyor." %}</p>
+    {% trans "Akademik transkript" as transcript_title %}
+    {% include "includes/page_header.html" with header_title=transcript_title header_eyebrow=_("Öğrenci") header_subtitle=_("Dönem bazında detaylı not görünümü ve kümülatif GPA.") header_actions_template="includes/page_header_actions/transcript.html" %}
+
+    {% if no_profile %}
+        <div class="akd-alert akd-alert--warning phase17-alert" role="alert">
+            <i data-lucide="alert-triangle" class="akd-alert__icon" aria-hidden="true"></i>
+            <span>{% trans "Öğrenci profiliniz tanımlı değil." %}</span>
+        </div>
+    {% else %}
+        {# Genel GPA özeti — ekran #}
+        <section class="akd-card mb-6 phase15-no-print phase17-transcript-meta">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center gap-4">
+                    <span class="akd-stat__icon akd-stat__icon--violet flex-shrink-0">
+                        <i data-lucide="award" class="h-5 w-5"></i>
+                    </span>
+                    <div>
+                        <p class="akd-stat__label">{% trans "Genel GPA" %}</p>
+                        <p class="text-3xl font-bold text-white tracking-tight mt-1 leading-none">
+                            <span class="bg-gradient-to-r from-indigo-300 via-violet-300 to-cyan-300 bg-clip-text text-transparent">{{ gpa }}</span>
+                        </p>
+                        <p class="akd-stat__hint">{{ gpa_credits }} {% trans "kredi" %}</p>
+                    </div>
+                </div>
+                <span class="akd-badge akd-badge--brand">
+                    <i data-lucide="graduation-cap" class="h-3 w-3"></i>
+                    {% trans "Kümülatif" %}
+                </span>
+            </div>
+        </section>
+
+        {# Yazdırma için sade satır #}
+        <div class="hidden d-print-block mb-2 small text-muted">
+            {% trans "Genel GPA" %}: {{ gpa }} ({{ gpa_credits }} {% trans "kredi" %})
+        </div>
+
+        {% if not semester_blocks %}
+            {% trans "Kayıt bulunmuyor" as tr_empty_title %}
+            {% trans "Henüz tamamlanmış veya aktif bir kayıt görünmüyor." as tr_empty_message %}
+            {% include "includes/empty_state.html" with empty_title=tr_empty_title empty_message=tr_empty_message empty_icon="file-text" %}
+        {% endif %}
+
+        {% for block in semester_blocks %}
+        <section class="akd-card akd-card--flush mb-4 phase17-transcript-section" aria-labelledby="sem-h-{{ block.semester.pk }}">
+            <header class="akd-card__header flex-wrap">
+                <div class="flex items-center gap-3 min-w-0">
+                    <span class="akd-stat__icon akd-stat__icon--cyan flex-shrink-0" style="width: 2rem; height: 2rem;">
+                        <i data-lucide="calendar" class="h-4 w-4"></i>
+                    </span>
+                    <h2 class="akd-card__title truncate" id="sem-h-{{ block.semester.pk }}">{{ block.semester }}</h2>
+                </div>
+                <div class="flex flex-wrap items-center gap-2 text-xs">
+                    <span class="akd-badge akd-badge--info">
+                        <i data-lucide="trending-up" class="h-3 w-3"></i>
+                        <span>{% trans "Dönem GPA" %}: <strong>{{ block.semester_gpa }}</strong></span>
+                    </span>
+                    <span class="akd-badge akd-badge--neutral">
+                        {{ block.semester_credits }} {% trans "kredi" %}
+                    </span>
+                    <span class="akd-badge akd-badge--brand">
+                        <i data-lucide="award" class="h-3 w-3"></i>
+                        <span>{% trans "Kümülatif" %}: <strong>{{ block.cumulative_gpa }}</strong></span>
+                    </span>
+                </div>
+            </header>
+            <div>
+                <table class="akd-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">{% trans "Ders" %}</th>
+                            <th scope="col" style="width: 6rem;">{% trans "Kredi" %}</th>
+                            <th scope="col" style="width: 9rem;">{% trans "Durum" %}</th>
+                            <th scope="col" style="width: 6rem;" class="text-end">{% trans "Not" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for e in block.rows %}
+                        <tr>
+                            <td class="font-medium text-white">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="font-mono text-xs text-indigo-200 px-2 py-1 rounded-md bg-indigo-500/15 border border-indigo-400/25 flex-shrink-0">{{ e.section.offering.course.code }}</span>
+                                    <span class="truncate text-white/90">{{ e.section.offering.course.name }}</span>
+                                </div>
+                            </td>
+                            <td class="text-white/85 font-semibold">{{ e.section.offering.course.credits }}</td>
+                            <td>
+                                <span class="akd-badge akd-badge--neutral">{{ e.get_status_display }}</span>
+                            </td>
+                            <td class="text-end">
+                                {% if e.academic_grade and e.academic_grade.letter_grade %}
+                                    <span class="font-mono text-sm font-bold text-white px-2.5 py-1 rounded-md bg-gradient-to-br from-indigo-500/30 to-violet-500/20 border border-indigo-400/35">{{ e.academic_grade.letter_grade }}</span>
+                                {% else %}
+                                    <span class="text-white/40">—</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        {% endfor %}
     {% endif %}
-    {% for block in semester_blocks %}
-    <section class="card shadow-sm border-0 mb-3 phase17-transcript-section" aria-labelledby="sem-h-{{ block.semester.pk }}">
-        <div class="card-header bg-white d-flex flex-wrap justify-content-between align-items-center gap-2">
-            <h2 class="h6 mb-0" id="sem-h-{{ block.semester.pk }}">{{ block.semester }}</h2>
-            <div class="small text-muted">
-                <span class="me-2"><strong>{% trans "Dönem GPA" %}:</strong> {{ block.semester_gpa }} ({{ block.semester_credits }} {% trans "kredi" %})</span>
-                <span><strong>{% trans "Genel GPA (kümülatif)" %}:</strong> {{ block.cumulative_gpa }}</span>
-            </div>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive table-responsive-stack">
-            <table class="table table-sm mb-0 align-middle phase17-table">
-                <thead class="table-light">
-                <tr>
-                    <th scope="col">{% trans "Ders" %}</th>
-                    <th scope="col">{% trans "Kredi" %}</th>
-                    <th scope="col">{% trans "Durum" %}</th>
-                    <th scope="col">{% trans "Not" %}</th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for e in block.rows %}
-                    <tr>
-                        <td>{{ e.section.offering.course.code }} — {{ e.section.offering.course.name }}</td>
-                        <td>{{ e.section.offering.course.credits }}</td>
-                        <td>{{ e.get_status_display }}</td>
-                        <td>{% if e.academic_grade %}{{ e.academic_grade.letter_grade|default:"-" }}{% else %}-{% endif %}</td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-            </div>
-        </div>
-    </section>
-    {% endfor %}
-{% endif %}
 </div>
 {% endblock %}
