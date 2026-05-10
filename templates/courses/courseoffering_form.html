@@ -1,17 +1,51 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-{% block title %}Course Offering Form{% endblock %}
+{% block title %}{% if form.instance.pk %}{% trans "Ders teklifi düzenle" %}{% else %}{% trans "Yeni ders teklifi" %}{% endif %} — Akademik 2.0{% endblock %}
 
 {% block content %}
-<h2 class="h4">Course Offering Form</h2>
-<form method="post" class="card card-body">
-    {% csrf_token %}
-    {% include "includes/form_errors.html" with form=form %}
-    {{ form.as_p }}
-    <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-primary">Kaydet</button>
-        <a class="btn btn-secondary" href="{% url 'courses:offering_list' %}">Iptal</a>
+<header class="akd-page-header">
+    <div class="akd-page-header__intro">
+        <span class="akd-page-header__eyebrow">
+            <i data-lucide="layers" class="h-3 w-3"></i>
+            {% trans "Akademik teklifler" %}
+        </span>
+        <h1 class="akd-page-header__title">
+            {% if form.instance.pk %}{% trans "Ders teklifi düzenle" %}{% else %}{% trans "Yeni ders teklifi" %}{% endif %}
+        </h1>
+        <p class="akd-page-header__subtitle">{% trans "Ders, dönem, şube ve öğretim elemanı bilgilerini yapılandır." %}</p>
     </div>
-</form>
+    <div class="akd-page-header__actions">
+        <a class="akd-btn akd-btn--secondary akd-btn--sm" href="{% url 'courses:offering_list' %}">
+            <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i>
+            <span>{% trans "Listeye dön" %}</span>
+        </a>
+    </div>
+</header>
+
+<section class="akd-card max-w-2xl">
+    <form method="post" novalidate class="akd-form">
+        {% csrf_token %}
+        {% include "includes/form_errors.html" with form=form %}
+
+        {% for field in form %}
+        <div class="akd-form-group">
+            <label class="akd-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}<p class="akd-form-hint">{{ field.help_text }}</p>{% endif %}
+        </div>
+        {% endfor %}
+
+        <div class="flex flex-wrap items-center gap-2 mt-6">
+            <button type="submit" class="akd-btn akd-btn--primary">
+                <i data-lucide="save" class="h-4 w-4"></i>
+                <span>{% trans "Kaydet" %}</span>
+            </button>
+            <a class="akd-btn akd-btn--ghost" href="{% url 'courses:offering_list' %}">
+                <i data-lucide="x" class="h-4 w-4"></i>
+                <span>{% trans "İptal" %}</span>
+            </a>
+        </div>
+    </form>
+</section>
 {% endblock %}

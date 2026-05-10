@@ -1,13 +1,41 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Announcement Delete{% endblock %}
+{% block title %}{% trans "Duyuru sil" %} — Akademik 2.0{% endblock %}
 
 {% block content %}
-<h2 class="h4">Announcement Sil</h2>
-<p><strong>{{ object.title }}</strong> duyurusunu silmek istiyor musunuz?</p>
-<form method="post">
-    {% csrf_token %}
-    <button type="submit" class="btn btn-danger">Sil</button>
-    <a class="btn btn-secondary" href="{% url 'academic:announcement_list' %}">Vazgec</a>
-</form>
+<header class="akd-page-header">
+    <div class="akd-page-header__intro">
+        <span class="akd-page-header__eyebrow">
+            <i data-lucide="trash-2" class="h-3 w-3"></i>
+            {% trans "Silme onayı" %}
+        </span>
+        <h1 class="akd-page-header__title">{% trans "Duyuruyu sil" %}</h1>
+        <p class="akd-page-header__subtitle">{% trans "Bu işlem geri alınamaz. Devam etmek istediğinden emin misin?" %}</p>
+    </div>
+</header>
+
+<section class="akd-card max-w-2xl">
+    <div class="flex items-start gap-4 mb-6">
+        <span class="akd-stat__icon akd-stat__icon--rose flex-shrink-0">
+            <i data-lucide="alert-triangle" class="h-5 w-5"></i>
+        </span>
+        <div class="min-w-0">
+            <p class="text-sm text-white/70">{% trans "Silinecek duyuru" %}:</p>
+            <p class="mt-1 text-lg font-semibold text-white truncate">{{ object.title }}</p>
+        </div>
+    </div>
+
+    <form method="post" class="flex flex-wrap items-center gap-2">
+        {% csrf_token %}
+        <button type="submit" class="akd-btn akd-btn--danger">
+            <i data-lucide="trash-2" class="h-4 w-4"></i>
+            <span>{% trans "Evet, sil" %}</span>
+        </button>
+        <a class="akd-btn akd-btn--ghost" href="{% url 'academic:announcement_list' %}">
+            <i data-lucide="x" class="h-4 w-4"></i>
+            <span>{% trans "Vazgeç" %}</span>
+        </a>
+    </form>
+</section>
 {% endblock %}
