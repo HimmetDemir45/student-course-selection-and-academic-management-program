@@ -1,13 +1,15 @@
 {% load i18n %}
 {% if form.non_field_errors %}
-<div class="alert alert-danger phase16-form-errors phase17-form-errors phase17-alert" role="alert">
-    {{ form.non_field_errors }}
+<div class="akd-alert akd-alert--danger akd-fade-in" role="alert">
+    <i data-lucide="alert-circle" class="akd-alert__icon" aria-hidden="true"></i>
+    <div>{{ form.non_field_errors|join:" " }}</div>
 </div>
 {% endif %}
 {% for field in form %}
     {% if field.errors %}
-    <div class="small mb-2 phase16-form-errors phase17-field-error" role="alert">
-        <strong>{{ field.label }}:</strong> {{ field.errors|striptags }}
-    </div>
+    <p class="akd-form-error" role="alert">
+        <i data-lucide="alert-circle" class="h-3 w-3" aria-hidden="true"></i>
+        <span><strong>{{ field.label }}:</strong> {{ field.errors|striptags }}</span>
+    </p>
     {% endif %}
 {% endfor %}

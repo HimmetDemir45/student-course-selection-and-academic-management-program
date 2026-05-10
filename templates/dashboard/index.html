@@ -1,220 +1,281 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-{% block title %}{% trans "Pano" %}{% endblock %}
+{% block title %}{% trans "Pano — Akademik 2.0" %}{% endblock %}
 
 {% block content %}
-<div class="mb-6">
-    <div class="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-indigo-600/15 via-violet-600/10 to-cyan-500/10 dark:from-indigo-500/15 dark:via-violet-500/10 dark:to-cyan-400/10 backdrop-blur-xl p-6 sm:p-8 shadow-[0_30px_120px_rgba(2,6,23,.18)]">
-        <div class="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-indigo-500/20 blur-3xl"></div>
-        <div class="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-cyan-400/20 blur-3xl"></div>
-        <div class="relative">
-            <p class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-white/60">{% trans "Pano" %}</p>
-            <h1 class="mt-2 text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900 dark:text-white">
-                {% if request.user.is_authenticated %}
-                    {% trans "Hoş geldiniz" %}, {{ request.user.get_full_name|default:request.user.username }}.
-                {% else %}
-                    {% trans "Akademik Yönetim" %}
-                {% endif %}
-            </h1>
-            <p class="mt-2 text-sm text-slate-600 dark:text-white/70">
-                {% trans "Ders seçimi, duyurular ve akademik süreçleri tek ekrandan takip edin." %}
-            </p>
-        </div>
-    </div>
-</div>
-
-{% if role == "student" %}
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-    <div class="rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/70 dark:bg-white/5 backdrop-blur-xl p-5 shadow-[0_22px_80px_rgba(2,6,23,.10)] hover:shadow-[0_22px_80px_rgba(2,6,23,.16)] transition">
-        <div class="flex items-start justify-between gap-3">
-            <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-white/50">{% trans "Kayıt penceresi" %}</p>
-                <p class="mt-1 text-lg font-semibold text-slate-900 dark:text-white">{% trans "Ders kaydı" %}</p>
-            </div>
-            <span class="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-600/20 to-cyan-500/20 text-indigo-700 dark:text-indigo-200">
-                <i data-lucide="graduation-cap" class="h-5 w-5"></i>
-            </span>
-        </div>
-        <p class="mt-3 text-sm text-slate-600 dark:text-white/70">
-            {% if any_add_drop_open %}
-                <span class="font-semibold text-emerald-600 dark:text-emerald-300">{% trans "Açık" %}</span> — {% trans "Şubeleri inceleyip kaydınızı tamamlayın." %}
+{# ===== HERO ===== #}
+<section class="akd-page-header">
+    <div class="akd-page-header__intro">
+        <span class="akd-page-header__eyebrow">
+            <i data-lucide="layout-dashboard" class="h-3 w-3"></i>
+            {% trans "Pano" %}
+        </span>
+        <h1 class="akd-page-header__title">
+            {% if user.is_authenticated %}
+                {% trans "Hoş geldin" %},
+                <span class="bg-gradient-to-r from-indigo-300 via-violet-300 to-cyan-300 bg-clip-text text-transparent">
+                    {{ user.get_full_name|default:user.username }}
+                </span>
             {% else %}
-                {% trans "Şu an için açık bir kayıt penceresi görünmüyor." %}
+                {% trans "Akademik Yönetim" %}
+            {% endif %}
+        </h1>
+        <p class="akd-page-header__subtitle">
+            {% trans "Ders seçimi, duyurular ve akademik süreçleri tek ekrandan takip et." %}
+        </p>
+    </div>
+    <div class="akd-page-header__actions">
+        <span class="akd-badge akd-badge--brand">
+            <i data-lucide="calendar" class="h-3 w-3"></i>
+            {% trans "Bahara hazırlık" %}
+        </span>
+        <span class="akd-badge akd-badge--info">
+            <i data-lucide="sparkles" class="h-3 w-3"></i>
+            {% trans "Premium portal" %}
+        </span>
+    </div>
+</section>
+
+{# ===== STUDENT VIEW ===== #}
+{% if role == "student" %}
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <article class="akd-stat">
+        <div class="akd-stat__top">
+            <span class="akd-stat__icon akd-stat__icon--indigo"><i data-lucide="graduation-cap" class="h-5 w-5"></i></span>
+            {% if any_add_drop_open %}
+            <span class="akd-stat__delta akd-stat__delta--up">
+                <i data-lucide="dot" class="h-3 w-3"></i>{% trans "Açık" %}
+            </span>
+            {% else %}
+            <span class="akd-stat__delta akd-stat__delta--flat">
+                <i data-lucide="lock" class="h-3 w-3"></i>{% trans "Kapalı" %}
+            </span>
+            {% endif %}
+        </div>
+        <p class="akd-stat__label">{% trans "Kayıt penceresi" %}</p>
+        <p class="akd-stat__value">{% if any_add_drop_open %}{% trans "Açık" %}{% else %}{% trans "—" %}{% endif %}</p>
+        <p class="akd-stat__hint">
+            {% if any_add_drop_open %}
+                {% trans "Şubeleri inceleyip kaydını tamamla." %}
+            {% else %}
+                {% trans "Şu an açık kayıt penceresi yok." %}
             {% endif %}
         </p>
-        <div class="mt-4 flex flex-wrap gap-2">
-            <a class="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 via-violet-600 to-cyan-500 px-3 py-2 text-sm font-semibold text-white hover:brightness-110 transition" href="{% url 'enrollments:browse' %}">
-                <i data-lucide="arrow-right" class="h-4 w-4"></i>
-                {% trans "Ders kaydına git" %}
-            </a>
-            <a class="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/60 dark:bg-white/5 px-3 py-2 text-sm font-semibold text-slate-900 dark:text-white hover:bg-white/80 dark:hover:bg-white/10 transition" href="{% url 'students:transcript' %}">
-                <i data-lucide="file-text" class="h-4 w-4"></i>
-                {% trans "Transkript" %}
-            </a>
-        </div>
-    </div>
+    </article>
 
-    <div class="rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/70 dark:bg-white/5 backdrop-blur-xl p-5 shadow-[0_22px_80px_rgba(2,6,23,.10)] hover:shadow-[0_22px_80px_rgba(2,6,23,.16)] transition">
-        <div class="flex items-start justify-between gap-3">
-            <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-white/50">{% trans "Özet" %}</p>
-                <p class="mt-1 text-lg font-semibold text-slate-900 dark:text-white">{% trans "Kayıt durumu" %}</p>
-            </div>
-            <span class="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-600/20 to-indigo-600/15 text-violet-700 dark:text-violet-200">
-                <i data-lucide="layers" class="h-5 w-5"></i>
-            </span>
+    <article class="akd-stat">
+        <div class="akd-stat__top">
+            <span class="akd-stat__icon akd-stat__icon--violet"><i data-lucide="layers" class="h-5 w-5"></i></span>
         </div>
-        <div class="mt-3 flex items-baseline gap-2">
-            <p class="text-3xl font-semibold tracking-tight text-slate-900 dark:text-white">
-                {% if student_enrollment_active is not None %}{{ student_enrollment_active }}{% else %}—{% endif %}
-            </p>
-            <p class="text-sm text-slate-600 dark:text-white/70">{% trans "aktif/bekleyen" %}</p>
-        </div>
-        <p class="mt-2 text-sm text-slate-600 dark:text-white/70">{{ student_next_step }}</p>
-        <div class="mt-4">
-            <a class="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/60 dark:bg-white/5 px-3 py-2 text-sm font-semibold text-slate-900 dark:text-white hover:bg-white/80 dark:hover:bg-white/10 transition" href="{% url 'courses:course_list' %}">
-                <i data-lucide="search" class="h-4 w-4"></i>
-                {% trans "Ders kataloğu" %}
-            </a>
-        </div>
-    </div>
+        <p class="akd-stat__label">{% trans "Aktif/bekleyen kayıt" %}</p>
+        <p class="akd-stat__value">{% if student_enrollment_active is not None %}{{ student_enrollment_active }}{% else %}—{% endif %}</p>
+        <p class="akd-stat__hint">{{ student_next_step|default:_("Bu dönemki kayıt durumun.") }}</p>
+    </article>
 
-    <div class="rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/70 dark:bg-white/5 backdrop-blur-xl p-5 shadow-[0_22px_80px_rgba(2,6,23,.10)] hover:shadow-[0_22px_80px_rgba(2,6,23,.16)] transition">
-        <div class="flex items-start justify-between gap-3">
-            <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-white/50">{% trans "Hızlı erişim" %}</p>
-                <p class="mt-1 text-lg font-semibold text-slate-900 dark:text-white">{% trans "Duyurular" %}</p>
-            </div>
-            <span class="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-500/20 to-indigo-600/10 text-cyan-800 dark:text-cyan-200">
-                <i data-lucide="bell" class="h-5 w-5"></i>
-            </span>
-        </div>
-        <p class="mt-3 text-sm text-slate-600 dark:text-white/70">{% trans "Son gelişmeler ve resmi duyurular." %}</p>
-        <div class="mt-4">
-            <a class="inline-flex items-center justify-center gap-2 rounded-2xl bg-white/60 dark:bg-white/5 border border-slate-200/70 dark:border-white/10 px-3 py-2 text-sm font-semibold text-slate-900 dark:text-white hover:bg-white/80 dark:hover:bg-white/10 transition" href="{% url 'academic:announcement_list' %}">
-                <i data-lucide="arrow-right" class="h-4 w-4"></i>
-                {% trans "Duyurulara git" %}
+    <article class="akd-stat">
+        <div class="akd-stat__top">
+            <span class="akd-stat__icon akd-stat__icon--cyan"><i data-lucide="bell" class="h-5 w-5"></i></span>
+            <a href="{% url 'academic:announcement_list' %}" class="akd-link text-xs">
+                {% trans "Tümünü gör" %} →
             </a>
         </div>
-    </div>
-</div>
-{% elif role == "instructor" %}
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-    <div class="rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/70 dark:bg-white/5 backdrop-blur-xl p-5 shadow-[0_22px_80px_rgba(2,6,23,.10)] hover:shadow-[0_22px_80px_rgba(2,6,23,.16)] transition">
-        <div class="flex items-start justify-between gap-3">
-            <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-white/50">{% trans "Akademisyen" %}</p>
-                <p class="mt-1 text-lg font-semibold text-slate-900 dark:text-white">{% trans "Not girişi" %}</p>
-            </div>
-            <span class="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-600/20 to-violet-600/15 text-indigo-700 dark:text-indigo-200">
-                <i data-lucide="clipboard-check" class="h-5 w-5"></i>
-            </span>
-        </div>
-        {% if instructor_pending_grades is not None %}
-        <p class="mt-3 text-sm text-slate-600 dark:text-white/70">{% trans "Not bekleyen kayıt" %}: <span class="font-semibold text-slate-900 dark:text-white">{{ instructor_pending_grades }}</span></p>
-        {% endif %}
-        <div class="mt-4">
-            <a class="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 via-violet-600 to-cyan-500 px-3 py-2 text-sm font-semibold text-white hover:brightness-110 transition" href="{% url 'academic:instructor_enrollments' %}">
-                <i data-lucide="arrow-right" class="h-4 w-4"></i>
-                {% trans "Öğrenci kayıtları ve notlar" %}
-            </a>
-        </div>
-    </div>
-
-    <div class="rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/70 dark:bg-white/5 backdrop-blur-xl p-5 shadow-[0_22px_80px_rgba(2,6,23,.10)] hover:shadow-[0_22px_80px_rgba(2,6,23,.16)] transition">
-        <div class="flex items-start justify-between gap-3">
-            <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-white/50">{% trans "Kısayollar" %}</p>
-                <p class="mt-1 text-lg font-semibold text-slate-900 dark:text-white">{% trans "Teklifler & duyurular" %}</p>
-            </div>
-            <span class="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-500/20 to-indigo-600/10 text-cyan-800 dark:text-cyan-200">
-                <i data-lucide="megaphone" class="h-5 w-5"></i>
-            </span>
-        </div>
-        {% if instructor_offering_count is not None %}
-        <p class="mt-3 text-sm text-slate-600 dark:text-white/70">{% trans "Aktif ders teklifi" %}: <span class="font-semibold text-slate-900 dark:text-white">{{ instructor_offering_count }}</span></p>
-        {% endif %}
-        <div class="mt-4 flex flex-wrap gap-2">
-            <a class="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/60 dark:bg-white/5 px-3 py-2 text-sm font-semibold text-slate-900 dark:text-white hover:bg-white/80 dark:hover:bg-white/10 transition" href="{% url 'courses:offering_list' %}">
-                <i data-lucide="book-open" class="h-4 w-4"></i>
-                {% trans "Ders tekliflerim" %}
-            </a>
-            <a class="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/60 dark:bg-white/5 px-3 py-2 text-sm font-semibold text-slate-900 dark:text-white hover:bg-white/80 dark:hover:bg-white/10 transition" href="{% url 'academic:announcement_list' %}">
-                <i data-lucide="bell" class="h-4 w-4"></i>
-                {% trans "Duyurular" %}
-            </a>
-        </div>
-    </div>
-</div>
-{% elif role == "admin" %}
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-    <div class="rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/70 dark:bg-white/5 backdrop-blur-xl p-5 shadow-[0_22px_80px_rgba(2,6,23,.10)] hover:shadow-[0_22px_80px_rgba(2,6,23,.16)] transition">
-        <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-white/50">{% trans "Akademik" %}</p>
-        <p class="mt-1 text-lg font-semibold text-slate-900 dark:text-white">{% trans "Bölüm & duyuru" %}</p>
-        <div class="mt-4 flex flex-wrap gap-2">
-            <a class="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/60 dark:bg-white/5 px-3 py-2 text-sm font-semibold text-slate-900 dark:text-white hover:bg-white/80 dark:hover:bg-white/10 transition" href="{% url 'academic:department_list' %}"><i data-lucide="building-2" class="h-4 w-4"></i>{% trans "Bölümler" %}</a>
-            <a class="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/60 dark:bg-white/5 px-3 py-2 text-sm font-semibold text-slate-900 dark:text-white hover:bg-white/80 dark:hover:bg-white/10 transition" href="{% url 'academic:announcement_list' %}"><i data-lucide="bell" class="h-4 w-4"></i>{% trans "Duyurular" %}</a>
-        </div>
-    </div>
-
-    <div class="rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/70 dark:bg-white/5 backdrop-blur-xl p-5 shadow-[0_22px_80px_rgba(2,6,23,.10)] hover:shadow-[0_22px_80px_rgba(2,6,23,.16)] transition">
-        <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-white/50">{% trans "Dersler" %}</p>
-        <p class="mt-1 text-lg font-semibold text-slate-900 dark:text-white">{% trans "Katalog & teklifler" %}</p>
-        <div class="mt-4 flex flex-wrap gap-2">
-            <a class="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/60 dark:bg-white/5 px-3 py-2 text-sm font-semibold text-slate-900 dark:text-white hover:bg-white/80 dark:hover:bg-white/10 transition" href="{% url 'courses:course_list' %}"><i data-lucide="book" class="h-4 w-4"></i>{% trans "Dersler" %}</a>
-            <a class="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/60 dark:bg-white/5 px-3 py-2 text-sm font-semibold text-slate-900 dark:text-white hover:bg-white/80 dark:hover:bg-white/10 transition" href="{% url 'courses:offering_list' %}"><i data-lucide="layers" class="h-4 w-4"></i>{% trans "Teklifler" %}</a>
-        </div>
-    </div>
-
-    <div class="rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/70 dark:bg-white/5 backdrop-blur-xl p-5 shadow-[0_22px_80px_rgba(2,6,23,.10)] hover:shadow-[0_22px_80px_rgba(2,6,23,.16)] transition">
-        <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-white/50">{% trans "Denetim" %}</p>
-        <p class="mt-1 text-lg font-semibold text-slate-900 dark:text-white">{% trans "Olay günlüğü" %}</p>
-        <div class="mt-4">
-            <a class="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/60 dark:bg-white/5 px-3 py-2 text-sm font-semibold text-slate-900 dark:text-white hover:bg-white/80 dark:hover:bg-white/10 transition" href="{% url 'audit_logs:index' %}"><i data-lucide="shield" class="h-4 w-4"></i>{% trans "Denetim günlüğü" %}</a>
-        </div>
-    </div>
+        <p class="akd-stat__label">{% trans "Duyurular" %}</p>
+        <p class="akd-stat__value">—</p>
+        <p class="akd-stat__hint">{% trans "Son gelişmeler ve resmi duyurular." %}</p>
+    </article>
 </div>
 
-{% if recent_announcements %}
-<div class="rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/70 dark:bg-white/5 backdrop-blur-xl p-5 shadow-[0_22px_80px_rgba(2,6,23,.10)] mb-4">
-    <div class="flex items-start justify-between gap-3">
+{# Hızlı aksiyonlar #}
+<section class="akd-card mb-6">
+    <div class="flex items-start justify-between gap-3 mb-4">
         <div>
-            <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-white/50">{% trans "Duyurular" %}</p>
-            <p class="mt-1 text-lg font-semibold text-slate-900 dark:text-white">{% trans "Son duyurular" %}</p>
+            <p class="akd-stat__label">{% trans "Hızlı aksiyonlar" %}</p>
+            <p class="text-base font-semibold text-white mt-1">{% trans "Ne yapmak istersin?" %}</p>
         </div>
-        <a class="text-sm font-semibold text-indigo-600 hover:text-indigo-500 dark:text-indigo-300 dark:hover:text-indigo-200" href="{% url 'academic:announcement_list' %}">{% trans "Tümünü gör" %}</a>
+        <span class="akd-stat__icon akd-stat__icon--indigo"><i data-lucide="zap" class="h-5 w-5"></i></span>
     </div>
-    <ul class="mt-4 space-y-2">
-        {% for a in recent_announcements %}
-            <li class="rounded-2xl border border-slate-200/60 dark:border-white/10 bg-white/60 dark:bg-white/5 px-4 py-3 text-sm text-slate-700 dark:text-white/75 hover:bg-white/80 dark:hover:bg-white/10 transition">
-                {{ a.title }}
-            </li>
-        {% endfor %}
-    </ul>
-</div>
-{% endif %}
+    <div class="flex flex-wrap gap-2">
+        <a class="akd-btn akd-btn--primary" href="{% url 'enrollments:browse' %}">
+            <i data-lucide="arrow-right" class="h-4 w-4"></i>
+            <span>{% trans "Ders kaydına git" %}</span>
+        </a>
+        <a class="akd-btn akd-btn--secondary" href="{% url 'students:transcript' %}">
+            <i data-lucide="file-text" class="h-4 w-4"></i>
+            <span>{% trans "Transkript" %}</span>
+        </a>
+        <a class="akd-btn akd-btn--secondary" href="{% url 'courses:course_list' %}">
+            <i data-lucide="search" class="h-4 w-4"></i>
+            <span>{% trans "Ders kataloğu" %}</span>
+        </a>
+    </div>
+</section>
 
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-    <div class="rounded-2xl border border-indigo-500/20 bg-gradient-to-br from-indigo-600/15 via-violet-600/10 to-cyan-500/10 dark:from-indigo-500/15 dark:via-violet-500/10 dark:to-cyan-400/10 backdrop-blur-xl p-5 shadow-[0_22px_80px_rgba(2,6,23,.10)]">
-        <p class="text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-white/60">{% trans "Yönetici talepleri" %}</p>
-        <div class="mt-2 flex items-baseline gap-2">
-            <p class="text-3xl font-semibold tracking-tight text-slate-900 dark:text-white">{{ pending_admin_request_count }}</p>
-            <p class="text-sm text-slate-600 dark:text-white/70">{% trans "bekleyen" %}</p>
-        </div>
-        <div class="mt-4">
-            {% if is_founder %}
-            <a class="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 via-violet-600 to-cyan-500 px-3 py-2 text-sm font-semibold text-white hover:brightness-110 transition" href="{% url 'dashboard:admin_requests' %}">
-                <i data-lucide="user-check" class="h-4 w-4"></i>
-                {% trans "Talepleri yönet" %}
-            </a>
-            {% else %}
-            <p class="text-sm text-slate-600 dark:text-white/70">{% trans "Yalnızca kurucu yönetici talepleri işleyebilir." %}</p>
+{# ===== INSTRUCTOR VIEW ===== #}
+{% elif role == "instructor" %}
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+    <article class="akd-stat">
+        <div class="akd-stat__top">
+            <span class="akd-stat__icon akd-stat__icon--amber"><i data-lucide="clipboard-check" class="h-5 w-5"></i></span>
+            {% if instructor_pending_grades %}
+            <span class="akd-stat__delta akd-stat__delta--down">
+                <i data-lucide="clock" class="h-3 w-3"></i>{% trans "Bekliyor" %}
+            </span>
             {% endif %}
         </div>
-    </div>
+        <p class="akd-stat__label">{% trans "Not bekleyen kayıt" %}</p>
+        <p class="akd-stat__value">{{ instructor_pending_grades|default:0 }}</p>
+        <p class="akd-stat__hint">{% trans "Henüz notu girilmemiş aktif kayıtlar." %}</p>
+    </article>
+
+    <article class="akd-stat">
+        <div class="akd-stat__top">
+            <span class="akd-stat__icon akd-stat__icon--cyan"><i data-lucide="book" class="h-5 w-5"></i></span>
+            <a href="{% url 'courses:offering_list' %}" class="akd-link text-xs">{% trans "Tümü" %} →</a>
+        </div>
+        <p class="akd-stat__label">{% trans "Aktif ders teklifin" %}</p>
+        <p class="akd-stat__value">{{ instructor_offering_count|default:0 }}</p>
+        <p class="akd-stat__hint">{% trans "Bu dönem verdiğin dersler." %}</p>
+    </article>
+
+    <article class="akd-stat">
+        <div class="akd-stat__top">
+            <span class="akd-stat__icon akd-stat__icon--violet"><i data-lucide="megaphone" class="h-5 w-5"></i></span>
+            <a href="{% url 'academic:announcement_list' %}" class="akd-link text-xs">{% trans "Görüntüle" %} →</a>
+        </div>
+        <p class="akd-stat__label">{% trans "Duyurular" %}</p>
+        <p class="akd-stat__value">—</p>
+        <p class="akd-stat__hint">{% trans "Bilgilendirmeleri buradan paylaş." %}</p>
+    </article>
 </div>
+
+<section class="akd-card mb-6">
+    <div class="flex items-start justify-between gap-3 mb-4">
+        <div>
+            <p class="akd-stat__label">{% trans "Hızlı aksiyonlar" %}</p>
+            <p class="text-base font-semibold text-white mt-1">{% trans "Akademisyen kısayolları" %}</p>
+        </div>
+        <span class="akd-stat__icon akd-stat__icon--indigo"><i data-lucide="zap" class="h-5 w-5"></i></span>
+    </div>
+    <div class="flex flex-wrap gap-2">
+        <a class="akd-btn akd-btn--primary" href="{% url 'academic:instructor_enrollments' %}">
+            <i data-lucide="arrow-right" class="h-4 w-4"></i>
+            <span>{% trans "Öğrenci kayıtları ve notlar" %}</span>
+        </a>
+        <a class="akd-btn akd-btn--secondary" href="{% url 'courses:offering_list' %}">
+            <i data-lucide="book-open" class="h-4 w-4"></i>
+            <span>{% trans "Ders tekliflerim" %}</span>
+        </a>
+        <a class="akd-btn akd-btn--secondary" href="{% url 'academic:announcement_list' %}">
+            <i data-lucide="bell" class="h-4 w-4"></i>
+            <span>{% trans "Duyurular" %}</span>
+        </a>
+    </div>
+</section>
+
+{# ===== ADMIN VIEW ===== #}
+{% elif role == "admin" %}
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+    <article class="akd-stat">
+        <div class="akd-stat__top">
+            <span class="akd-stat__icon akd-stat__icon--rose"><i data-lucide="user-check" class="h-5 w-5"></i></span>
+            {% if pending_admin_request_count %}
+            <span class="akd-stat__delta akd-stat__delta--down">
+                <i data-lucide="clock" class="h-3 w-3"></i>{% trans "Bekliyor" %}
+            </span>
+            {% endif %}
+        </div>
+        <p class="akd-stat__label">{% trans "Yönetici talepleri" %}</p>
+        <p class="akd-stat__value">{{ pending_admin_request_count|default:0 }}</p>
+        <p class="akd-stat__hint">
+            {% if is_founder %}
+                {% trans "İncelemen gereken bekleyen talepler." %}
+            {% else %}
+                {% trans "Yalnızca kurucu yönetici talepleri işleyebilir." %}
+            {% endif %}
+        </p>
+    </article>
+
+    <article class="akd-stat">
+        <div class="akd-stat__top">
+            <span class="akd-stat__icon akd-stat__icon--cyan"><i data-lucide="building-2" class="h-5 w-5"></i></span>
+            <a href="{% url 'academic:department_list' %}" class="akd-link text-xs">{% trans "Yönet" %} →</a>
+        </div>
+        <p class="akd-stat__label">{% trans "Akademik yapı" %}</p>
+        <p class="akd-stat__value">{% trans "Bölümler" %}</p>
+        <p class="akd-stat__hint">{% trans "Bölüm, program ve dönem yönetimi." %}</p>
+    </article>
+
+    <article class="akd-stat">
+        <div class="akd-stat__top">
+            <span class="akd-stat__icon akd-stat__icon--violet"><i data-lucide="shield" class="h-5 w-5"></i></span>
+            <a href="{% url 'audit_logs:index' %}" class="akd-link text-xs">{% trans "Görüntüle" %} →</a>
+        </div>
+        <p class="akd-stat__label">{% trans "Denetim" %}</p>
+        <p class="akd-stat__value">{% trans "Loglar" %}</p>
+        <p class="akd-stat__hint">{% trans "Tüm sistem olayları ve kullanıcı aksiyonları." %}</p>
+    </article>
+</div>
+
+<section class="akd-card mb-6">
+    <div class="flex items-start justify-between gap-3 mb-4">
+        <div>
+            <p class="akd-stat__label">{% trans "Hızlı aksiyonlar" %}</p>
+            <p class="text-base font-semibold text-white mt-1">{% trans "Yönetim kısayolları" %}</p>
+        </div>
+        <span class="akd-stat__icon akd-stat__icon--indigo"><i data-lucide="zap" class="h-5 w-5"></i></span>
+    </div>
+    <div class="flex flex-wrap gap-2">
+        {% if is_founder %}
+        <a class="akd-btn akd-btn--primary" href="{% url 'dashboard:admin_requests' %}">
+            <i data-lucide="user-check" class="h-4 w-4"></i>
+            <span>{% trans "Talepleri yönet" %}</span>
+        </a>
+        {% endif %}
+        <a class="akd-btn akd-btn--secondary" href="{% url 'academic:department_list' %}">
+            <i data-lucide="building-2" class="h-4 w-4"></i>
+            <span>{% trans "Bölümler" %}</span>
+        </a>
+        <a class="akd-btn akd-btn--secondary" href="{% url 'courses:course_list' %}">
+            <i data-lucide="book" class="h-4 w-4"></i>
+            <span>{% trans "Dersler" %}</span>
+        </a>
+        <a class="akd-btn akd-btn--secondary" href="{% url 'courses:offering_list' %}">
+            <i data-lucide="layers" class="h-4 w-4"></i>
+            <span>{% trans "Teklifler" %}</span>
+        </a>
+        <a class="akd-btn akd-btn--secondary" href="{% url 'academic:announcement_list' %}">
+            <i data-lucide="bell" class="h-4 w-4"></i>
+            <span>{% trans "Duyurular" %}</span>
+        </a>
+    </div>
+</section>
+
+{% if recent_announcements %}
+<section class="akd-card akd-card--flush">
+    <div class="akd-card__header">
+        <div>
+            <p class="akd-stat__label">{% trans "Duyurular" %}</p>
+            <p class="akd-card__title mt-1">{% trans "Son duyurular" %}</p>
+        </div>
+        <a class="akd-link text-sm" href="{% url 'academic:announcement_list' %}">{% trans "Tümünü gör" %} →</a>
+    </div>
+    <ul class="akd-card__body space-y-2 list-none p-4">
+        {% for a in recent_announcements %}
+        <li class="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/80 hover:bg-white/10 transition flex items-center gap-3">
+            <i data-lucide="megaphone" class="h-4 w-4 text-indigo-300 flex-shrink-0"></i>
+            <span class="flex-1 truncate">{{ a.title }}</span>
+        </li>
+        {% endfor %}
+    </ul>
+</section>
+{% endif %}
+
 {% else %}
-<p class="text-muted">{% trans "Pano içeriği rolünüz için yapılandırılmadı." %}</p>
+<div class="akd-empty">
+    <div class="akd-empty__icon"><i data-lucide="inbox" class="h-5 w-5"></i></div>
+    <p class="akd-empty__title">{% trans "Pano içeriği yok" %}</p>
+    <p class="akd-empty__desc">{% trans "Pano içeriği rolünüz için yapılandırılmadı." %}</p>
+</div>
 {% endif %}
 {% endblock %}

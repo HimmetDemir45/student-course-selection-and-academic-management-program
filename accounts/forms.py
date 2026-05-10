@@ -67,13 +67,12 @@ class RegisterForm(forms.ModelForm):
             user.save()
         return user
 
-
 class LoginForm(forms.Form):
     login = forms.CharField(
         label=_("E-posta veya kullanıcı adı"),
         widget=forms.TextInput(
             attrs={
-                "class": "form-control",
+                "class": "w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:focus:border-indigo-400 transition",
                 "autocomplete": "username",
             },
         ),
@@ -82,7 +81,7 @@ class LoginForm(forms.Form):
         label=_("Şifre"),
         widget=forms.PasswordInput(
             attrs={
-                "class": "form-control",
+                "class": "w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:focus:border-indigo-400 transition",
                 "autocomplete": "current-password",
             },
         ),
@@ -90,7 +89,11 @@ class LoginForm(forms.Form):
     remember_me = forms.BooleanField(
         label=_("Beni hatırla"),
         required=False,
-        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        widget=forms.CheckboxInput(
+            attrs={
+                "class": "h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-600 dark:border-white/10 dark:bg-white/5 dark:ring-offset-slate-900 transition"
+            }
+        ),
     )
 
     error_messages = {

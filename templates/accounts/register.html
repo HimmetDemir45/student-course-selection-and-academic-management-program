@@ -1,73 +1,256 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-{% block title %}{% trans "Kayıt ol" %}{% endblock %}
+{% block title %}{% trans "Kayıt ol — Akademik 2.0" %}{% endblock %}
 
 {% block content %}
-<div class="mb-6">
-    <h1 class="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">{% trans "Hesap oluştur" %}</h1>
-    <p class="mt-2 text-sm text-slate-600 dark:text-white/70">{% trans "Sistemi kullanmak için temel bilgilerinizi girin." %}</p>
+<div class="mb-8">
+    <span class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-medium text-white/70 backdrop-blur-xl">
+        <i data-lucide="sparkles" class="h-3 w-3"></i>
+        {% trans "Yeni hesap" %}
+    </span>
+    <h1 class="mt-4 text-3xl font-semibold tracking-tight text-white">
+        {% trans "Akademik 2.0'a katıl." %}
+    </h1>
+    <p class="mt-2 text-sm text-white/60">
+        {% trans "Birkaç saniye içinde hesabını oluştur." %}
+    </p>
 </div>
 
-<form id="register-form" method="post" novalidate class="space-y-4">
+<form id="register-form" method="post" novalidate class="space-y-5">
     {% csrf_token %}
-    {{ form.non_field_errors }}
+
+    {% if form.non_field_errors %}
+    <div role="alert" class="rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200 backdrop-blur-xl">
+        <div class="flex items-start gap-2">
+            <i data-lucide="alert-circle" class="h-4 w-4 mt-0.5 flex-shrink-0"></i>
+            <div>{{ form.non_field_errors|join:" " }}</div>
+        </div>
+    </div>
+    {% endif %}
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-            <label class="block text-sm font-medium text-slate-800 dark:text-white/80 mb-2" for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label>
-            {{ form.first_name }}
-            <div class="text-rose-600 text-xs mt-1">{{ form.first_name.errors }}</div>
+            <label for="{{ form.first_name.id_for_label }}" class="block text-xs font-semibold uppercase tracking-wider text-white/60 mb-2">
+                {{ form.first_name.label }}
+            </label>
+            <input type="text"
+                   id="{{ form.first_name.id_for_label }}"
+                   name="{{ form.first_name.html_name }}"
+                   value="{{ form.first_name.value|default_if_none:'' }}"
+                   autocomplete="given-name"
+                   required
+                   placeholder="{% trans 'Ali' %}"
+                   class="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/30 outline-none transition focus:border-indigo-400/50 focus:bg-white/10 focus:ring-2 focus:ring-indigo-500/20">
+            {% if form.first_name.errors %}
+            <p class="mt-1.5 text-xs text-rose-300 flex items-center gap-1.5">
+                <i data-lucide="alert-circle" class="h-3 w-3"></i>
+                {{ form.first_name.errors|join:" " }}
+            </p>
+            {% endif %}
         </div>
         <div>
-            <label class="block text-sm font-medium text-slate-800 dark:text-white/80 mb-2" for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}</label>
-            {{ form.last_name }}
-            <div class="text-rose-600 text-xs mt-1">{{ form.last_name.errors }}</div>
+            <label for="{{ form.last_name.id_for_label }}" class="block text-xs font-semibold uppercase tracking-wider text-white/60 mb-2">
+                {{ form.last_name.label }}
+            </label>
+            <input type="text"
+                   id="{{ form.last_name.id_for_label }}"
+                   name="{{ form.last_name.html_name }}"
+                   value="{{ form.last_name.value|default_if_none:'' }}"
+                   autocomplete="family-name"
+                   required
+                   placeholder="{% trans 'Demir' %}"
+                   class="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/30 outline-none transition focus:border-indigo-400/50 focus:bg-white/10 focus:ring-2 focus:ring-indigo-500/20">
+            {% if form.last_name.errors %}
+            <p class="mt-1.5 text-xs text-rose-300 flex items-center gap-1.5">
+                <i data-lucide="alert-circle" class="h-3 w-3"></i>
+                {{ form.last_name.errors|join:" " }}
+            </p>
+            {% endif %}
         </div>
     </div>
 
     <div>
-        <label class="block text-sm font-medium text-slate-800 dark:text-white/80 mb-2" for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+        <label for="{{ form.email.id_for_label }}" class="block text-xs font-semibold uppercase tracking-wider text-white/60 mb-2">
+            {{ form.email.label }}
+        </label>
         <div class="relative">
-            <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500 dark:text-white/50">
+            <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-white/40">
                 <i data-lucide="mail" class="h-4 w-4"></i>
             </span>
-            {{ form.email }}
+            <input type="email"
+                   id="{{ form.email.id_for_label }}"
+                   name="{{ form.email.html_name }}"
+                   value="{{ form.email.value|default_if_none:'' }}"
+                   autocomplete="email"
+                   required
+                   placeholder="{% trans 'ornek@universite.edu' %}"
+                   aria-describedby="email-hint"
+                   class="w-full rounded-xl border border-white/10 bg-white/5 px-10 py-3 text-sm text-white placeholder:text-white/30 outline-none transition focus:border-indigo-400/50 focus:bg-white/10 focus:ring-2 focus:ring-indigo-500/20">
         </div>
-        <div id="email-hint" class="mt-2 text-xs text-slate-500 dark:text-white/50">{% trans "E-posta benzersiz olmalıdır." %}</div>
-        <div class="text-rose-600 text-xs mt-1">{{ form.email.errors }}</div>
+        <p id="email-hint" class="mt-1.5 text-xs text-white/45">{% trans "E-posta benzersiz olmalıdır." %}</p>
+        {% if form.email.errors %}
+        <p class="mt-1.5 text-xs text-rose-300 flex items-center gap-1.5">
+            <i data-lucide="alert-circle" class="h-3 w-3"></i>
+            {{ form.email.errors|join:" " }}
+        </p>
+        {% endif %}
     </div>
 
     <div>
-        <label class="block text-sm font-medium text-slate-800 dark:text-white/80 mb-2" for="{{ form.password1.id_for_label }}">{{ form.password1.label }}</label>
+        <label for="{{ form.password1.id_for_label }}" class="block text-xs font-semibold uppercase tracking-wider text-white/60 mb-2">
+            {{ form.password1.label }}
+        </label>
         <div class="relative">
-            <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500 dark:text-white/50">
+            <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-white/40">
                 <i data-lucide="key-round" class="h-4 w-4"></i>
             </span>
-            {{ form.password1 }}
+            <input type="password"
+                   id="{{ form.password1.id_for_label }}"
+                   name="{{ form.password1.html_name }}"
+                   autocomplete="new-password"
+                   required
+                   minlength="8"
+                   placeholder="••••••••"
+                   class="w-full rounded-xl border border-white/10 bg-white/5 px-10 py-3 pr-11 text-sm text-white placeholder:text-white/30 outline-none transition focus:border-indigo-400/50 focus:bg-white/10 focus:ring-2 focus:ring-indigo-500/20"
+                   data-strength-input>
+            <button type="button"
+                    data-password-toggle="{{ form.password1.id_for_label }}"
+                    class="absolute inset-y-0 right-0 flex items-center pr-3 text-white/40 hover:text-white/80 transition"
+                    aria-label="{% trans 'Şifreyi göster/gizle' %}">
+                <i data-lucide="eye" class="h-4 w-4"></i>
+            </button>
         </div>
-        <div class="text-rose-600 text-xs mt-1">{{ form.password1.errors }}</div>
+
+        {# Şifre güç göstergesi #}
+        <div class="mt-2 flex gap-1" aria-hidden="true">
+            <span data-strength-bar="0" class="h-1 flex-1 rounded-full bg-white/10 transition"></span>
+            <span data-strength-bar="1" class="h-1 flex-1 rounded-full bg-white/10 transition"></span>
+            <span data-strength-bar="2" class="h-1 flex-1 rounded-full bg-white/10 transition"></span>
+            <span data-strength-bar="3" class="h-1 flex-1 rounded-full bg-white/10 transition"></span>
+        </div>
+        <p data-strength-label class="mt-1.5 text-[11px] text-white/45">{% trans "En az 8 karakter — büyük/küçük harf ve rakam önerilir." %}</p>
+
+        {% if form.password1.errors %}
+        <p class="mt-1.5 text-xs text-rose-300 flex items-center gap-1.5">
+            <i data-lucide="alert-circle" class="h-3 w-3"></i>
+            {{ form.password1.errors|join:" " }}
+        </p>
+        {% endif %}
     </div>
 
     <div>
-        <label class="block text-sm font-medium text-slate-800 dark:text-white/80 mb-2" for="{{ form.password2.id_for_label }}">{{ form.password2.label }}</label>
+        <label for="{{ form.password2.id_for_label }}" class="block text-xs font-semibold uppercase tracking-wider text-white/60 mb-2">
+            {{ form.password2.label }}
+        </label>
         <div class="relative">
-            <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500 dark:text-white/50">
+            <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-white/40">
                 <i data-lucide="shield-check" class="h-4 w-4"></i>
             </span>
-            {{ form.password2 }}
+            <input type="password"
+                   id="{{ form.password2.id_for_label }}"
+                   name="{{ form.password2.html_name }}"
+                   autocomplete="new-password"
+                   required
+                   minlength="8"
+                   placeholder="••••••••"
+                   class="w-full rounded-xl border border-white/10 bg-white/5 px-10 py-3 pr-11 text-sm text-white placeholder:text-white/30 outline-none transition focus:border-indigo-400/50 focus:bg-white/10 focus:ring-2 focus:ring-indigo-500/20">
+            <button type="button"
+                    data-password-toggle="{{ form.password2.id_for_label }}"
+                    class="absolute inset-y-0 right-0 flex items-center pr-3 text-white/40 hover:text-white/80 transition"
+                    aria-label="{% trans 'Şifreyi göster/gizle' %}">
+                <i data-lucide="eye" class="h-4 w-4"></i>
+            </button>
         </div>
-        <div class="text-rose-600 text-xs mt-1">{{ form.password2.errors }}</div>
+        {% if form.password2.errors %}
+        <p class="mt-1.5 text-xs text-rose-300 flex items-center gap-1.5">
+            <i data-lucide="alert-circle" class="h-3 w-3"></i>
+            {{ form.password2.errors|join:" " }}
+        </p>
+        {% endif %}
     </div>
 
-    <button type="submit" class="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 via-violet-600 to-cyan-500 px-4 py-2.5 text-sm font-semibold text-white shadow-[0_18px_60px_rgba(99,102,241,.35)] hover:brightness-110 transition">
-        <i data-lucide="sparkles" class="h-4 w-4"></i>
-        {% trans "Kayıt ol" %}
+    <button type="submit"
+            class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 via-violet-600 to-cyan-500 px-4 py-3 text-sm font-semibold text-white shadow-[0_18px_60px_rgba(99,102,241,.45)] hover:brightness-110 active:brightness-95 transition focus-visible:ring-2 focus-visible:ring-indigo-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050816]">
+        <i data-lucide="user-plus" class="h-4 w-4"></i>
+        <span>{% trans "Hesap oluştur" %}</span>
     </button>
 
-    <div class="pt-2 text-sm text-slate-600 dark:text-white/70">
-        {% trans "Zaten hesabınız var mı?" %}
-        <a class="font-semibold text-slate-900 dark:text-white hover:opacity-90" href="{% url 'accounts:login' %}">{% trans "Giriş yap" %}</a>
+    <p class="text-[11px] text-white/40 text-center leading-5">
+        {% trans "Devam ederek kullanım koşullarını ve gizlilik politikasını kabul etmiş olursun." %}
+    </p>
+
+    <div class="relative my-2">
+        <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/10"></div></div>
+        <div class="relative flex justify-center"><span class="bg-[#050816] px-3 text-[11px] uppercase tracking-widest text-white/40">{% trans "veya" %}</span></div>
     </div>
+
+    <p class="text-center text-sm text-white/60">
+        {% trans "Zaten hesabın var mı?" %}
+        <a href="{% url 'accounts:login' %}" class="ml-1 font-semibold text-white hover:text-indigo-200 transition no-underline">
+            {% trans "Giriş yap" %}
+        </a>
+    </p>
 </form>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // Password görünürlük toggle
+  document.addEventListener("click", function (e) {
+    const t = e.target.closest("[data-password-toggle]");
+    if (!t) return;
+    e.preventDefault();
+    const input = document.getElementById(t.getAttribute("data-password-toggle"));
+    if (!input) return;
+    const next = input.type === "password" ? "text" : "password";
+    input.type = next;
+    const icon = t.querySelector("i");
+    if (icon && window.lucide) {
+      icon.setAttribute("data-lucide", next === "password" ? "eye" : "eye-off");
+      window.lucide.createIcons();
+    }
+  });
+
+  // Şifre güç göstergesi (kabaca; backend Django validate_password ile asıl kontrolü yapar)
+  (function () {
+    const input = document.querySelector("[data-strength-input]");
+    if (!input) return;
+    const bars = Array.from(document.querySelectorAll("[data-strength-bar]"));
+    const label = document.querySelector("[data-strength-label]");
+    const palette = [
+      { bg: "bg-white/10", text: "text-white/45", msg: "{% trans 'En az 8 karakter — büyük/küçük harf ve rakam önerilir.' %}" },
+      { bg: "bg-rose-500", text: "text-rose-300", msg: "{% trans 'Zayıf — daha güçlü bir şifre seç.' %}" },
+      { bg: "bg-amber-400", text: "text-amber-300", msg: "{% trans 'Orta — biraz daha karmaşık olabilir.' %}" },
+      { bg: "bg-lime-400", text: "text-lime-300", msg: "{% trans 'İyi — güvenli görünüyor.' %}" },
+      { bg: "bg-emerald-400", text: "text-emerald-300", msg: "{% trans 'Güçlü şifre.' %}" }
+    ];
+
+    function score(v) {
+      if (!v) return 0;
+      let s = 0;
+      if (v.length >= 8) s++;
+      if (/[A-Z]/.test(v) && /[a-z]/.test(v)) s++;
+      if (/\d/.test(v)) s++;
+      if (/[^A-Za-z0-9]/.test(v) || v.length >= 12) s++;
+      return Math.max(1, Math.min(s, 4));
+    }
+
+    function paint() {
+      const s = score(input.value);
+      const tone = palette[s];
+      bars.forEach(function (bar, idx) {
+        bar.classList.remove("bg-white/10", "bg-rose-500", "bg-amber-400", "bg-lime-400", "bg-emerald-400");
+        bar.classList.add(idx < s ? tone.bg : "bg-white/10");
+      });
+      if (label) {
+        label.classList.remove("text-white/45", "text-rose-300", "text-amber-300", "text-lime-300", "text-emerald-300");
+        label.classList.add(tone.text);
+        label.textContent = tone.msg;
+      }
+    }
+
+    input.addEventListener("input", paint);
+  })();
+</script>
 {% endblock %}

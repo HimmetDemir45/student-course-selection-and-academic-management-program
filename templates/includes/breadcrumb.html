@@ -1,16 +1,16 @@
 {% load i18n %}
 {% if breadcrumb_items %}
-<nav class="phase15-breadcrumb" aria-label="{% trans 'Sayfa yolu' %}">
-    <ol class="breadcrumb small mb-2">
-        {% for item in breadcrumb_items %}
-        <li class="breadcrumb-item{% if item.is_last %} active{% endif %}"{% if item.is_last %} aria-current="page"{% endif %}>
-            {% if item.url and not item.is_last %}
+<nav class="akd-breadcrumb" aria-label="{% trans 'Sayfa yolu' %}">
+    {% for item in breadcrumb_items %}
+        {% if item.url and not item.is_last %}
             <a href="{{ item.url }}">{{ item.label }}</a>
-            {% else %}
-            {{ item.label }}
+            <span class="akd-breadcrumb__sep" aria-hidden="true">›</span>
+        {% else %}
+            <span class="akd-breadcrumb__current"{% if item.is_last %} aria-current="page"{% endif %}>{{ item.label }}</span>
+            {% if not forloop.last %}
+            <span class="akd-breadcrumb__sep" aria-hidden="true">›</span>
             {% endif %}
-        </li>
-        {% endfor %}
-    </ol>
+        {% endif %}
+    {% endfor %}
 </nav>
 {% endif %}

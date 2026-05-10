@@ -1,51 +1,209 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-{% block title %}{% trans "Ana sayfa" %}{% endblock %}
+{% block title %}{% trans "Ana sayfa — Akademik 2.0" %}{% endblock %}
 
 {% block content %}
-<div class="row g-3">
-    <div class="col-lg-8">
-        <div class="card shadow-sm border-0 phase11-card">
-            <div class="card-body">
-                <h1 class="h4 mb-3">{% trans "Öğrenci ders seçimi ve akademik yönetim" %}</h1>
-                {% if user.is_authenticated %}
-                    <p class="mb-1">{% trans "Hoş geldiniz" %}, {{ user.get_full_name|default:user.username }}.</p>
-                    <p class="text-muted mb-0">
-                        {% trans "Rol" %}: <span class="badge text-bg-secondary">{{ user.get_role_display }}</span>
-                    </p>
-                {% else %}
-                    <p class="mb-3">{% trans "Devam etmek için giriş yapın veya kayıt olun." %}</p>
-                    <a class="btn btn-primary me-2" href="{% url 'accounts:login' %}">{% trans "Giriş" %}</a>
-                    <a class="btn btn-outline-primary" href="{% url 'accounts:register' %}">{% trans "Kayıt ol" %}</a>
-                {% endif %}
-            </div>
+{% if user.is_authenticated %}
+    {# ===== AUTHED HERO ===== #}
+    <section class="akd-page-header">
+        <div class="akd-page-header__intro">
+            <span class="akd-page-header__eyebrow">
+                <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,.7)]"></span>
+                {% trans "Akademik 2.0 — Üniversite portalı" %}
+            </span>
+            <h1 class="akd-page-header__title">
+                {% trans "Hoş geldin" %},
+                <span class="bg-gradient-to-r from-indigo-300 via-violet-300 to-cyan-300 bg-clip-text text-transparent">
+                    {{ user.get_full_name|default:user.username }}
+                </span>
+            </h1>
+            <p class="akd-page-header__subtitle">
+                {% trans "Akademik süreçlerini buradan yönet. Pano üzerinden detaylı istatistiklere ve hızlı aksiyonlara ulaşabilirsin." %}
+            </p>
         </div>
-    </div>
-    <div class="col-lg-4">
-        <div class="card shadow-sm border-0 phase11-card h-100">
-            <div class="card-body">
-                <h2 class="h6 text-secondary">{% trans "Özet" %}</h2>
-                <p class="small text-muted mb-2">
-                    {% trans "Aktif ders teklifleri (önbellekli)" %}: <strong>{{ active_offering_count }}</strong>
-                </p>
-                {% if user.is_authenticated and user.role == "student" %}
+        <div class="akd-page-header__actions">
+            <a href="{% url 'dashboard:index' %}" class="akd-btn akd-btn--primary">
+                <i data-lucide="layout-dashboard" class="h-4 w-4"></i>
+                <span>{% trans "Pano'ya git" %}</span>
+            </a>
+            <a href="{% url 'academic:announcement_list' %}" class="akd-btn akd-btn--secondary">
+                <i data-lucide="bell" class="h-4 w-4"></i>
+                <span>{% trans "Duyurular" %}</span>
+            </a>
+        </div>
+    </section>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {# Genel kart: Aktif teklif #}
+        <article class="akd-stat">
+            <div class="akd-stat__top">
+                <span class="akd-stat__icon akd-stat__icon--indigo">
+                    <i data-lucide="layers" class="h-5 w-5"></i>
+                </span>
+                <span class="akd-stat__delta akd-stat__delta--flat">
+                    <i data-lucide="activity" class="h-3 w-3"></i>
+                    {% trans "Önbellekli" %}
+                </span>
+            </div>
+            <p class="akd-stat__label">{% trans "Aktif ders teklifleri" %}</p>
+            <p class="akd-stat__value">{{ active_offering_count|default:0 }}</p>
+            <p class="akd-stat__hint">{% trans "Sistem genelindeki açık teklifler." %}</p>
+        </article>
+
+        {% if user.role == "student" %}
+            <article class="akd-stat">
+                <div class="akd-stat__top">
+                    <span class="akd-stat__icon akd-stat__icon--cyan">
+                        <i data-lucide="graduation-cap" class="h-5 w-5"></i>
+                    </span>
                     {% if home_any_add_drop_open %}
-                        <p class="small text-success mb-2">{% trans "Ders kaydı penceresi açık olabilir; şubeleri kontrol edin." %}</p>
+                    <span class="akd-stat__delta akd-stat__delta--up">
+                        <i data-lucide="dot" class="h-3 w-3"></i>
+                        {% trans "Açık" %}
+                    </span>
                     {% endif %}
-                    {% if home_student_enrollments is not None %}
-                        <p class="small mb-0">{% trans "Kayıtlı şube sayısı" %}: <strong>{{ home_student_enrollments }}</strong></p>
+                </div>
+                <p class="akd-stat__label">{% trans "Kayıtlı şube sayısı" %}</p>
+                <p class="akd-stat__value">{{ home_student_enrollments|default:0 }}</p>
+                <p class="akd-stat__hint">
+                    {% if home_any_add_drop_open %}
+                        {% trans "Ders kaydı penceresi açık olabilir." %}
+                    {% else %}
+                        {% trans "Bu dönemki kayıt durumun." %}
                     {% endif %}
-                {% elif user.is_authenticated and user.role == "instructor" %}
-                    {% if home_instructor_pending_grades is not None %}
-                        <p class="small mb-1">{% trans "Not bekleyen kayıt" %}: <strong>{{ home_instructor_pending_grades }}</strong></p>
+                </p>
+            </article>
+
+            <article class="akd-stat">
+                <div class="akd-stat__top">
+                    <span class="akd-stat__icon akd-stat__icon--violet">
+                        <i data-lucide="user" class="h-5 w-5"></i>
+                    </span>
+                    <a href="{% url 'students:transcript' %}" class="akd-link text-xs">
+                        {% trans "Transkript" %} →
+                    </a>
+                </div>
+                <p class="akd-stat__label">{% trans "Rol" %}</p>
+                <p class="akd-stat__value">{{ user.get_role_display }}</p>
+                <p class="akd-stat__hint">{% trans "Öğrenci alanına git, ders kataloğunu incele." %}</p>
+            </article>
+
+        {% elif user.role == "instructor" %}
+            <article class="akd-stat">
+                <div class="akd-stat__top">
+                    <span class="akd-stat__icon akd-stat__icon--amber">
+                        <i data-lucide="clipboard-check" class="h-5 w-5"></i>
+                    </span>
+                    {% if home_instructor_pending_grades %}
+                    <span class="akd-stat__delta akd-stat__delta--down">
+                        <i data-lucide="clock" class="h-3 w-3"></i>
+                        {% trans "Bekliyor" %}
+                    </span>
                     {% endif %}
-                    {% if home_instructor_offerings is not None %}
-                        <p class="small mb-0">{% trans "Aktif teklif" %}: <strong>{{ home_instructor_offerings }}</strong></p>
-                    {% endif %}
-                {% endif %}
+                </div>
+                <p class="akd-stat__label">{% trans "Not bekleyen kayıt" %}</p>
+                <p class="akd-stat__value">{{ home_instructor_pending_grades|default:0 }}</p>
+                <p class="akd-stat__hint">{% trans "Henüz notu girilmemiş aktif kayıtlar." %}</p>
+            </article>
+
+            <article class="akd-stat">
+                <div class="akd-stat__top">
+                    <span class="akd-stat__icon akd-stat__icon--cyan">
+                        <i data-lucide="book" class="h-5 w-5"></i>
+                    </span>
+                    <a href="{% url 'courses:offering_list' %}" class="akd-link text-xs">
+                        {% trans "Tümünü gör" %} →
+                    </a>
+                </div>
+                <p class="akd-stat__label">{% trans "Aktif ders teklifin" %}</p>
+                <p class="akd-stat__value">{{ home_instructor_offerings|default:0 }}</p>
+                <p class="akd-stat__hint">{% trans "Bu dönem verdiğin dersler." %}</p>
+            </article>
+
+        {% elif user.role == "admin" %}
+            <article class="akd-stat">
+                <div class="akd-stat__top">
+                    <span class="akd-stat__icon akd-stat__icon--violet">
+                        <i data-lucide="shield" class="h-5 w-5"></i>
+                    </span>
+                </div>
+                <p class="akd-stat__label">{% trans "Rol" %}</p>
+                <p class="akd-stat__value">{{ user.get_role_display }}</p>
+                <p class="akd-stat__hint">{% trans "Tam yönetici yetkilerin aktif." %}</p>
+            </article>
+
+            <article class="akd-stat">
+                <div class="akd-stat__top">
+                    <span class="akd-stat__icon akd-stat__icon--cyan">
+                        <i data-lucide="building-2" class="h-5 w-5"></i>
+                    </span>
+                    <a href="{% url 'academic:department_list' %}" class="akd-link text-xs">
+                        {% trans "Yönet" %} →
+                    </a>
+                </div>
+                <p class="akd-stat__label">{% trans "Yönetim alanları" %}</p>
+                <p class="akd-stat__value">5</p>
+                <p class="akd-stat__hint">{% trans "Bölümler, dersler, teklifler, kayıtlar, denetim." %}</p>
+            </article>
+        {% endif %}
+    </div>
+
+{% else %}
+    {# ===== ANONİM CTA ===== #}
+    <div class="mb-7">
+        <span class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-medium text-white/70 backdrop-blur-xl">
+            <i data-lucide="rocket" class="h-3 w-3"></i>
+            {% trans "Akademik 2.0" %}
+        </span>
+        <h1 class="mt-4 text-3xl font-semibold tracking-tight text-white">
+            {% trans "Devam etmek için giriş yap" %}
+        </h1>
+        <p class="mt-2 text-sm text-white/60">
+            {% trans "Hesabınla oturum aç ya da hemen birkaç saniye içinde yeni bir hesap oluştur." %}
+        </p>
+    </div>
+
+    <div class="space-y-3">
+        <a href="{% url 'accounts:login' %}"
+           class="akd-btn akd-btn--primary akd-btn--lg akd-btn--block">
+            <i data-lucide="log-in" class="h-4 w-4"></i>
+            <span>{% trans "Giriş yap" %}</span>
+        </a>
+        <a href="{% url 'accounts:register' %}"
+           class="akd-btn akd-btn--secondary akd-btn--lg akd-btn--block">
+            <i data-lucide="user-plus" class="h-4 w-4"></i>
+            <span>{% trans "Yeni hesap oluştur" %}</span>
+        </a>
+    </div>
+
+    <div class="relative my-7">
+        <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/10"></div></div>
+        <div class="relative flex justify-center"><span class="bg-[#050816] px-3 text-[11px] uppercase tracking-widest text-white/40">{% trans "veya" %}</span></div>
+    </div>
+
+    <div class="grid grid-cols-3 gap-3">
+        <div class="rounded-xl border border-white/10 bg-white/5 p-3 backdrop-blur-xl">
+            <div class="flex items-center gap-2 text-white/55 text-[10px] uppercase tracking-wider">
+                <i data-lucide="layers" class="h-3 w-3"></i>
+                <span>{% trans "Aktif teklif" %}</span>
             </div>
+            <p class="mt-1.5 text-xl font-semibold text-white">{{ active_offering_count|default:0 }}</p>
+        </div>
+        <div class="rounded-xl border border-white/10 bg-white/5 p-3 backdrop-blur-xl">
+            <div class="flex items-center gap-2 text-white/55 text-[10px] uppercase tracking-wider">
+                <i data-lucide="users" class="h-3 w-3"></i>
+                <span>{% trans "Öğrenci" %}</span>
+            </div>
+            <p class="mt-1.5 text-xl font-semibold text-white">{{ landing_stats.students|default:0 }}</p>
+        </div>
+        <div class="rounded-xl border border-white/10 bg-white/5 p-3 backdrop-blur-xl">
+            <div class="flex items-center gap-2 text-white/55 text-[10px] uppercase tracking-wider">
+                <i data-lucide="bell" class="h-3 w-3"></i>
+                <span>{% trans "Duyuru" %}</span>
+            </div>
+            <p class="mt-1.5 text-xl font-semibold text-white">{{ landing_stats.announcements|default:0 }}</p>
         </div>
     </div>
-</div>
+{% endif %}
 {% endblock %}

@@ -1,43 +1,144 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-{% block title %}{% trans "Giriş yap" %}{% endblock %}
+{% block title %}{% trans "Giriş yap — Akademik 2.0" %}{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6 col-lg-5">
-        <div class="card phase11-card shadow-sm border-0">
-            <div class="card-body p-4 p-md-5">
-                <h1 class="h4 mb-1">{% trans "Giriş yap" %}</h1>
-                <p class="text-muted small mb-4">{% trans "E-postanızı veya kullanıcı adınızı kullanarak oturum açın." %}</p>
-                <form id="login-form" method="post" action="{% url 'accounts:login' %}" novalidate>
-                    {% csrf_token %}
-                    {% if form.non_field_errors %}
-                    <div class="alert alert-danger phase16-form-errors mb-3" role="alert">
-                        {{ form.non_field_errors }}
-                    </div>
-                    {% endif %}
-                    <div class="mb-3">
-                        <label class="form-label" for="{{ form.login.id_for_label }}">{{ form.login.label }}</label>
-                        {{ form.login }}
-                        <div class="text-danger small">{{ form.login.errors }}</div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label" for="{{ form.password.id_for_label }}">{{ form.password.label }}</label>
-                        {{ form.password }}
-                        <div class="text-danger small">{{ form.password.errors }}</div>
-                    </div>
-                    <div class="form-check mb-4">
-                        {{ form.remember_me }}
-                        <label class="form-check-label" for="{{ form.remember_me.id_for_label }}">{{ form.remember_me.label }}</label>
-                    </div>
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary btn-lg">{% trans "Giriş yap" %}</button>
-                        <a class="btn btn-link" href="{% url 'accounts:password_reset' %}">{% trans "Şifremi unuttum" %}</a>
-                    </div>
-                </form>
-            </div>
+<div class="mb-8">
+    <span class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-medium text-white/70 backdrop-blur-xl">
+        <i data-lucide="lock" class="h-3 w-3"></i>
+        {% trans "Güvenli giriş" %}
+    </span>
+    <h1 class="mt-4 text-3xl font-semibold tracking-tight text-white">
+        {% trans "Tekrar hoş geldin." %}
+    </h1>
+    <p class="mt-2 text-sm text-white/60">
+        {% trans "E-postan veya kullanıcı adınla oturum aç." %}
+    </p>
+</div>
+
+<form id="login-form" method="post" action="{% url 'accounts:login' %}" novalidate class="space-y-5">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+    <div role="alert" class="rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200 backdrop-blur-xl">
+        <div class="flex items-start gap-2">
+            <i data-lucide="alert-circle" class="h-4 w-4 mt-0.5 flex-shrink-0"></i>
+            <div>{{ form.non_field_errors|join:" " }}</div>
         </div>
     </div>
-</div>
+    {% endif %}
+
+    <div>
+        <label for="{{ form.login.id_for_label }}" class="block text-xs font-semibold uppercase tracking-wider text-white/60 mb-2">
+            {{ form.login.label }}
+        </label>
+        <div class="relative">
+            <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-white/40">
+                <i data-lucide="at-sign" class="h-4 w-4"></i>
+            </span>
+            <input type="text"
+                   id="{{ form.login.id_for_label }}"
+                   name="{{ form.login.html_name }}"
+                   value="{{ form.login.value|default_if_none:'' }}"
+                   autocomplete="username"
+                   required
+                   placeholder="{% trans 'ornek@universite.edu' %}"
+                   class="w-full rounded-xl border border-white/10 bg-white/5 px-10 py-3 text-sm text-white placeholder:text-white/30 outline-none transition focus:border-indigo-400/50 focus:bg-white/10 focus:ring-2 focus:ring-indigo-500/20">
+        </div>
+        {% if form.login.errors %}
+        <p class="mt-1.5 text-xs text-rose-300 flex items-center gap-1.5">
+            <i data-lucide="alert-circle" class="h-3 w-3"></i>
+            {{ form.login.errors|join:" " }}
+        </p>
+        {% endif %}
+    </div>
+
+    <div>
+        <div class="flex items-center justify-between mb-2">
+            <label for="{{ form.password.id_for_label }}" class="block text-xs font-semibold uppercase tracking-wider text-white/60">
+                {{ form.password.label }}
+            </label>
+            <a href="{% url 'accounts:password_reset' %}" class="text-xs font-medium text-indigo-300 hover:text-indigo-200 transition no-underline">
+                {% trans "Şifremi unuttum" %}
+            </a>
+        </div>
+        <div class="relative">
+            <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-white/40">
+                <i data-lucide="key-round" class="h-4 w-4"></i>
+            </span>
+            <input type="password"
+                   id="{{ form.password.id_for_label }}"
+                   name="{{ form.password.html_name }}"
+                   autocomplete="current-password"
+                   required
+                   placeholder="••••••••"
+                   class="w-full rounded-xl border border-white/10 bg-white/5 px-10 py-3 pr-11 text-sm text-white placeholder:text-white/30 outline-none transition focus:border-indigo-400/50 focus:bg-white/10 focus:ring-2 focus:ring-indigo-500/20">
+            <button type="button"
+                    data-password-toggle="{{ form.password.id_for_label }}"
+                    class="absolute inset-y-0 right-0 flex items-center pr-3 text-white/40 hover:text-white/80 transition"
+                    aria-label="{% trans 'Şifreyi göster/gizle' %}">
+                <i data-lucide="eye" class="h-4 w-4"></i>
+            </button>
+        </div>
+        {% if form.password.errors %}
+        <p class="mt-1.5 text-xs text-rose-300 flex items-center gap-1.5">
+            <i data-lucide="alert-circle" class="h-3 w-3"></i>
+            {{ form.password.errors|join:" " }}
+        </p>
+        {% endif %}
+    </div>
+
+    <label class="flex items-center gap-2.5 cursor-pointer select-none">
+        <span class="relative inline-block h-4 w-4 shrink-0">
+            <input type="checkbox"
+                   id="{{ form.remember_me.id_for_label }}"
+                   name="{{ form.remember_me.html_name }}"
+                   {% if form.remember_me.value %}checked{% endif %}
+                   class="peer absolute inset-0 opacity-0 cursor-pointer">
+            <span class="pointer-events-none absolute inset-0 rounded border border-white/20 bg-white/5 transition peer-checked:border-indigo-400 peer-checked:bg-indigo-500 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-400/40"></span>
+            <svg class="pointer-events-none absolute inset-0 m-auto h-3 w-3 text-white opacity-0 transition peer-checked:opacity-100" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="5 10.5 8.5 14 15 7"></polyline>
+            </svg>
+        </span>
+        <span class="text-sm text-white/70">{{ form.remember_me.label }}</span>
+    </label>
+
+    <button type="submit"
+            class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 via-violet-600 to-cyan-500 px-4 py-3 text-sm font-semibold text-white shadow-[0_18px_60px_rgba(99,102,241,.45)] hover:brightness-110 active:brightness-95 transition focus-visible:ring-2 focus-visible:ring-indigo-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050816]">
+        <i data-lucide="log-in" class="h-4 w-4"></i>
+        <span>{% trans "Giriş yap" %}</span>
+    </button>
+
+    <div class="relative my-6">
+        <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/10"></div></div>
+        <div class="relative flex justify-center"><span class="bg-[#050816] px-3 text-[11px] uppercase tracking-widest text-white/40">{% trans "veya" %}</span></div>
+    </div>
+
+    <p class="text-center text-sm text-white/60">
+        {% trans "Henüz hesabın yok mu?" %}
+        <a href="{% url 'accounts:register' %}" class="ml-1 font-semibold text-white hover:text-indigo-200 transition no-underline">
+            {% trans "Kayıt ol" %}
+        </a>
+    </p>
+</form>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  document.addEventListener("click", function (e) {
+    const t = e.target.closest("[data-password-toggle]");
+    if (!t) return;
+    e.preventDefault();
+    const input = document.getElementById(t.getAttribute("data-password-toggle"));
+    if (!input) return;
+    const next = input.type === "password" ? "text" : "password";
+    input.type = next;
+    const icon = t.querySelector("i");
+    if (icon && window.lucide) {
+      icon.setAttribute("data-lucide", next === "password" ? "eye" : "eye-off");
+      window.lucide.createIcons();
+    }
+  });
+</script>
 {% endblock %}

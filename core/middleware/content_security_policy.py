@@ -1,8 +1,13 @@
-"""Tarayıcıya varsayılan Content-Security-Policy başlığı ekler (Bootstrap CDN ile uyumlu)."""
+"""Tarayıcıya varsayılan Content-Security-Policy başlığı ekler (Akademik 2.0 ile uyumlu)."""
 
 
 class ContentSecurityPolicyMiddleware:
-    """Şablonlarda satır içi script yok; statik ve cdn.jsdelivr.net izinlidir."""
+    """Şablonlarda Tailwind Play CDN, Google Fonts ve Lucide icons izinlidir.
+
+    NOT (production sertleştirme): Tailwind Play CDN runtime'da inline style enjekte
+    ettiği için 'unsafe-inline' gerekli. Prod'da Tailwind'i build pipeline ile derleyip
+    'unsafe-inline'ı kaldırmak gerekir.
+    """
 
     HEADER = "Content-Security-Policy"
 
@@ -14,10 +19,12 @@ class ContentSecurityPolicyMiddleware:
         if self.HEADER not in response:
             response[self.HEADER] = (
                 "default-src 'self'; "
-                "script-src 'self' https://cdn.jsdelivr.net; "
-                "style-src 'self' https://cdn.jsdelivr.net; "
+                "script-src 'self' 'unsafe-inline' "
+                "https://cdn.tailwindcss.com https://unpkg.com https://cdn.jsdelivr.net; "
+                "style-src 'self' 'unsafe-inline' "
+                "https://fonts.googleapis.com https://cdn.jsdelivr.net; "
                 "img-src 'self' data: https:; "
-                "font-src 'self' https://cdn.jsdelivr.net data:; "
+                "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net data:; "
                 "connect-src 'self'; "
                 "frame-ancestors 'none'; "
                 "base-uri 'self'; "

@@ -1,82 +1,110 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-{% block title %}{% trans "Duyurular" %}{% endblock %}
+{% block title %}{% trans "Duyurular — Akademik 2.0" %}{% endblock %}
 
 {% block content %}
 {% trans "Duyurular" as ann_title %}
-{% include "includes/page_header.html" with header_title=ann_title header_actions_template="includes/page_header_actions/announcement_list.html" %}
+{% include "includes/page_header.html" with header_title=ann_title header_eyebrow=_("Bildirimler") header_subtitle=_("Sistem duyurularını ara, dönem bazında filtrele ve yönet.") header_actions_template="includes/page_header_actions/announcement_list.html" %}
 
-<form class="row g-2 align-items-end mb-4 phase17-toolbar" method="get" role="search" aria-label="{% trans 'Duyuru filtreleri' %}">
-    <div class="col-md-5">
-        <label for="ann-q" class="form-label small mb-0">{% trans "Arama" %}</label>
-        <input id="ann-q" class="form-control form-control-sm" type="search" name="q" value="{{ current_filters.q }}" placeholder="{% trans 'Başlık veya metin' %}">
+<form class="akd-toolbar" method="get" role="search" aria-label="{% trans 'Duyuru filtreleri' %}">
+    <div class="akd-toolbar__search">
+        <i data-lucide="search" aria-hidden="true"></i>
+        <input id="ann-q"
+               class="akd-input"
+               type="search"
+               name="q"
+               value="{{ current_filters.q }}"
+               placeholder="{% trans 'Başlık veya metin ara...' %}"
+               aria-label="{% trans 'Arama' %}">
     </div>
-    <div class="col-md-3">
-        <label for="ann-sem" class="form-label small mb-0">{% trans "Dönem" %}</label>
-        <select id="ann-sem" class="form-select form-select-sm" name="semester">
-            <option value="">{% trans "Tümü" %}</option>
+    <div class="akd-toolbar__group">
+        <select id="ann-sem" class="akd-input" name="semester" aria-label="{% trans 'Dönem' %}" style="min-width: 9rem;">
+            <option value="">{% trans "Tüm dönemler" %}</option>
             {% for s in filter_semesters %}
             <option value="{{ s.pk }}" {% if current_filters.semester == s.pk|stringformat:"s" %}selected{% endif %}>{{ s }}</option>
             {% endfor %}
         </select>
-    </div>
-    <div class="col-md-2">
-        <label for="ann-sort" class="form-label small mb-0">{% trans "Sıralama" %}</label>
-        <select id="ann-sort" class="form-select form-select-sm" name="sort">
+        <select id="ann-sort" class="akd-input" name="sort" aria-label="{% trans 'Sıralama' %}" style="min-width: 9rem;">
             <option value="new" {% if current_filters.sort == "new" %}selected{% endif %}>{% trans "Yeniden eskiye" %}</option>
-            <option value="title" {% if current_filters.sort == "title" %}selected{% endif %}>{% trans "Başlık" %}</option>
+            <option value="title" {% if current_filters.sort == "title" %}selected{% endif %}>{% trans "Başlığa göre" %}</option>
         </select>
-    </div>
-    <div class="col-md-2">
-        <button type="submit" class="btn btn-sm btn-primary w-100">{% trans "Uygula" %}</button>
+        <button type="submit" class="akd-btn akd-btn--primary akd-btn--sm">
+            <i data-lucide="filter" class="h-4 w-4"></i>
+            <span>{% trans "Uygula" %}</span>
+        </button>
     </div>
 </form>
 
 {% if not announcements %}
-<div class="alert alert-info phase17-alert mb-4" role="status">{% trans "Gösterilecek duyuru yok." %}</div>
-{% endif %}
-
-<div class="phase17-table-wrap">
-<div class="table-responsive table-responsive-stack">
-<table class="table table-striped table-hover phase11-table phase17-table phase17-table--sticky align-middle">
-    <thead>
-        <tr>
-            <th scope="col">{% trans "Başlık" %}</th>
-            <th scope="col">{% trans "Hedef rol" %}</th>
-            <th scope="col">{% trans "Dönem" %}</th>
-            <th scope="col">{% trans "Etkin" %}</th>
-            <th scope="col"></th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for obj in announcements %}
+    {% include "includes/empty_state.html" with empty_title=_("Duyuru yok") empty_message=_("Filtre kriterlerini değiştirmeyi dene veya yeni bir duyuru oluştur.") empty_icon="bell-off" %}
+{% else %}
+<div class="akd-table-wrap">
+    <table class="akd-table">
+        <thead>
             <tr>
-                <td>{{ obj.title }}</td>
-                <td>
-                    {% if obj.target_role == "all" %}{% trans "Tümü" %}
-                    {% elif obj.target_role == "student" %}{% trans "Öğrenci" %}
-                    {% elif obj.target_role == "instructor" %}{% trans "Akademisyen" %}
-                    {% elif obj.target_role == "admin" %}{% trans "Yönetici" %}
-                    {% else %}{{ obj.target_role }}{% endif %}
+                <th scope="col">{% trans "Başlık" %}</th>
+                <th scope="col" style="width: 8rem;">{% trans "Hedef rol" %}</th>
+                <th scope="col" style="width: 10rem;">{% trans "Dönem" %}</th>
+                <th scope="col" style="width: 7rem;">{% trans "Etkin" %}</th>
+                {% if user.role == "admin" %}<th scope="col" style="width: 10rem;" class="text-right"></th>{% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for obj in announcements %}
+            <tr>
+                <td class="font-medium text-white">
+                    <div class="flex items-center gap-2.5">
+                        <span class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-500/15 border border-indigo-400/25 text-indigo-200 flex-shrink-0">
+                            <i data-lucide="megaphone" class="h-3.5 w-3.5"></i>
+                        </span>
+                        <span class="truncate">{{ obj.title }}</span>
+                    </div>
                 </td>
-                <td>{{ obj.semester|default:"—" }}</td>
-                <td>{% if obj.is_active %}{% trans "Evet" %}{% else %}{% trans "Hayır" %}{% endif %}</td>
-                <td class="text-end">
-                    {% if user.role == "admin" %}
-                        <a class="btn btn-outline-secondary btn-sm" href="{% url 'academic:announcement_update' obj.pk %}">{% trans "Düzenle" %}</a>
-                        <a class="btn btn-outline-danger btn-sm" href="{% url 'academic:announcement_delete' obj.pk %}">{% trans "Sil" %}</a>
+                <td>
+                    {% if obj.target_role == "all" %}
+                        <span class="akd-badge akd-badge--brand">{% trans "Tümü" %}</span>
+                    {% elif obj.target_role == "student" %}
+                        <span class="akd-badge akd-badge--info">{% trans "Öğrenci" %}</span>
+                    {% elif obj.target_role == "instructor" %}
+                        <span class="akd-badge akd-badge--warning">{% trans "Akademisyen" %}</span>
+                    {% elif obj.target_role == "admin" %}
+                        <span class="akd-badge akd-badge--danger">{% trans "Yönetici" %}</span>
+                    {% else %}
+                        <span class="akd-badge akd-badge--neutral">{{ obj.target_role }}</span>
                     {% endif %}
                 </td>
+                <td class="text-white/75">{{ obj.semester|default:"—" }}</td>
+                <td>
+                    {% if obj.is_active %}
+                        <span class="akd-badge akd-badge--success">
+                            <i data-lucide="check" class="h-3 w-3"></i>{% trans "Evet" %}
+                        </span>
+                    {% else %}
+                        <span class="akd-badge akd-badge--neutral">
+                            <i data-lucide="x" class="h-3 w-3"></i>{% trans "Hayır" %}
+                        </span>
+                    {% endif %}
+                </td>
+                {% if user.role == "admin" %}
+                <td class="text-right">
+                    <div class="inline-flex gap-1.5">
+                        <a class="akd-btn akd-btn--secondary akd-btn--sm" href="{% url 'academic:announcement_update' obj.pk %}">
+                            <i data-lucide="pencil" class="h-3.5 w-3.5"></i>
+                            <span>{% trans "Düzenle" %}</span>
+                        </a>
+                        <a class="akd-btn akd-btn--danger akd-btn--sm" href="{% url 'academic:announcement_delete' obj.pk %}" aria-label="{% trans 'Sil' %}">
+                            <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
+                        </a>
+                    </div>
+                </td>
+                {% endif %}
             </tr>
-        {% empty %}
-            <tr>
-                <td colspan="5" class="text-center text-muted">{% trans "Kayıt bulunamadı." %}</td>
-            </tr>
-        {% endfor %}
-    </tbody>
-</table>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
-</div>
+{% endif %}
+
 {% include "includes/pagination.html" %}
 {% endblock %}

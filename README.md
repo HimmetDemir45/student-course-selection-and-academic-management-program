@@ -549,7 +549,7 @@ Bu proje **MIT Lisansı** ile sunulmaktadır — ayrıntılar `LICENSE` dosyası
 3. `copy .env.example .env` → `DB_PASSWORD` ve gerekirse `DB_NAME` düzenleyin; MySQL’de veritabanını oluşturun  
 4. `python manage.py migrate`  
 5. `python manage.py loaddata phase4_seed` (isteğe bağlı, hızlı demo)  
-6. `python manage.py runserver` → `http://127.0.0.1:8000`  
+6. `python manage.py runserver` → `http://127.0.0.1:8000`
 
 Docker ile: `docker compose up --build` (MySQL dahil).
 
