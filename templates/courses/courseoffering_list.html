@@ -1,15 +1,17 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-{% block title %}{% if user.role == "instructor" %}{% trans "Verdiğim ders teklifleri" %}{% else %}{% trans "Ders teklifleri" %}{% endif %}{% endblock %}
+{% block title %}{% if user.role == "instructor" %}{% trans "Verdiğim ders teklifleri — Akademik 2.0" %}{% else %}{% trans "Ders teklifleri — Akademik 2.0" %}{% endif %}{% endblock %}
 
 {% block content %}
 {% if user.role == "instructor" %}
-{% trans "Verdiğim ders teklifleri" as offering_title %}
+    {% trans "Verdiğim ders teklifleri" as offering_title %}
+    {% trans "Bu dönem verdiğin şubeleri tek bakışta gör." as offering_subtitle %}
 {% else %}
-{% trans "Ders teklifleri" as offering_title %}
+    {% trans "Ders teklifleri" as offering_title %}
+    {% trans "Açılan tüm şubeleri ara, filtrele ve yönet." as offering_subtitle %}
 {% endif %}
-{% include "includes/page_header.html" with header_title=offering_title header_actions_template="includes/page_header_actions/courseoffering_list.html" %}
+{% include "includes/page_header.html" with header_title=offering_title header_eyebrow=_("Akademik teklifler") header_subtitle=offering_subtitle header_actions_template="includes/page_header_actions/courseoffering_list.html" %}
 
 {% trans "Ders teklifi filtreleri" as offering_toolbar_aria %}
 {% trans "Kod veya ders adı" as offering_toolbar_placeholder %}
@@ -17,49 +19,68 @@
 {% include "includes/table_toolbar.html" with toolbar_aria_label=offering_toolbar_aria toolbar_search_id="off-q" toolbar_search_placeholder=offering_toolbar_placeholder toolbar_search_aria_label=offering_toolbar_search_aria toolbar_filters_template="includes/toolbars/offering_filters.html" toolbar_reset_url=request.path %}
 
 {% if not offerings %}
-{% trans "Kayıt bulunamadı" as offering_empty_title %}
-{% trans "Kriterlere uygun ders teklifi bulunamadı. Filtreleri temizleyip tekrar deneyin." as offering_empty_message %}
-{% include "includes/empty_state.html" with empty_title=offering_empty_title empty_message=offering_empty_message %}
-{% endif %}
-
-<div class="phase17-table-wrap">
-<div class="table-responsive table-responsive-stack">
-<table class="table table-striped table-hover phase11-table phase17-table phase17-table--sticky align-middle">
-    <thead>
-        <tr>
-            <th scope="col">{% trans "Ders" %}</th>
-            <th scope="col">{% trans "Dönem" %}</th>
-            <th scope="col">{% trans "Şube" %}</th>
-            <th scope="col">{% trans "Öğretim elemanı" %}</th>
-            <th scope="col">{% trans "Kontenjan" %}</th>
-            <th scope="col">{% trans "Etkin" %}</th>
-            <th scope="col"></th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for obj in offerings %}
+    {% trans "Kayıt bulunamadı" as offering_empty_title %}
+    {% trans "Kriterlere uygun ders teklifi bulunamadı. Filtreleri temizleyip tekrar deneyin." as offering_empty_message %}
+    {% include "includes/empty_state.html" with empty_title=offering_empty_title empty_message=offering_empty_message empty_icon="layers" %}
+{% else %}
+<div class="akd-table-wrap">
+    <table class="akd-table">
+        <thead>
             <tr>
-                <td>{{ obj.course.code }} — {{ obj.course.name }}</td>
-                <td>{{ obj.semester }}</td>
-                <td>{{ obj.section }}</td>
-                <td>{% if obj.instructor %}{{ obj.instructor.user.get_full_name|default:obj.instructor.user.username }}{% else %}-{% endif %}</td>
-                <td>{{ obj.quota }}</td>
-                <td>{% if obj.is_active %}{% trans "Evet" %}{% else %}{% trans "Hayır" %}{% endif %}</td>
-                <td class="text-end">
-                    {% if user.role == "admin" %}
-                        <a class="btn btn-outline-secondary btn-sm" href="{% url 'courses:offering_update' obj.pk %}">{% trans "Düzenle" %}</a>
-                        <a class="btn btn-outline-danger btn-sm" href="{% url 'courses:offering_delete' obj.pk %}">{% trans "Sil" %}</a>
+                <th scope="col">{% trans "Ders" %}</th>
+                <th scope="col" style="width: 9rem;">{% trans "Dönem" %}</th>
+                <th scope="col" style="width: 5rem;">{% trans "Şube" %}</th>
+                <th scope="col" style="width: 13rem;">{% trans "Öğretim elemanı" %}</th>
+                <th scope="col" style="width: 6rem;">{% trans "Kontenjan" %}</th>
+                <th scope="col" style="width: 7rem;">{% trans "Etkin" %}</th>
+                {% if user.role == "admin" %}<th scope="col" style="width: 11rem;" class="text-end"></th>{% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for obj in offerings %}
+            <tr>
+                <td class="font-medium text-white">
+                    <div class="flex items-center gap-2.5">
+                        <span class="font-mono text-xs text-indigo-200 px-2 py-1 rounded-md bg-indigo-500/15 border border-indigo-400/25 flex-shrink-0">{{ obj.course.code }}</span>
+                        <span class="truncate text-white/90">{{ obj.course.name }}</span>
+                    </div>
+                </td>
+                <td class="text-white/75">{{ obj.semester }}</td>
+                <td class="text-white/85 font-semibold">{{ obj.section }}</td>
+                <td class="text-white/75">
+                    {% if obj.instructor %}{{ obj.instructor.user.get_full_name|default:obj.instructor.user.username }}{% else %}—{% endif %}
+                </td>
+                <td class="text-white/85 font-semibold">{{ obj.quota }}</td>
+                <td>
+                    {% if obj.is_active %}
+                        <span class="akd-badge akd-badge--success">
+                            <i data-lucide="check" class="h-3 w-3"></i>{% trans "Evet" %}
+                        </span>
+                    {% else %}
+                        <span class="akd-badge akd-badge--neutral">
+                            <i data-lucide="x" class="h-3 w-3"></i>{% trans "Hayır" %}
+                        </span>
                     {% endif %}
                 </td>
+                {% if user.role == "admin" %}
+                <td class="text-end">
+                    <div class="inline-flex gap-1.5">
+                        <a class="akd-btn akd-btn--secondary akd-btn--sm" href="{% url 'courses:offering_update' obj.pk %}">
+                            <i data-lucide="pencil" class="h-3.5 w-3.5"></i>
+                            <span>{% trans "Düzenle" %}</span>
+                        </a>
+                        <a class="akd-btn akd-btn--danger akd-btn--sm" href="{% url 'courses:offering_delete' obj.pk %}" aria-label="{% trans 'Sil' %}">
+                            <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
+                        </a>
+                    </div>
+                </td>
+                {% endif %}
             </tr>
-        {% empty %}
-            <tr>
-                <td colspan="7" class="text-center text-muted">{% trans "Kayıt bulunamadı." %}</td>
-            </tr>
-        {% endfor %}
-    </tbody>
-</table>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
-</div>
+{% endif %}
+
 {% include "includes/pagination.html" %}
 {% endblock %}
