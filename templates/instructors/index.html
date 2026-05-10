@@ -1,38 +1,64 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-{% block title %}{% trans "Akademisyen alanı" %}{% endblock %}
+{% block title %}{% trans "Akademisyen alanı — Akademik 2.0" %}{% endblock %}
 
 {% block content %}
-<h1 class="h4 mb-3">{% trans "Akademisyen alanı" %}</h1>
-<p class="text-muted">{% trans "Verdiğiniz dersler, öğrenci listesi ve not girişi için kısayollar." %}</p>
-<div class="row g-3">
-    <div class="col-md-4">
-        <div class="card shadow-sm border-0 phase11-card h-100">
-            <div class="card-body">
-                <h2 class="h6">{% trans "Ders tekliflerim" %}</h2>
-                <p class="small text-muted">{% trans "Kontenjan ve şube bilgisi" %}</p>
-                <a class="btn btn-primary btn-sm" href="{% url 'courses:offering_list' %}">{% trans "Listeye git" %}</a>
-            </div>
-        </div>
+<header class="akd-page-header">
+    <div class="akd-page-header__intro">
+        <span class="akd-page-header__eyebrow">
+            <i data-lucide="user-round" class="h-3 w-3"></i>
+            {% trans "Akademisyen" %}
+        </span>
+        <h1 class="akd-page-header__title">{% trans "Akademisyen alanı" %}</h1>
+        <p class="akd-page-header__subtitle">{% trans "Verdiğin dersler, öğrenci listesi ve not girişi için kısayollar." %}</p>
     </div>
-    <div class="col-md-4">
-        <div class="card shadow-sm border-0 phase11-card h-100">
-            <div class="card-body">
-                <h2 class="h6">{% trans "Öğrenciler ve notlar" %}</h2>
-                <p class="small text-muted">{% trans "Hızlı not girişi" %}</p>
-                <a class="btn btn-primary btn-sm" href="{% url 'academic:instructor_enrollments' %}">{% trans "Listeye git" %}</a>
-            </div>
+</header>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <article class="akd-stat">
+        <div class="akd-stat__top">
+            <span class="akd-stat__icon akd-stat__icon--indigo"><i data-lucide="book" class="h-5 w-5"></i></span>
         </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card shadow-sm border-0 phase11-card h-100">
-            <div class="card-body">
-                <h2 class="h6">{% trans "Duyurular" %}</h2>
-                <p class="small text-muted">{% trans "Kısa yol" %}</p>
-                <a class="btn btn-outline-secondary btn-sm" href="{% url 'academic:announcement_list' %}">{% trans "Duyurulara git" %}</a>
-            </div>
+        <p class="akd-stat__label">{% trans "Ders tekliflerim" %}</p>
+        <p class="text-base font-semibold text-white mt-1">{% trans "Şube ve kontenjan" %}</p>
+        <p class="akd-stat__hint">{% trans "Bu dönem verdiğin tüm şubeler tek listede." %}</p>
+        <div class="mt-4">
+            <a class="akd-btn akd-btn--primary akd-btn--sm" href="{% url 'courses:offering_list' %}">
+                <i data-lucide="arrow-right" class="h-4 w-4"></i>
+                <span>{% trans "Listeye git" %}</span>
+            </a>
         </div>
-    </div>
+    </article>
+
+    <article class="akd-stat">
+        <div class="akd-stat__top">
+            <span class="akd-stat__icon akd-stat__icon--amber"><i data-lucide="clipboard-check" class="h-5 w-5"></i></span>
+        </div>
+        <p class="akd-stat__label">{% trans "Öğrenciler ve notlar" %}</p>
+        <p class="text-base font-semibold text-white mt-1">{% trans "Hızlı not girişi" %}</p>
+        <p class="akd-stat__hint">{% trans "Tablodan harf notunu doğrudan kaydet." %}</p>
+        <div class="mt-4">
+            <a class="akd-btn akd-btn--primary akd-btn--sm" href="{% url 'academic:instructor_enrollments' %}">
+                <i data-lucide="arrow-right" class="h-4 w-4"></i>
+                <span>{% trans "Kayıtlara git" %}</span>
+            </a>
+        </div>
+    </article>
+
+    <article class="akd-stat">
+        <div class="akd-stat__top">
+            <span class="akd-stat__icon akd-stat__icon--cyan"><i data-lucide="bell" class="h-5 w-5"></i></span>
+        </div>
+        <p class="akd-stat__label">{% trans "Duyurular" %}</p>
+        <p class="text-base font-semibold text-white mt-1">{% trans "Sistem geneli" %}</p>
+        <p class="akd-stat__hint">{% trans "Bilgilendirme ve resmi duyurular." %}</p>
+        <div class="mt-4">
+            <a class="akd-btn akd-btn--secondary akd-btn--sm" href="{% url 'academic:announcement_list' %}">
+                <i data-lucide="external-link" class="h-4 w-4"></i>
+                <span>{% trans "Duyurulara git" %}</span>
+            </a>
+        </div>
+    </article>
 </div>
 {% endblock %}

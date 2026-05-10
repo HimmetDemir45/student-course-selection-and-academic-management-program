@@ -1,23 +1,52 @@
 {% extends "base.html" %}
 {% load i18n %}
-{% block title %}{% trans "Not girişi" %}{% endblock %}
+
+{% block title %}{% trans "Not girişi — Akademik 2.0" %}{% endblock %}
+
 {% block content %}
-<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-    <h1 class="h4 mb-0">{% trans "Not girişi" %}</h1>
-    <a class="btn btn-sm btn-outline-secondary phase15-no-print" href="{% url 'academic:instructor_enrollments' %}">{% trans "Listeye dön" %}</a>
-</div>
-<p class="text-muted">{{ enrollment.section.offering.course.code }} — {{ enrollment.student.student_no }}</p>
-<form method="post" novalidate>
-    {% csrf_token %}
-    {% include "includes/form_errors.html" with form=form %}
-    {% for field in form %}
-        <div class="mb-3">
-            <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+<header class="akd-page-header">
+    <div class="akd-page-header__intro">
+        <span class="akd-page-header__eyebrow">
+            <i data-lucide="edit-3" class="h-3 w-3"></i>
+            {% trans "Akademisyen" %}
+        </span>
+        <h1 class="akd-page-header__title">{% trans "Not girişi" %}</h1>
+        <p class="akd-page-header__subtitle">
+            <span class="font-mono text-xs text-indigo-200 px-2 py-0.5 rounded-md bg-indigo-500/15 border border-indigo-400/25">{{ enrollment.section.offering.course.code }}</span>
+            <span class="ml-2 text-white/70">{{ enrollment.student.student_no }} — {{ enrollment.student.user.get_full_name|default:enrollment.student.user.username }}</span>
+        </p>
+    </div>
+    <div class="akd-page-header__actions">
+        <a class="akd-btn akd-btn--secondary akd-btn--sm phase15-no-print" href="{% url 'academic:instructor_enrollments' %}">
+            <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i>
+            <span>{% trans "Listeye dön" %}</span>
+        </a>
+    </div>
+</header>
+
+<section class="akd-card max-w-2xl">
+    <form method="post" novalidate class="akd-form">
+        {% csrf_token %}
+        {% include "includes/form_errors.html" with form=form %}
+
+        {% for field in form %}
+        <div class="akd-form-group">
+            <label class="akd-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
             {{ field }}
-            {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+            {% if field.help_text %}<p class="akd-form-hint">{{ field.help_text }}</p>{% endif %}
         </div>
-    {% endfor %}
-    <button type="submit" class="btn btn-primary">{% trans "Kaydet" %}</button>
-    <a href="{% url 'academic:instructor_enrollments' %}" class="btn btn-link">{% trans "İptal" %}</a>
-</form>
+        {% endfor %}
+
+        <div class="flex flex-wrap items-center gap-2 mt-6">
+            <button type="submit" class="akd-btn akd-btn--primary">
+                <i data-lucide="save" class="h-4 w-4"></i>
+                <span>{% trans "Kaydet" %}</span>
+            </button>
+            <a href="{% url 'academic:instructor_enrollments' %}" class="akd-btn akd-btn--ghost">
+                <i data-lucide="x" class="h-4 w-4"></i>
+                <span>{% trans "İptal" %}</span>
+            </a>
+        </div>
+    </form>
+</section>
 {% endblock %}
