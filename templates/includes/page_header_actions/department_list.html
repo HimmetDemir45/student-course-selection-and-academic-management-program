@@ -1,4 +1,4 @@
 {% load i18n %}
 {% if user.role == "admin" %}
-<a class="akd-btn akd-btn--primary akd-btn--sm" href="{% url 'academic:department_create' %}">{% trans "Yeni bölüm" %}</a>
+<a class="akd-btn akd-btn--primary akd-btn--sm text-white" href="{% url 'academic:department_create' %}">{% trans "Yeni bölüm" %}</a>
 {% endif %}

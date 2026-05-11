@@ -5,5 +5,5 @@
 {% endif %}
 {% if user.role == "admin" %}
 <a class="akd-btn akd-btn--ghost akd-btn--sm" href="{% url 'academic:department_list' %}">{% trans "Bölümler" %}</a>
-<a class="akd-btn akd-btn--primary akd-btn--sm" href="{% url 'academic:announcement_create' %}">{% trans "Yeni duyuru" %}</a>
+<a class="akd-btn akd-btn--primary akd-btn--sm text-white" href="{% url 'academic:announcement_create' %}">{% trans "Yeni duyuru" %}</a>
 {% endif %}

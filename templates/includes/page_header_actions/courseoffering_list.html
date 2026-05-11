@@ -4,5 +4,5 @@
 <a class="akd-btn akd-btn--secondary akd-btn--sm" href="{% url 'academic:instructor_enrollments' %}">{% trans "Öğrenci kayıtları ve notlar" %}</a>
 {% endif %}
 {% if user.role == "admin" %}
-<a class="akd-btn akd-btn--primary akd-btn--sm" href="{% url 'courses:offering_create' %}">{% trans "Yeni ders teklifi" %}</a>
+<a class="akd-btn akd-btn--primary akd-btn--sm text-white" href="{% url 'courses:offering_create' %}">{% trans "Yeni ders teklifi" %}</a>
 {% endif %}
