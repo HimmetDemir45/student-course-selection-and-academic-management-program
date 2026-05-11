@@ -263,7 +263,7 @@ a {
   font-size: clamp(1.5rem, 2vw, 2rem);
   font-weight: 700;
   letter-spacing: -0.02em;
-  color: #fff;
+  color: var(--akd-text-strong);
   margin: 0;
   line-height: 1.15;
 }
@@ -1639,6 +1639,11 @@ html:not(.dark) .akd-form input[type="email"],
 html:not(.dark) .akd-form input[type="password"],
 html:not(.dark) .akd-form input[type="number"],
 html:not(.dark) .akd-form input[type="search"],
+html:not(.dark) .akd-form input[type="date"],
+html:not(.dark) .akd-form input[type="datetime-local"],
+html:not(.dark) .akd-form input[type="time"],
+html:not(.dark) .akd-form input[type="tel"],
+html:not(.dark) .akd-form input[type="url"],
 html:not(.dark) .akd-form select,
 html:not(.dark) .akd-form textarea,
 html:not(.dark) input.form-control,
@@ -1649,6 +1654,15 @@ html:not(.dark) select.form-select {
   background: #ffffff;
   border-color: var(--akd-border-strong);
   color: var(--akd-text-strong);
+}
+
+/* Light temada select ok oku: beyaz değil koyu */
+html:not(.dark) .akd-form select,
+html:not(.dark) select.form-control,
+html:not(.dark) select.form-select {
+  background-image:
+    linear-gradient(45deg, transparent 50%, rgba(15,23,42,0.6) 50%),
+    linear-gradient(135deg, rgba(15,23,42,0.6) 50%, transparent 50%);
 }
 
 html:not(.dark) .akd-input:focus,
@@ -1789,7 +1803,9 @@ html:not(.dark) .akd-shell-sidebar div[class*="bg-white/5"] {
 
 /* Page header title — gradient text light tema'da okunmuyor; gradienti kapat */
 html:not(.dark) h1.akd-page-header__title,
-html:not(.dark) .akd-page-header__title span[class*="bg-clip-text"] {
+html:not(.dark) .akd-page-header__title span[class*="bg-clip-text"],
+html:not(.dark) .akd-page-header__title span[class*="text-transparent"],
+html:not(.dark) .akd-page-header .text-transparent {
   background: none !important;
   -webkit-background-clip: border-box !important;
           background-clip: border-box !important;
