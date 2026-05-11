@@ -6,10 +6,13 @@
    ============================================================ */
 
 :root {
+  /* DARK THEME (default — Akademik 2.0 dark-by-design) */
   /* Surface */
   --akd-bg: #050816;
   --akd-bg-elev: #080A18;
   --akd-bg-elev-2: #0B1220;
+  --akd-surface-glass: rgba(255, 255, 255, 0.04);
+  --akd-surface-glass-strong: rgba(255, 255, 255, 0.08);
 
   /* Lines */
   --akd-border: rgba(255, 255, 255, 0.08);
@@ -51,6 +54,43 @@
   --akd-radius-xl: 1.25rem;
   --akd-radius-2xl: 1.5rem;
 }
+
+/* LIGHT THEME — html'de .dark class'ı yoksa devreye girer */
+html:not(.dark) {
+  /* Surface */
+  --akd-bg: #f5f7fb;
+  --akd-bg-elev: #ffffff;
+  --akd-bg-elev-2: #f1f5f9;
+  --akd-surface-glass: rgba(15, 23, 42, 0.035);
+  --akd-surface-glass-strong: rgba(15, 23, 42, 0.06);
+
+  /* Lines */
+  --akd-border: rgba(15, 23, 42, 0.08);
+  --akd-border-strong: rgba(15, 23, 42, 0.14);
+  --akd-border-focus: rgba(99, 102, 241, 0.5);
+
+  /* Ink */
+  --akd-text: #0f172a;
+  --akd-text-muted: rgba(15, 23, 42, 0.66);
+  --akd-text-dim: rgba(15, 23, 42, 0.5);
+  --akd-text-faint: rgba(15, 23, 42, 0.38);
+
+  /* Status soft (light bg üzerinde daha görünür) */
+  --akd-success-soft: rgba(16, 185, 129, 0.14);
+  --akd-warning-soft: rgba(245, 158, 11, 0.16);
+  --akd-danger-soft: rgba(239, 68, 68, 0.12);
+  --akd-info-soft: rgba(59, 130, 246, 0.12);
+
+  /* Effects */
+  --akd-glow-indigo: 0 10px 30px rgba(99, 102, 241, 0.18);
+  --akd-glow-soft: 0 10px 30px rgba(15, 23, 42, 0.08);
+  --akd-shadow-card: 0 8px 30px rgba(15, 23, 42, 0.06);
+  --akd-shadow-elev: 0 24px 80px rgba(15, 23, 42, 0.12);
+}
+
+/* Light tema: koyu gradient brand öğeleri için ek selection */
+html:not(.dark) body { color-scheme: light; }
+html.dark body { color-scheme: dark; }
 
 /* ----------------------------------------------------------------
    1. BASELINE
@@ -1356,8 +1396,302 @@ input[type="radio"].form-check-input:checked::before {
   .akd-stat,
   .akd-btn,
   .btn,
-  .akd-chip {
+  .akd-chip,
+  .akd-toggle,
+  .akd-toggle__thumb {
     animation: none !important;
     transition: none !important;
   }
 }
+
+/* ----------------------------------------------------------------
+   19. TOGGLE SWITCH (Aktif/Pasif)
+   Sadece form içinde submit eden buton olarak çalışır.
+   ---------------------------------------------------------------- */
+
+.akd-toggle-form {
+  display: inline-flex;
+  margin: 0;
+  padding: 0;
+}
+
+.akd-toggle {
+  position: relative;
+  width: 2.5rem;
+  height: 1.35rem;
+  border-radius: 999px;
+  border: 1px solid var(--akd-border-strong);
+  background: rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  transition: background 200ms ease, border-color 200ms ease, box-shadow 200ms ease;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.akd-toggle:hover {
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.akd-toggle:focus-visible {
+  outline: 2px solid var(--akd-indigo);
+  outline-offset: 2px;
+}
+
+.akd-toggle:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.akd-toggle__thumb {
+  position: absolute;
+  top: 50%;
+  left: 0.18rem;
+  width: 0.95rem;
+  height: 0.95rem;
+  border-radius: 999px;
+  background: #fff;
+  transform: translateY(-50%);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+  transition: transform 220ms cubic-bezier(0.4, 0, 0.2, 1), background 200ms ease;
+  pointer-events: none;
+}
+
+.akd-toggle.is-on {
+  background: var(--akd-gradient);
+  border-color: transparent;
+  box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.35), 0 8px 24px rgba(99, 102, 241, 0.3);
+}
+
+.akd-toggle.is-on .akd-toggle__thumb {
+  transform: translate(1.1rem, -50%);
+}
+
+/* Inline label and small variant */
+.akd-toggle-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.akd-toggle-row__label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--akd-text-muted);
+  letter-spacing: 0.02em;
+  user-select: none;
+  min-width: 2.5rem;
+}
+
+.akd-toggle.is-on + .akd-toggle-row__label,
+.akd-toggle-row .akd-toggle.is-on ~ .akd-toggle-row__label {
+  color: #c7d2fe;
+}
+
+/* ----------------------------------------------------------------
+   20. LIGHT THEME OVERRIDES
+   Akademik 2.0 dark-by-design olduğu için template'ler hardcoded
+   text-white, bg-white/*, border-white/* class'ları kullanır.
+   Light tema'da bunları okunabilir hale getiren override katmanı.
+   ---------------------------------------------------------------- */
+
+html:not(.dark) body {
+  background: var(--akd-bg);
+  color: var(--akd-text);
+}
+
+/* Text: beyaz → koyu slate */
+html:not(.dark) .text-white,
+html:not(.dark) .text-white\/90,
+html:not(.dark) .text-white\/95 {
+  color: var(--akd-text) !important;
+}
+
+html:not(.dark) .text-white\/85,
+html:not(.dark) .text-white\/80,
+html:not(.dark) .text-white\/75,
+html:not(.dark) .text-white\/70 {
+  color: var(--akd-text-muted) !important;
+}
+
+html:not(.dark) .text-white\/60,
+html:not(.dark) .text-white\/55,
+html:not(.dark) .text-white\/50,
+html:not(.dark) .text-white\/45 {
+  color: var(--akd-text-dim) !important;
+}
+
+html:not(.dark) .text-white\/40,
+html:not(.dark) .text-white\/35,
+html:not(.dark) .text-white\/30 {
+  color: var(--akd-text-faint) !important;
+}
+
+/* Background: white/* (cam efektli) → açık glass */
+html:not(.dark) .bg-white\/5,
+html:not(.dark) .bg-white\/\[0\.04\] {
+  background-color: var(--akd-surface-glass) !important;
+}
+
+html:not(.dark) .bg-white\/10,
+html:not(.dark) .bg-white\/15 {
+  background-color: var(--akd-surface-glass-strong) !important;
+}
+
+html:not(.dark) .bg-white\/20,
+html:not(.dark) .bg-white\/25 {
+  background-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+/* Borderlar */
+html:not(.dark) .border-white\/10,
+html:not(.dark) .border-white\/15 {
+  border-color: var(--akd-border) !important;
+}
+
+html:not(.dark) .border-white\/20,
+html:not(.dark) .border-white\/25 {
+  border-color: var(--akd-border-strong) !important;
+}
+
+/* Hardcoded Akademik 2.0 koyu hex'leri light tema'da invert et */
+html:not(.dark) .bg-\[\#050816\],
+html:not(.dark) .bg-\[\#050816\]\/80,
+html:not(.dark) .bg-\[\#050816\]\/70 {
+  background-color: var(--akd-bg) !important;
+}
+
+html:not(.dark) .bg-\[\#080A18\],
+html:not(.dark) .bg-\[\#080A18\]\/80 {
+  background-color: var(--akd-bg-elev) !important;
+}
+
+html:not(.dark) .bg-\[\#0B1220\] {
+  background-color: var(--akd-bg-elev-2) !important;
+}
+
+/* Auth split-screen hero gradient'i light tema'da brand-aware bir
+   pastel'e dönüşür — okunabilirlik korunur. */
+html:not(.dark) .bg-gradient-to-br.from-\[\#0B1020\].via-\[\#080A18\].to-\[\#050816\] {
+  background: linear-gradient(135deg, #eef2ff 0%, #faf5ff 50%, #ecfeff 100%) !important;
+}
+
+/* Selection rengi (light) */
+html:not(.dark) body {
+  /* zaten dark-only kuralından devralıyor; light tema'da hafif tonla */
+}
+html:not(.dark) ::selection {
+  background: rgba(99, 102, 241, 0.18);
+  color: #0f172a;
+}
+
+/* Scrollbar light tema */
+html:not(.dark) .portal-scroll::-webkit-scrollbar-thumb,
+html:not(.dark) .akd-scroll::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.18);
+}
+
+html:not(.dark) .portal-scroll::-webkit-scrollbar-thumb:hover,
+html:not(.dark) .akd-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(15, 23, 42, 0.3);
+}
+
+/* Gradient logo + brand badge'leri light tema'da KORU (intentional contrast) */
+html:not(.dark) .bg-gradient-to-br.from-indigo-500,
+html:not(.dark) .bg-gradient-to-r.from-indigo-600 {
+  /* gradient korunur — brand renkleri */
+}
+
+/* Page header eyebrow ve subtitle özel renkleri */
+html:not(.dark) .akd-page-header__eyebrow {
+  background: rgba(99, 102, 241, 0.08);
+  border-color: rgba(99, 102, 241, 0.2);
+  color: var(--akd-indigo);
+}
+
+/* Stat card: light'ta hafif gradient overlay */
+html:not(.dark) .akd-stat {
+  background:
+    radial-gradient(120% 120% at 0% 0%, rgba(99, 102, 241, 0.06), transparent 55%),
+    linear-gradient(135deg, #ffffff, #f8fafc);
+  border-color: var(--akd-border);
+}
+
+html:not(.dark) .akd-stat::after {
+  background: radial-gradient(160% 80% at 100% 0%, rgba(34, 211, 238, 0.04), transparent 60%);
+}
+
+/* Glass card light */
+html:not(.dark) .akd-card {
+  background: #ffffff;
+}
+
+/* Table light */
+html:not(.dark) .akd-table-wrap {
+  background: #ffffff;
+}
+html:not(.dark) .akd-table thead th {
+  background: rgba(15, 23, 42, 0.02);
+  color: var(--akd-text-faint);
+}
+html:not(.dark) .akd-table tbody tr:hover td {
+  background: rgba(15, 23, 42, 0.02);
+}
+
+/* Toggle: light tema'da off state için border görünür */
+html:not(.dark) .akd-toggle:not(.is-on) {
+  background: rgba(15, 23, 42, 0.06);
+  border-color: rgba(15, 23, 42, 0.18);
+}
+html:not(.dark) .akd-toggle:not(.is-on) .akd-toggle__thumb {
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.2);
+}
+
+/* Light tema'da gradient text'leri (bg-clip-text) zaten okunabilir
+   çünkü brand renkleri yeterince koyu — değişikliğe gerek yok */
+
+/* Input/select light tema border iyileştirmesi */
+html:not(.dark) input.akd-input,
+html:not(.dark) select.akd-input,
+html:not(.dark) textarea.akd-input,
+html:not(.dark) input.form-control,
+html:not(.dark) select.form-control,
+html:not(.dark) textarea.form-control {
+  background: #ffffff;
+  color: var(--akd-text);
+  border-color: rgba(15, 23, 42, 0.16);
+}
+
+html:not(.dark) input.akd-input::placeholder,
+html:not(.dark) input.form-control::placeholder,
+html:not(.dark) textarea.akd-input::placeholder {
+  color: rgba(15, 23, 42, 0.4);
+}
+
+/* Sidebar (desktop) light tema'da temiz kart hissi */
+html:not(.dark) aside.bg-\[\#080A18\]\/80 {
+  background-color: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(18px);
+}
+
+/* Mobile header light */
+html:not(.dark) header.bg-\[\#050816\]\/80 {
+  background-color: rgba(255, 255, 255, 0.85) !important;
+}
+
+/* Mobile drawer light */
+html:not(.dark) aside.bg-\[\#080A18\] {
+  background-color: #ffffff !important;
+}
+
+/* Theme button icon swap — sun for light, moon for dark
+   (Lucide icon JS render eder; data-lucide swap edilebilir ama
+    CSS-only fallback olarak ikon container'ı işaretle.) */
+html.dark [data-ui-theme-toggle] [data-icon-sun] { display: none; }
+html.dark [data-ui-theme-toggle] [data-icon-moon] { display: inline-flex; }
+html:not(.dark) [data-ui-theme-toggle] [data-icon-sun] { display: inline-flex; }
+html:not(.dark) [data-ui-theme-toggle] [data-icon-moon] { display: none; }

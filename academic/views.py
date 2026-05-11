@@ -6,10 +6,12 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils.translation import gettext as _
 from django.views import View
+from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 
+from audit_logs.services import log_event
 from core.breadcrumbs import home, items
-from core.permissions import AdminRequiredMixin, InstructorRequiredMixin
+from core.permissions import AdminRequiredMixin, InstructorRequiredMixin, role_required
 
 from enrollments.models import Enrollment
 
@@ -315,3 +317,53 @@ class GradeEntryView(InstructorRequiredMixin, View):
                 ),
             },
         )
+
+
+@require_POST
+@role_required("admin")
+def department_toggle_active(request, pk):
+    obj = get_object_or_404(Department, pk=pk)
+    previous = obj.is_active
+    obj.is_active = not previous
+    obj.save(update_fields=["is_active", "updated_at"])
+    log_event(
+        event_type="department.toggle_active",
+        actor=request.user,
+        target_type="academic.Department",
+        target_id=obj.pk,
+        metadata={"from": previous, "to": obj.is_active, "code": obj.code},
+        request=request,
+    )
+    messages.success(
+        request,
+        _("'%(name)s' bölümü %(state)s hale getirildi.") % {
+            "name": obj.name,
+            "state": _("aktif") if obj.is_active else _("pasif"),
+        },
+    )
+    return redirect(request.META.get("HTTP_REFERER") or reverse("academic:department_list"))
+
+
+@require_POST
+@role_required("admin")
+def announcement_toggle_active(request, pk):
+    obj = get_object_or_404(Announcement, pk=pk)
+    previous = obj.is_active
+    obj.is_active = not previous
+    obj.save(update_fields=["is_active", "updated_at"])
+    log_event(
+        event_type="announcement.toggle_active",
+        actor=request.user,
+        target_type="academic.Announcement",
+        target_id=obj.pk,
+        metadata={"from": previous, "to": obj.is_active, "title": obj.title},
+        request=request,
+    )
+    messages.success(
+        request,
+        _("'%(title)s' duyurusu %(state)s hale getirildi.") % {
+            "title": obj.title,
+            "state": _("aktif") if obj.is_active else _("pasif"),
+        },
+    )
+    return redirect(request.META.get("HTTP_REFERER") or reverse("academic:announcement_list"))

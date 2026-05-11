@@ -1,13 +1,17 @@
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
 from django.utils.translation import gettext as _
+from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 
 from academic.models import Department, Semester
+from audit_logs.services import log_event
 from core.breadcrumbs import home, items
-from core.permissions import AdminRequiredMixin
+from core.permissions import AdminRequiredMixin, role_required
 
 from .forms import CourseForm, CourseOfferingForm
 from .models import Course, CourseOffering
@@ -152,3 +156,60 @@ class CourseOfferingDeleteView(AdminRequiredMixin, DeleteView):
     model = CourseOffering
     template_name = "courses/courseoffering_confirm_delete.html"
     success_url = reverse_lazy("courses:offering_list")
+
+
+@require_POST
+@role_required("admin")
+def course_toggle_active(request, pk):
+    obj = get_object_or_404(Course, pk=pk)
+    previous = obj.is_active
+    obj.is_active = not previous
+    obj.save(update_fields=["is_active", "updated_at"])
+    log_event(
+        event_type="course.toggle_active",
+        actor=request.user,
+        target_type="courses.Course",
+        target_id=obj.pk,
+        metadata={"from": previous, "to": obj.is_active, "code": obj.code},
+        request=request,
+    )
+    messages.success(
+        request,
+        _("'%(code)s — %(name)s' dersi %(state)s hale getirildi.") % {
+            "code": obj.code,
+            "name": obj.name,
+            "state": _("aktif") if obj.is_active else _("pasif"),
+        },
+    )
+    return redirect(request.META.get("HTTP_REFERER") or reverse("courses:course_list"))
+
+
+@require_POST
+@role_required("admin")
+def offering_toggle_active(request, pk):
+    obj = get_object_or_404(CourseOffering, pk=pk)
+    previous = obj.is_active
+    obj.is_active = not previous
+    obj.save(update_fields=["is_active", "updated_at"])
+    log_event(
+        event_type="course_offering.toggle_active",
+        actor=request.user,
+        target_type="courses.CourseOffering",
+        target_id=obj.pk,
+        metadata={
+            "from": previous,
+            "to": obj.is_active,
+            "course_code": obj.course.code,
+            "section": obj.section,
+        },
+        request=request,
+    )
+    messages.success(
+        request,
+        _("'%(code)s / %(section)s' ders teklifi %(state)s hale getirildi.") % {
+            "code": obj.course.code,
+            "section": obj.section,
+            "state": _("aktif") if obj.is_active else _("pasif"),
+        },
+    )
+    return redirect(request.META.get("HTTP_REFERER") or reverse("courses:offering_list"))
