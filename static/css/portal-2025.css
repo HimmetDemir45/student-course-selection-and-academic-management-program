@@ -1902,13 +1902,11 @@ html:not(.dark) .bg-gradient-to-br.from-\[\#0B1020\].via-\[\#080A18\].to-\[\#050
   background: linear-gradient(135deg, #eef2ff 0%, #faf5ff 50%, #ecfeff 100%) !important;
 }
 
-/* Selection rengi (light) */
-html:not(.dark) body {
-  /* zaten dark-only kuralından devralıyor; light tema'da hafif tonla */
-}
-html:not(.dark) ::selection {
-  background: rgba(99, 102, 241, 0.18);
-  color: #0f172a;
+/* Selection rengi (light) — Tailwind selection:text-white'ı override et */
+html:not(.dark) ::selection,
+html:not(.dark) *::selection {
+  background: rgba(99, 102, 241, 0.25) !important;
+  color: #1e1b4b !important; /* indigo-950 — light bg'de okunabilir */
 }
 
 /* Scrollbar light tema */

@@ -114,14 +114,16 @@ class Command(BaseCommand):
 
     def _ensure_semesters(self) -> tuple[Semester, Semester, Semester]:
         today = timezone.localdate()
-        # Aktif dönem: add/drop penceresi açık
+        # Aktif dönem: add/drop penceresi bu hafta (Pzt–Paz) olarak ayarlanır.
+        week_start = today - timedelta(days=today.weekday())  # bu haftanın Pazartesi'si
+        week_end = week_start + timedelta(days=6)             # bu haftanın Pazar'ı
         current = self._ensure_semester(
             academic_year="2025-2026",
             term=Semester.Term.SPRING,
             start=today - timedelta(days=30),
             end=today + timedelta(days=90),
-            add_drop_start=today - timedelta(days=14),
-            add_drop_end=today + timedelta(days=14),
+            add_drop_start=week_start,
+            add_drop_end=week_end,
         )
         prev_1 = self._ensure_semester(
             academic_year="2025-2026",
