@@ -54,11 +54,16 @@
             {% for obj in announcements %}
             <tr>
                 <td class="font-medium text-white">
-                    <div class="flex items-center gap-2.5">
-                        <span class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-500/15 border border-indigo-400/25 text-indigo-200 flex-shrink-0">
+                    <div class="flex items-start gap-2.5">
+                        <span class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-500/15 border border-indigo-400/25 text-indigo-200 flex-shrink-0 mt-0.5">
                             <i data-lucide="megaphone" class="h-3.5 w-3.5"></i>
                         </span>
-                        <span class="truncate">{{ obj.title }}</span>
+                        <div class="min-w-0">
+                            <div class="truncate font-semibold">{{ obj.title }}</div>
+                            {% if obj.body %}
+                            <p class="mt-0.5 text-xs text-white/55 whitespace-normal" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{{ obj.body|truncatechars:200 }}</p>
+                            {% endif %}
+                        </div>
                     </div>
                 </td>
                 <td>

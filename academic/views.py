@@ -8,6 +8,7 @@ from django.utils.translation import gettext as _
 from django.views import View
 from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView
+from urllib.parse import urlparse
 
 from audit_logs.services import log_event
 from core.breadcrumbs import home, items
@@ -19,6 +20,19 @@ from .forms import AnnouncementForm, DepartmentForm, GradeForm
 from .models import Announcement, Department, Grade, Semester
 from core.services.audit import audit_grade_event
 from core.services.enrollment_workflow import transition_enrollment_status
+
+
+def _safe_referer(request, fallback: str) -> str:
+    """Return HTTP_REFERER only when it points to the same host; otherwise return fallback."""
+    referer = request.META.get("HTTP_REFERER", "")
+    if referer:
+        try:
+            parsed = urlparse(referer)
+            if not parsed.netloc or parsed.netloc == request.get_host():
+                return referer
+        except Exception:
+            pass
+    return fallback
 
 
 class DepartmentListView(LoginRequiredMixin, ListView):
@@ -341,7 +355,7 @@ def department_toggle_active(request, pk):
             "state": _("aktif") if obj.is_active else _("pasif"),
         },
     )
-    return redirect(request.META.get("HTTP_REFERER") or reverse("academic:department_list"))
+    return redirect(_safe_referer(request, reverse("academic:department_list")))
 
 
 @require_POST
@@ -366,4 +380,4 @@ def announcement_toggle_active(request, pk):
             "state": _("aktif") if obj.is_active else _("pasif"),
         },
     )
-    return redirect(request.META.get("HTTP_REFERER") or reverse("academic:announcement_list"))
+    return redirect(_safe_referer(request, reverse("academic:announcement_list")))
