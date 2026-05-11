@@ -118,12 +118,31 @@ class SectionBrowseView(LoginRequiredMixin, ListView):
             except ObjectDoesNotExist:
                 profile = None
             if profile:
-                for sec in ctx["sections"]:
-                    setattr(
-                        sec,
-                        "enrollment_preview",
-                        collect_enrollment_preview_messages(profile, sec),
+                # Öğrencinin aktif kayıtları — "zaten kayıtlı" tespiti + özet panel
+                active_enrollments = (
+                    Enrollment.objects.filter(
+                        student=profile,
+                        status__in=(Enrollment.Status.ENROLLED, Enrollment.Status.PENDING),
                     )
+                    .select_related(
+                        "section__offering__course",
+                        "section__offering__semester",
+                        "section__offering__instructor__user",
+                    )
+                    .order_by("section__offering__course__code")
+                )
+                enrolled_section_ids = set(e.section_id for e in active_enrollments)
+                ctx["my_enrollments"] = active_enrollments
+                ctx["enrolled_section_ids"] = enrolled_section_ids
+
+                for sec in ctx["sections"]:
+                    sec.is_enrolled = sec.pk in enrolled_section_ids
+                    if not sec.is_enrolled:
+                        setattr(
+                            sec,
+                            "enrollment_preview",
+                            collect_enrollment_preview_messages(profile, sec),
+                        )
         return ctx
 
 

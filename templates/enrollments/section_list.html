@@ -7,11 +7,58 @@
 {% trans "Ders kaydı — açılan şubeler" as section_title %}
 {% include "includes/page_header.html" with header_title=section_title header_eyebrow=_("Ders kaydı") header_subtitle=_("Açılan şubeleri ara, kontenjan durumuna göre filtrele ve kaydını oluştur.") header_actions_template="includes/page_header_actions/enrollment_section.html" %}
 
+{# ===== Mevcut kayıtlar özet paneli (yalnızca öğrenci) ===== #}
+{% if my_enrollments %}
+<section class="mb-6">
+    <h2 class="text-sm font-semibold text-white/60 uppercase tracking-widest mb-3">
+        <i data-lucide="graduation-cap" class="inline h-3.5 w-3.5 mr-1"></i>
+        {% trans "Kayıtlı olduğun dersler" %}
+        <span class="ml-1 text-white/40 font-normal normal-case tracking-normal">({{ my_enrollments|length }})</span>
+    </h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {% for enr in my_enrollments %}
+        <div class="flex items-center justify-between gap-3 rounded-xl border border-emerald-400/20 bg-emerald-500/10 px-4 py-3">
+            <div class="min-w-0">
+                <p class="text-sm font-semibold text-white truncate">
+                    {{ enr.section.offering.course.code }} — {{ enr.section.offering.course.name }}
+                </p>
+                <p class="text-xs text-white/55 mt-0.5">
+                    {% trans "Şube" %} {{ enr.section.offering.section }}
+                    &nbsp;·&nbsp;
+                    {{ enr.section.offering.semester }}
+                    {% if enr.status == "pending" %}
+                    &nbsp;·&nbsp;<span class="text-amber-300">{% trans "Beklemede" %}</span>
+                    {% endif %}
+                </p>
+            </div>
+            <form method="post" action="{% url 'enrollments:drop' enr.pk %}">
+                {% csrf_token %}
+                <button type="submit"
+                        class="akd-btn akd-btn--danger akd-btn--sm shrink-0"
+                        onclick="return confirm('{{ enr.section.offering.course.code }} dersinden kaydını silmek istiyor musun?')"
+                        aria-label="{% trans 'Dersi bırak' %}">
+                    <i data-lucide="x" class="h-3.5 w-3.5"></i>
+                    <span>{% trans "Bırak" %}</span>
+                </button>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% elif user.role == "student" %}
+<div class="mb-6 rounded-xl border border-white/10 bg-white/4 px-5 py-4 text-sm text-white/55">
+    <i data-lucide="info" class="inline h-3.5 w-3.5 mr-1"></i>
+    {% trans "Henüz hiçbir derse kayıt yaptırmadın. Aşağıdan şube seçerek başlayabilirsin." %}
+</div>
+{% endif %}
+
+{# ===== Filtre araç çubuğu ===== #}
 {% trans "Şube filtreleri" as section_toolbar_aria %}
 {% trans "Kod veya ders adı" as section_toolbar_placeholder %}
 {% trans "Ders kodu veya adı ile ara" as section_toolbar_search_aria %}
 {% include "includes/table_toolbar.html" with toolbar_aria_label=section_toolbar_aria toolbar_search_id="filter-q" toolbar_search_placeholder=section_toolbar_placeholder toolbar_search_aria_label=section_toolbar_search_aria toolbar_filters_template="includes/toolbars/section_filters.html" toolbar_reset_url=request.path %}
 
+{# ===== Şube tablosu ===== #}
 {% if not sections %}
     {% trans "Şube bulunamadı" as section_empty_title %}
     {% trans "Kriterlere uygun şube bulunamadı. Filtreleri gevşetmeyi veya aramayı değiştirmeyi deneyin." as section_empty_message %}
@@ -22,23 +69,30 @@
         <thead>
             <tr>
                 <th scope="col">{% trans "Ders" %}</th>
-                <th scope="col" style="width: 9rem;">{% trans "Dönem" %}</th>
-                <th scope="col" style="width: 5rem;">{% trans "Şube" %}</th>
-                <th scope="col" style="width: 14rem;">{% trans "Kontenjan" %}</th>
-                <th scope="col" style="width: 13rem;">{% trans "Öğretim elemanı" %}</th>
+                <th scope="col" style="width:9rem;">{% trans "Dönem" %}</th>
+                <th scope="col" style="width:5rem;">{% trans "Şube" %}</th>
+                <th scope="col" style="width:14rem;">{% trans "Kontenjan" %}</th>
+                <th scope="col" style="width:13rem;">{% trans "Öğretim elemanı" %}</th>
                 {% if user.is_authenticated and user.role == "student" %}
-                <th scope="col" style="width: 16rem;">{% trans "Önkoşul / çakışma" %}</th>
+                <th scope="col" style="width:18rem;">{% trans "Durum / engel" %}</th>
                 {% endif %}
-                <th scope="col" style="width: 10rem;" class="text-end"></th>
+                <th scope="col" style="width:10rem;" class="text-end"></th>
             </tr>
         </thead>
         <tbody>
             {% for s in sections %}
-            <tr>
-                <td class="font-medium text-white">
+            <tr class="{% if s.is_enrolled %}bg-emerald-500/6 border-l-2 border-emerald-400/40{% endif %}">
+                <td class="font-medium">
                     <div class="flex items-center gap-2.5">
-                        <span class="font-mono text-xs text-indigo-200 px-2 py-1 rounded-md bg-indigo-500/15 border border-indigo-400/25 flex-shrink-0">{{ s.offering.course.code }}</span>
-                        <span class="truncate text-white/90">{{ s.offering.course.name }}</span>
+                        <span class="font-mono text-xs text-indigo-200 px-2 py-1 rounded-md bg-indigo-500/15 border border-indigo-400/25 flex-shrink-0">
+                            {{ s.offering.course.code }}
+                        </span>
+                        <div class="min-w-0">
+                            <span class="truncate text-white/90 block">{{ s.offering.course.name }}</span>
+                            {% if s.offering.course.credits %}
+                            <span class="text-[11px] text-white/45">{{ s.offering.course.credits }} kredi</span>
+                            {% endif %}
+                        </div>
                     </div>
                 </td>
                 <td class="text-white/75">{{ s.offering.semester }}</td>
@@ -63,7 +117,7 @@
                                 {% if s.capacity_pct >= 100 %}bg-gradient-to-r from-rose-500 to-rose-400
                                 {% elif s.capacity_pct >= 85 %}bg-gradient-to-r from-amber-500 to-amber-400
                                 {% else %}bg-gradient-to-r from-emerald-500 to-emerald-400{% endif %}"
-                                style="width: {% if s.capacity_pct > 100 %}100{% else %}{{ s.capacity_pct }}{% endif %}%;"></div>
+                                style="width:{% if s.capacity_pct > 100 %}100{% else %}{{ s.capacity_pct }}{% endif %}%;"></div>
                         </div>
                         {% endif %}
                     </div>
@@ -71,52 +125,69 @@
                 <td class="text-white/75">
                     {% if s.offering.instructor %}{{ s.offering.instructor.user.get_full_name|default:s.offering.instructor.user.username }}{% else %}—{% endif %}
                 </td>
+
                 {% if user.is_authenticated and user.role == "student" %}
                 <td>
-                    {% if s.enrollment_preview %}
+                    {% if s.is_enrolled %}
+                        <span class="akd-badge akd-badge--success">
+                            <i data-lucide="check-circle-2" class="h-3 w-3"></i>
+                            {% trans "Kayıtlısın" %}
+                        </span>
+                    {% elif s.enrollment_preview %}
                         {% if s.enrollment_preview.eligible %}
-                            <span class="akd-badge akd-badge--success">
-                                <i data-lucide="check-circle-2" class="h-3 w-3"></i>{% trans "Uygun" %}
+                            <span class="akd-badge akd-badge--neutral">
+                                <i data-lucide="circle" class="h-3 w-3"></i>
+                                {% trans "Kayıt yapılabilir" %}
                             </span>
                         {% else %}
                             <div class="flex flex-col gap-1">
-                                {% if s.enrollment_preview.blockers_display %}
-                                    {% for b in s.enrollment_preview.blockers_display %}
-                                        <span class="akd-badge
-                                            {% if b.kind == 'prerequisite' %}akd-badge--neutral
-                                            {% elif b.kind == 'conflict' %}akd-badge--danger
-                                            {% elif b.kind == 'capacity' %}akd-badge--warning
-                                            {% elif b.kind == 'window' %}akd-badge--info
-                                            {% else %}akd-badge--neutral{% endif %}"
-                                            style="white-space: normal; text-align: left;">
-                                            <strong>{{ b.title }}:</strong> {{ b.detail }}
-                                        </span>
-                                    {% endfor %}
-                                {% else %}
+                                {% for b in s.enrollment_preview.blockers_display %}
+                                    <span class="akd-badge
+                                        {% if b.kind == 'prerequisite' %}akd-badge--neutral
+                                        {% elif b.kind == 'conflict' %}akd-badge--danger
+                                        {% elif b.kind == 'capacity' %}akd-badge--warning
+                                        {% elif b.kind == 'window' %}akd-badge--info
+                                        {% else %}akd-badge--neutral{% endif %}"
+                                        style="white-space:normal;text-align:left;">
+                                        <strong>{{ b.title }}:</strong> {{ b.detail }}
+                                    </span>
+                                {% empty %}
                                     {% for msg in s.enrollment_preview.blockers %}
-                                    <span class="akd-badge akd-badge--danger" style="white-space: normal; text-align: left;">{{ msg }}</span>
+                                    <span class="akd-badge akd-badge--danger" style="white-space:normal;text-align:left;">{{ msg }}</span>
                                     {% endfor %}
-                                {% endif %}
+                                {% endfor %}
                             </div>
                         {% endif %}
                     {% else %}
-                        <span class="text-white/50">—</span>
+                        <span class="text-white/40">—</span>
                     {% endif %}
                 </td>
                 {% endif %}
+
                 <td class="text-end">
                     {% if user.is_authenticated and user.role == "student" %}
-                    <form method="post" action="{% url 'enrollments:enroll' %}" class="d-inline">
-                        {% csrf_token %}
-                        <input type="hidden" name="section_id" value="{{ s.pk }}">
-                        <button type="submit"
-                                class="akd-btn akd-btn--primary akd-btn--sm"
-                                {% if s.enrollment_preview and not s.enrollment_preview.eligible %}disabled aria-disabled="true" title="{% trans 'Önkoşul, çakışma veya kontenjan nedeniyle ders kaydı mümkün değil' %}"{% endif %}
-                                aria-label="{% trans 'Bu şubeye ders kaydı yap' %} {{ s.offering.course.code }}">
-                            <i data-lucide="plus" class="h-3.5 w-3.5"></i>
-                            <span>{% trans "Ders kaydı" %}</span>
-                        </button>
-                    </form>
+                        {% if s.is_enrolled %}
+                            {# Zaten kayıtlı — drop butonu özet panelde, burada bilgilendirme #}
+                            <span class="text-xs text-emerald-400 font-medium">
+                                <i data-lucide="check" class="inline h-3 w-3"></i>
+                                {% trans "Kayıtlı" %}
+                            </span>
+                        {% else %}
+                            <form method="post" action="{% url 'enrollments:enroll' %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="section_id" value="{{ s.pk }}">
+                                <button type="submit"
+                                        class="akd-btn akd-btn--primary akd-btn--sm"
+                                        {% if s.enrollment_preview and not s.enrollment_preview.eligible %}
+                                            disabled aria-disabled="true"
+                                            title="{% trans 'Önkoşul, çakışma veya kontenjan nedeniyle kayıt mümkün değil' %}"
+                                        {% endif %}
+                                        aria-label="{% trans 'Bu şubeye ders kaydı yap' %} {{ s.offering.course.code }}">
+                                    <i data-lucide="plus" class="h-3.5 w-3.5"></i>
+                                    <span>{% trans "Kayıt ol" %}</span>
+                                </button>
+                            </form>
+                        {% endif %}
                     {% endif %}
                 </td>
             </tr>

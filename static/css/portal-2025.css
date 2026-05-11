@@ -480,11 +480,11 @@ a {
 
 .akd-label,
 .akd-form-group label {
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--akd-text-muted);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--akd-text);
 }
 
 .akd-input,
@@ -552,6 +552,24 @@ select.form-select {
   background-size: 5px 5px, 5px 5px;
   background-repeat: no-repeat;
   padding-right: 2.25rem;
+  /* Tarayıcıya dark mode native kontrol kullan — dropdown rengi için kritik */
+  color-scheme: dark;
+}
+
+/* Option elementleri: dark modda açık popup'ta okunabilir koyu zemin + açık metin */
+.akd-form select option,
+select.form-control option,
+select.form-select option,
+.akd-input option {
+  background-color: #1a1d2e;
+  color: #e2e8f0;
+}
+
+.akd-form select option:checked,
+select.form-control option:checked,
+select.form-select option:checked {
+  background-color: #3730a3;   /* indigo-800 */
+  color: #ffffff;
 }
 
 .akd-form textarea,
@@ -1656,13 +1674,27 @@ html:not(.dark) select.form-select {
   color: var(--akd-text-strong);
 }
 
-/* Light temada select ok oku: beyaz değil koyu */
+/* Light temada select: ok oku koyu + color-scheme light (native dropdown açık zemin) */
 html:not(.dark) .akd-form select,
 html:not(.dark) select.form-control,
 html:not(.dark) select.form-select {
   background-image:
     linear-gradient(45deg, transparent 50%, rgba(15,23,42,0.6) 50%),
     linear-gradient(135deg, rgba(15,23,42,0.6) 50%, transparent 50%);
+  color-scheme: light;
+}
+
+html:not(.dark) .akd-form select option,
+html:not(.dark) select.form-control option,
+html:not(.dark) select.form-select option {
+  background-color: #ffffff;
+  color: #0f172a;
+}
+
+html:not(.dark) .akd-form select option:checked,
+html:not(.dark) select.form-control option:checked {
+  background-color: #e0e7ff;  /* indigo-100 */
+  color: #1e1b4b;
 }
 
 html:not(.dark) .akd-input:focus,
