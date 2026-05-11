@@ -52,14 +52,27 @@
                 </td>
                 <td class="text-white/85 font-semibold">{{ obj.quota }}</td>
                 <td>
-                    {% if obj.is_active %}
-                        <span class="akd-badge akd-badge--success">
-                            <i data-lucide="check" class="h-3 w-3"></i>{% trans "Evet" %}
-                        </span>
+                    {% if user.role == "admin" %}
+                        <form method="post" action="{% url 'courses:offering_toggle_active' obj.pk %}" class="akd-toggle-form">
+                            {% csrf_token %}
+                            <button type="submit"
+                                    class="akd-toggle {% if obj.is_active %}is-on{% endif %}"
+                                    aria-pressed="{{ obj.is_active|yesno:'true,false' }}"
+                                    aria-label="{% if obj.is_active %}{% trans 'Pasifleştir' %}{% else %}{% trans 'Aktifleştir' %}{% endif %}"
+                                    title="{% if obj.is_active %}{% trans 'Pasifleştir' %}{% else %}{% trans 'Aktifleştir' %}{% endif %}">
+                                <span class="akd-toggle__thumb" aria-hidden="true"></span>
+                            </button>
+                        </form>
                     {% else %}
-                        <span class="akd-badge akd-badge--neutral">
-                            <i data-lucide="x" class="h-3 w-3"></i>{% trans "Hayır" %}
-                        </span>
+                        {% if obj.is_active %}
+                            <span class="akd-badge akd-badge--success">
+                                <i data-lucide="check" class="h-3 w-3"></i>{% trans "Evet" %}
+                            </span>
+                        {% else %}
+                            <span class="akd-badge akd-badge--neutral">
+                                <i data-lucide="x" class="h-3 w-3"></i>{% trans "Hayır" %}
+                            </span>
+                        {% endif %}
                     {% endif %}
                 </td>
                 {% if user.role == "admin" %}
