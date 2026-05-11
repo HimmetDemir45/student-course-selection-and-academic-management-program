@@ -7,6 +7,7 @@ from django.urls import reverse, reverse_lazy
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView
+from urllib.parse import urlparse
 
 from academic.models import Department, Semester
 from audit_logs.services import log_event
@@ -15,6 +16,19 @@ from core.permissions import AdminRequiredMixin, role_required
 
 from .forms import CourseForm, CourseOfferingForm
 from .models import Course, CourseOffering
+
+
+def _safe_referer(request, fallback: str) -> str:
+    """Return HTTP_REFERER only when it points to the same host; otherwise return fallback."""
+    referer = request.META.get("HTTP_REFERER", "")
+    if referer:
+        try:
+            parsed = urlparse(referer)
+            if not parsed.netloc or parsed.netloc == request.get_host():
+                return referer
+        except Exception:
+            pass
+    return fallback
 
 
 class CourseListView(LoginRequiredMixin, ListView):
@@ -181,7 +195,7 @@ def course_toggle_active(request, pk):
             "state": _("aktif") if obj.is_active else _("pasif"),
         },
     )
-    return redirect(request.META.get("HTTP_REFERER") or reverse("courses:course_list"))
+    return redirect(_safe_referer(request, reverse("courses:course_list")))
 
 
 @require_POST
@@ -212,4 +226,4 @@ def offering_toggle_active(request, pk):
             "state": _("aktif") if obj.is_active else _("pasif"),
         },
     )
-    return redirect(request.META.get("HTTP_REFERER") or reverse("courses:offering_list"))
+    return redirect(_safe_referer(request, reverse("courses:offering_list")))
