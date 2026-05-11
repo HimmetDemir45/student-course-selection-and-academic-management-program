@@ -35,7 +35,7 @@ from academic.models import (
     Semester,
     Transcript,
 )
-from courses.models import Course, CourseOffering
+from courses.models import Classroom, Course, CourseOffering
 from enrollments.models import Enrollment
 from instructors.models import InstructorProfile
 from students.models import StudentProfile
@@ -77,8 +77,9 @@ class Command(BaseCommand):
         instructor_user, instructor_profile = self._ensure_instructor(dept)
         student_user, student_profile = self._ensure_student(dept, program, instructor_profile)
 
+        self._ensure_classrooms()
         courses = self._ensure_courses(dept, program)
-        offering = self._ensure_offering(courses[0], current_sem, instructor_profile)
+        offering = self._ensure_offering(courses[5], current_sem, instructor_profile)  # BIL301
         self._ensure_enrollment_with_grade(student_profile, offering)
 
         # Geçmiş GPA verisi
@@ -189,7 +190,8 @@ class Command(BaseCommand):
             profile.employee_no = "AKD-2026-0001"
             profile.department = dept
             profile.title = "Doçent"
-            profile.save(update_fields=["employee_no", "department", "title"])
+            profile.is_approved = True
+            profile.save(update_fields=["employee_no", "department", "title", "is_approved"])
         return user, profile
 
     def _ensure_student(self, dept: Department, program: Program, advisor: InstructorProfile):
@@ -223,16 +225,48 @@ class Command(BaseCommand):
             profile.program = program
             profile.advisor = advisor
             profile.enrollment_year = 2024
+            profile.is_approved = True
             profile.save(update_fields=[
-                "student_no", "department", "program", "advisor", "enrollment_year",
+                "student_no", "department", "program", "advisor", "enrollment_year", "is_approved",
             ])
         return user, profile
 
+    def _ensure_classrooms(self) -> list[Classroom]:
+        seeds = [
+            ("Mühendislik A", "101", 60),
+            ("Mühendislik A", "102", 40),
+            ("Mühendislik A", "201", 80),
+            ("Mühendislik B", "101", 30),
+            ("Mühendislik B", "102", 30),
+            ("Merkez Bina", "301", 120),
+            ("Merkez Bina", "302", 50),
+            ("Kütüphane Blok", "Lab-1", 25),
+            ("Kütüphane Blok", "Lab-2", 25),
+        ]
+        result = []
+        for building, room, cap in seeds:
+            obj, _ = Classroom.objects.get_or_create(
+                building=building, room_number=room,
+                defaults={"capacity": cap},
+            )
+            result.append(obj)
+        return result
+
     def _ensure_courses(self, dept: Department, program: Program) -> list[Course]:
         seeds = [
-            ("BIL301", "Algoritmalar ve Veri Yapıları", 4),
+            ("BIL101", "Bilgisayar Bilimlerine Giriş", 3),
+            ("BIL102", "Programlamaya Giriş (Python)", 4),
+            ("BIL201", "Veri Yapıları", 4),
             ("BIL202", "Veri Tabanı Sistemleri", 3),
+            ("BIL203", "Nesne Yönelimli Programlama", 3),
+            ("BIL301", "Algoritmalar ve Veri Yapıları", 4),
+            ("BIL302", "Yazılım Mühendisliği", 3),
             ("BIL310", "İşletim Sistemleri", 4),
+            ("BIL311", "Bilgisayar Ağları", 3),
+            ("BIL401", "Yapay Zeka ve Makine Öğrenmesi", 4),
+            ("MAT101", "Matematik I (Kalkülüs)", 4),
+            ("MAT102", "Matematik II (Lineer Cebir)", 4),
+            ("FIZ101", "Fizik I", 3),
         ]
         result = []
         for code, name, credits in seeds:

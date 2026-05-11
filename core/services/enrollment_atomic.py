@@ -43,6 +43,18 @@ def enroll_student_in_section_atomic(student_profile: StudentProfile, section_id
             )
             .get(pk=pk, is_active=True, offering__is_active=True)
         )
+        # Daha önce bu şubeden bırakmış öğrenci tekrar kayıt olabilmeli:
+        # DROPPED kaydı varsa güncelle, yoksa yeni oluştur.
+        existing = Enrollment.objects.filter(
+            student=student_profile,
+            section=section,
+            status=Enrollment.Status.DROPPED,
+        ).first()
+        if existing:
+            existing.status = Enrollment.Status.ENROLLED
+            existing.full_clean()
+            existing.save(update_fields=["status", "updated_at"])
+            return existing
         enr = Enrollment(
             student=student_profile,
             section=section,

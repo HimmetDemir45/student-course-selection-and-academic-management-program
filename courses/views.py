@@ -14,8 +14,8 @@ from audit_logs.services import log_event
 from core.breadcrumbs import home, items
 from core.permissions import AdminRequiredMixin, role_required
 
-from .forms import CourseForm, CourseOfferingForm
-from .models import Course, CourseOffering
+from .forms import ClassroomForm, CourseForm, CourseOfferingForm
+from .models import Classroom, Course, CourseOffering
 
 
 def _safe_referer(request, fallback: str) -> str:
@@ -227,3 +227,52 @@ def offering_toggle_active(request, pk):
         },
     )
     return redirect(_safe_referer(request, reverse("courses:offering_list")))
+
+
+# ---------------------------------------------------------------------------
+# Derslik (Classroom) CRUD
+# ---------------------------------------------------------------------------
+
+class ClassroomListView(LoginRequiredMixin, ListView):
+    model = Classroom
+    template_name = "courses/classroom_list.html"
+    context_object_name = "classrooms"
+    paginate_by = 25
+
+    def get_queryset(self):
+        qs = Classroom.objects.all()
+        q = (self.request.GET.get("q") or "").strip()
+        if q:
+            qs = qs.filter(
+                Q(building__icontains=q) | Q(room_number__icontains=q)
+            )
+        return qs.order_by("building", "room_number")
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["breadcrumb_items"] = items(
+            home(),
+            {"label": _("Derslikler"), "url": None},
+        )
+        ctx["current_filters"] = {"q": self.request.GET.get("q", "").strip()}
+        return ctx
+
+
+class ClassroomCreateView(AdminRequiredMixin, CreateView):
+    model = Classroom
+    form_class = ClassroomForm
+    template_name = "courses/classroom_form.html"
+    success_url = reverse_lazy("courses:classroom_list")
+
+
+class ClassroomUpdateView(AdminRequiredMixin, UpdateView):
+    model = Classroom
+    form_class = ClassroomForm
+    template_name = "courses/classroom_form.html"
+    success_url = reverse_lazy("courses:classroom_list")
+
+
+class ClassroomDeleteView(AdminRequiredMixin, DeleteView):
+    model = Classroom
+    template_name = "courses/classroom_confirm_delete.html"
+    success_url = reverse_lazy("courses:classroom_list")

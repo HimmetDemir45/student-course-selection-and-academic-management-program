@@ -1,7 +1,19 @@
 from django import forms
 from django.utils.translation import gettext_lazy as _
 
-from .models import Course, CourseOffering
+from .models import Classroom, Course, CourseOffering
+
+
+class ClassroomForm(forms.ModelForm):
+    class Meta:
+        model = Classroom
+        fields = ("building", "room_number", "capacity", "is_active")
+        labels = {
+            "building": _("Bina"),
+            "room_number": _("Oda / sınıf no"),
+            "capacity": _("Kapasite"),
+            "is_active": _("Aktif"),
+        }
 
 
 class CourseForm(forms.ModelForm):

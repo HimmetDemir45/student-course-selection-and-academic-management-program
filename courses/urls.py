@@ -5,6 +5,10 @@ from . import views
 app_name = "courses"
 
 urlpatterns = [
+    path("derslikler/", views.ClassroomListView.as_view(), name="classroom_list"),
+    path("derslikler/ekle/", views.ClassroomCreateView.as_view(), name="classroom_create"),
+    path("derslikler/<int:pk>/duzenle/", views.ClassroomUpdateView.as_view(), name="classroom_update"),
+    path("derslikler/<int:pk>/sil/", views.ClassroomDeleteView.as_view(), name="classroom_delete"),
     path("", views.CourseListView.as_view(), name="course_list"),
     path("create/", views.CourseCreateView.as_view(), name="course_create"),
     path("<int:pk>/edit/", views.CourseUpdateView.as_view(), name="course_update"),

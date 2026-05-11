@@ -18,6 +18,10 @@ class InstructorProfile(TimeStampedActiveModel):
         related_name="instructors",
     )
     title = models.CharField(max_length=100, blank=True)
+    is_approved = models.BooleanField(
+        default=False,
+        help_text="Yönetici onayı verildi mi? Onaysız akademisyenler ders işlemi yapamaz.",
+    )
 
     class Meta:
         ordering = ("employee_no",)

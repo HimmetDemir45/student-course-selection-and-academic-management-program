@@ -117,7 +117,7 @@
                            class="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition
                                   {% if nav_namespace == 'courses' and nav_url_name == 'offering_list' %}bg-white/10 text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]{% else %}text-white/70 hover:bg-white/5 hover:text-white{% endif %}">
                             <i data-lucide="book" class="h-4 w-4"></i>
-                            <span>{% trans "Ders teklifleri" %}</span>
+                            <span>{% trans "Açılan dersler" %}</span>
                         </a>
                         <a href="{% url 'academic:instructor_enrollments' %}"
                            class="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition
@@ -143,13 +143,25 @@
                            class="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition
                                   {% if nav_namespace == 'courses' and nav_url_name == 'offering_list' %}bg-white/10 text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]{% else %}text-white/70 hover:bg-white/5 hover:text-white{% endif %}">
                             <i data-lucide="layers" class="h-4 w-4"></i>
-                            <span>{% trans "Ders teklifleri" %}</span>
+                            <span>{% trans "Açılan dersler" %}</span>
                         </a>
                         <a href="{% url 'enrollments:browse' %}"
                            class="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition
                                   {% if nav_namespace == 'enrollments' and nav_url_name == 'browse' %}bg-white/10 text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]{% else %}text-white/70 hover:bg-white/5 hover:text-white{% endif %}">
                             <i data-lucide="scan-search" class="h-4 w-4"></i>
                             <span>{% trans "Şube / kayıt izleme" %}</span>
+                        </a>
+                        <a href="{% url 'courses:classroom_list' %}"
+                           class="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition
+                                  {% if nav_namespace == 'courses' and nav_url_name == 'classroom_list' %}bg-white/10 text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]{% else %}text-white/70 hover:bg-white/5 hover:text-white{% endif %}">
+                            <i data-lucide="door-open" class="h-4 w-4"></i>
+                            <span>{% trans "Derslikler" %}</span>
+                        </a>
+                        <a href="{% url 'dashboard:user_approvals' %}"
+                           class="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition
+                                  {% if nav_namespace == 'dashboard' and nav_url_name == 'user_approvals' %}bg-white/10 text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]{% else %}text-white/70 hover:bg-white/5 hover:text-white{% endif %}">
+                            <i data-lucide="user-check" class="h-4 w-4"></i>
+                            <span>{% trans "Kullanıcı onayları" %}</span>
                         </a>
                         <a href="{% url 'audit_logs:index' %}"
                            class="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition
@@ -232,14 +244,16 @@
                         {% elif user.role == "instructor" %}
                             <p class="px-3 pt-5 pb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/40">{% trans "Akademisyen" %}</p>
                             <a href="{% url 'instructors:index' %}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/75 hover:bg-white/5 hover:text-white transition"><i data-lucide="user-round" class="h-4 w-4"></i><span>{% trans "Akademisyen alanı" %}</span></a>
-                            <a href="{% url 'courses:offering_list' %}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/75 hover:bg-white/5 hover:text-white transition"><i data-lucide="book" class="h-4 w-4"></i><span>{% trans "Ders teklifleri" %}</span></a>
+                            <a href="{% url 'courses:offering_list' %}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/75 hover:bg-white/5 hover:text-white transition"><i data-lucide="book" class="h-4 w-4"></i><span>{% trans "Açılan dersler" %}</span></a>
                             <a href="{% url 'academic:instructor_enrollments' %}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/75 hover:bg-white/5 hover:text-white transition"><i data-lucide="clipboard-check" class="h-4 w-4"></i><span>{% trans "Kayıtlar ve notlar" %}</span></a>
                         {% elif user.role == "admin" %}
                             <p class="px-3 pt-5 pb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/40">{% trans "Yönetim" %}</p>
                             <a href="{% url 'academic:department_list' %}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/75 hover:bg-white/5 hover:text-white transition"><i data-lucide="building-2" class="h-4 w-4"></i><span>{% trans "Bölümler" %}</span></a>
                             <a href="{% url 'courses:course_list' %}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/75 hover:bg-white/5 hover:text-white transition"><i data-lucide="book-open" class="h-4 w-4"></i><span>{% trans "Dersler" %}</span></a>
-                            <a href="{% url 'courses:offering_list' %}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/75 hover:bg-white/5 hover:text-white transition"><i data-lucide="layers" class="h-4 w-4"></i><span>{% trans "Ders teklifleri" %}</span></a>
+                            <a href="{% url 'courses:offering_list' %}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/75 hover:bg-white/5 hover:text-white transition"><i data-lucide="layers" class="h-4 w-4"></i><span>{% trans "Açılan dersler" %}</span></a>
                             <a href="{% url 'enrollments:browse' %}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/75 hover:bg-white/5 hover:text-white transition"><i data-lucide="scan-search" class="h-4 w-4"></i><span>{% trans "Şube / kayıt izleme" %}</span></a>
+                            <a href="{% url 'courses:classroom_list' %}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/75 hover:bg-white/5 hover:text-white transition"><i data-lucide="door-open" class="h-4 w-4"></i><span>{% trans "Derslikler" %}</span></a>
+                            <a href="{% url 'dashboard:user_approvals' %}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/75 hover:bg-white/5 hover:text-white transition"><i data-lucide="user-check" class="h-4 w-4"></i><span>{% trans "Kullanıcı onayları" %}</span></a>
                             <a href="{% url 'audit_logs:index' %}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/75 hover:bg-white/5 hover:text-white transition"><i data-lucide="shield" class="h-4 w-4"></i><span>{% trans "Denetim günlüğü" %}</span></a>
                         {% endif %}
                     </nav>

@@ -10,6 +10,8 @@ from django.views.generic import ListView, TemplateView
 
 from accounts.models import AdminRequest, User
 from core.breadcrumbs import home, items
+from instructors.models import InstructorProfile
+from students.models import StudentProfile
 from academic.models import Announcement, Semester
 from audit_logs.models import AuditLog
 from audit_logs.services import log_event
@@ -195,3 +197,105 @@ class AdminRequestRejectView(_AdminRequestDecisionView):
 
         messages.success(request, _("Talep reddedildi."))
         return redirect("dashboard:admin_requests")
+
+
+# ---------------------------------------------------------------------------
+# Öğrenci / Akademisyen onay kuyruğu
+# ---------------------------------------------------------------------------
+
+class UserApprovalQueueView(LoginRequiredMixin, ListView):
+    """Onay bekleyen öğrenci ve akademisyen listesi — yalnızca admin."""
+    template_name = "dashboard/user_approval_list.html"
+    context_object_name = "pending_students"
+    paginate_by = 50
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated or request.user.role != "admin":
+            messages.error(request, _("Bu sayfaya erişim yetkiniz yok."))
+            return redirect("core:home")
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_queryset(self):
+        return (
+            StudentProfile.objects.filter(is_approved=False)
+            .select_related("user", "department")
+            .order_by("created_at")
+        )
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["pending_instructors"] = (
+            InstructorProfile.objects.filter(is_approved=False)
+            .select_related("user", "department")
+            .order_by("created_at")
+        )
+        ctx["breadcrumb_items"] = items(
+            home(),
+            {"label": _("Pano"), "url": "dashboard:index"},
+            {"label": _("Kullanıcı onayları"), "url": None},
+        )
+        return ctx
+
+
+class ApproveStudentView(LoginRequiredMixin, View):
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated or request.user.role != "admin":
+            messages.error(request, _("Bu işlem için yetkiniz yok."))
+            return redirect("core:home")
+        return super().dispatch(request, *args, **kwargs)
+
+    def post(self, request, pk, *args, **kwargs):
+        profile = StudentProfile.objects.filter(pk=pk).select_related("user").first()
+        if not profile:
+            messages.error(request, _("Öğrenci profili bulunamadı."))
+            return redirect("dashboard:user_approvals")
+        action = request.POST.get("action", "approve")
+        if action == "reject":
+            profile.user.is_active = False
+            profile.user.save(update_fields=["is_active"])
+            messages.warning(request, f"{profile.user.get_full_name() or profile.user.username} reddedildi ve hesap devre dışı bırakıldı.")
+        else:
+            profile.is_approved = True
+            profile.save(update_fields=["is_approved"])
+            messages.success(request, f"{profile.user.get_full_name() or profile.user.username} onaylandı.")
+        log_event(
+            event_type="user_approval_decision",
+            actor=request.user,
+            target_type="students.StudentProfile",
+            target_id=str(profile.pk),
+            metadata={"action": action, "username": profile.user.username},
+            request=request,
+        )
+        return redirect("dashboard:user_approvals")
+
+
+class ApproveInstructorView(LoginRequiredMixin, View):
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated or request.user.role != "admin":
+            messages.error(request, _("Bu işlem için yetkiniz yok."))
+            return redirect("core:home")
+        return super().dispatch(request, *args, **kwargs)
+
+    def post(self, request, pk, *args, **kwargs):
+        profile = InstructorProfile.objects.filter(pk=pk).select_related("user").first()
+        if not profile:
+            messages.error(request, _("Akademisyen profili bulunamadı."))
+            return redirect("dashboard:user_approvals")
+        action = request.POST.get("action", "approve")
+        if action == "reject":
+            profile.user.is_active = False
+            profile.user.save(update_fields=["is_active"])
+            messages.warning(request, f"{profile.user.get_full_name() or profile.user.username} reddedildi ve hesap devre dışı bırakıldı.")
+        else:
+            profile.is_approved = True
+            profile.save(update_fields=["is_approved"])
+            messages.success(request, f"{profile.user.get_full_name() or profile.user.username} onaylandı.")
+        log_event(
+            event_type="user_approval_decision",
+            actor=request.user,
+            target_type="instructors.InstructorProfile",
+            target_id=str(profile.pk),
+            metadata={"action": action, "username": profile.user.username},
+            request=request,
+        )
+        return redirect("dashboard:user_approvals")

@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Derslikler — Akademik 2.0" %}{% endblock %}
+
+{% block content %}
+{% include "includes/page_header.html" with header_title=_("Derslikler") header_eyebrow=_("Altyapı") header_subtitle=_("Kampüsdeki tüm derslik ve sınıfları yönet.") header_actions_template="includes/page_header_actions/classroom_list.html" %}
+
+<form class="akd-toolbar" method="get" role="search">
+    <div class="akd-toolbar__search">
+        <i data-lucide="search" aria-hidden="true"></i>
+        <input class="akd-input" type="search" name="q" value="{{ current_filters.q }}"
+               placeholder="{% trans 'Bina veya oda ara...' %}">
+    </div>
+    <button type="submit" class="akd-btn akd-btn--primary akd-btn--sm">
+        <i data-lucide="filter" class="h-4 w-4"></i>
+        <span>{% trans "Filtrele" %}</span>
+    </button>
+</form>
+
+{% if not classrooms %}
+    {% include "includes/empty_state.html" with empty_title=_("Derslik bulunamadı") empty_message=_("Henüz derslik eklenmemiş. Yeni derslik ekleyerek başlayın.") empty_icon="building" %}
+{% else %}
+<div class="akd-table-wrap">
+    <table class="akd-table">
+        <thead><tr>
+            <th>{% trans "Bina" %}</th>
+            <th>{% trans "Oda / Sınıf" %}</th>
+            <th style="width:8rem;">{% trans "Kapasite" %}</th>
+            <th style="width:7rem;">{% trans "Durum" %}</th>
+            {% if user.role == "admin" %}<th style="width:10rem;" class="text-right"></th>{% endif %}
+        </tr></thead>
+        <tbody>
+        {% for c in classrooms %}
+        <tr>
+            <td class="font-medium text-white">
+                <div class="flex items-center gap-2.5">
+                    <span class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-violet-500/15 border border-violet-400/25 text-violet-200 flex-shrink-0">
+                        <i data-lucide="building" class="h-3.5 w-3.5"></i>
+                    </span>
+                    {{ c.building }}
+                </div>
+            </td>
+            <td class="font-mono text-sm text-indigo-200">{{ c.room_number }}</td>
+            <td>
+                <span class="font-semibold text-white/85">{{ c.capacity }}</span>
+                <span class="text-white/45 text-xs ml-1">{% trans "kişi" %}</span>
+            </td>
+            <td>
+                {% if c.is_active %}
+                    <span class="akd-badge akd-badge--success">{% trans "Aktif" %}</span>
+                {% else %}
+                    <span class="akd-badge akd-badge--neutral">{% trans "Pasif" %}</span>
+                {% endif %}
+            </td>
+            {% if user.role == "admin" %}
+            <td class="text-right">
+                <div class="inline-flex gap-1.5">
+                    <a class="akd-btn akd-btn--secondary akd-btn--sm" href="{% url 'courses:classroom_update' c.pk %}">
+                        <i data-lucide="pencil" class="h-3.5 w-3.5"></i>
+                        <span>{% trans "Düzenle" %}</span>
+                    </a>
+                    <a class="akd-btn akd-btn--danger akd-btn--sm" href="{% url 'courses:classroom_delete' c.pk %}">
+                        <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
+                    </a>
+                </div>
+            </td>
+            {% endif %}
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% include "includes/pagination.html" %}
+{% endblock %}

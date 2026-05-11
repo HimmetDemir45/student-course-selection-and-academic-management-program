@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Dersliği sil" %} — Akademik 2.0{% endblock %}
+{% block content %}
+<section class="akd-card max-w-md">
+    <h1 class="akd-card__title mb-3">{% trans "Dersliği sil" %}</h1>
+    <p class="text-sm text-white/70 mb-5">
+        <strong>{{ object.building }} {{ object.room_number }}</strong> ({{ object.capacity }} kişilik) dersliğini silmek istediğinize emin misiniz?
+    </p>
+    <form method="post" class="flex gap-2">
+        {% csrf_token %}
+        <button type="submit" class="akd-btn akd-btn--danger">{% trans "Evet, sil" %}</button>
+        <a class="akd-btn akd-btn--ghost" href="{% url 'courses:classroom_list' %}">{% trans "İptal" %}</a>
+    </form>
+</section>
+{% endblock %}

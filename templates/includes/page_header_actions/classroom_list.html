@@ -1,0 +1,7 @@
+{% load i18n %}
+{% if user.role == "admin" %}
+<a class="akd-btn akd-btn--primary akd-btn--sm" href="{% url 'courses:classroom_create' %}">
+    <i data-lucide="plus" class="h-4 w-4"></i>
+    <span>{% trans "Yeni derslik" %}</span>
+</a>
+{% endif %}

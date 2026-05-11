@@ -47,9 +47,35 @@ class AdminRequiredMixin(RoleRequiredMixin):
 class StudentRequiredMixin(RoleRequiredMixin):
     allowed_roles = ("student",)
 
+    def dispatch(self, request, *args, **kwargs):
+        resp = super().dispatch(request, *args, **kwargs)
+        if request.user.is_authenticated and request.user.role == "student":
+            profile = getattr(request.user, "student_profile", None)
+            if profile and not profile.is_approved:
+                messages.warning(
+                    request,
+                    "Hesabınız henüz yönetici tarafından onaylanmadı. "
+                    "Onaylandıktan sonra bu alana erişebilirsiniz.",
+                )
+                return redirect("core:home")
+        return resp
+
 
 class InstructorRequiredMixin(RoleRequiredMixin):
     allowed_roles = ("instructor", "admin")
+
+    def dispatch(self, request, *args, **kwargs):
+        resp = super().dispatch(request, *args, **kwargs)
+        if request.user.is_authenticated and request.user.role == "instructor":
+            profile = getattr(request.user, "instructor_profile", None)
+            if profile and not profile.is_approved:
+                messages.warning(
+                    request,
+                    "Hesabınız henüz yönetici tarafından onaylanmadı. "
+                    "Onaylandıktan sonra bu alana erişebilirsiniz.",
+                )
+                return redirect("core:home")
+        return resp
 
 
 class FounderAdminRequiredMixin(LoginRequiredMixin):

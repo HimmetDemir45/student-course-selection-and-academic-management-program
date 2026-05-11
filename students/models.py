@@ -32,6 +32,10 @@ class StudentProfile(TimeStampedActiveModel):
         related_name="advisees",
     )
     enrollment_year = models.PositiveSmallIntegerField(default=2026, db_index=True)
+    is_approved = models.BooleanField(
+        default=False,
+        help_text="Yönetici onayı verildi mi? Onaysız öğrenciler kayıt işlemi yapamaz.",
+    )
 
     class Meta:
         ordering = ("student_no",)

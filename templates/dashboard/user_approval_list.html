@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Kullanıcı onayları — Akademik 2.0" %}{% endblock %}
+
+{% block content %}
+{% include "includes/page_header.html" with header_title=_("Kullanıcı onayları") header_eyebrow=_("Yönetim") header_subtitle=_("Sisteme kayıt olan öğrenci ve akademisyen hesaplarını incele, onayla veya reddet.") %}
+
+{# ===== Öğrenciler ===== #}
+<section class="mb-8">
+    <h2 class="text-sm font-semibold text-white/60 uppercase tracking-widest mb-3">
+        <i data-lucide="user" class="inline h-3.5 w-3.5 mr-1"></i>
+        {% trans "Onay bekleyen öğrenciler" %}
+        <span class="ml-1 font-normal normal-case tracking-normal text-white/40">({{ pending_students|length }})</span>
+    </h2>
+
+    {% if not pending_students %}
+        <p class="text-sm text-white/50 py-4">{% trans "Onay bekleyen öğrenci yok." %}</p>
+    {% else %}
+    <div class="akd-table-wrap">
+        <table class="akd-table">
+            <thead><tr>
+                <th>{% trans "Ad Soyad" %}</th>
+                <th>{% trans "Kullanıcı adı" %}</th>
+                <th>{% trans "Öğrenci No" %}</th>
+                <th>{% trans "Bölüm" %}</th>
+                <th>{% trans "Kayıt tarihi" %}</th>
+                <th class="text-right"></th>
+            </tr></thead>
+            <tbody>
+            {% for sp in pending_students %}
+            <tr>
+                <td class="font-medium text-white">{{ sp.user.get_full_name|default:sp.user.username }}</td>
+                <td class="text-white/70">{{ sp.user.username }}</td>
+                <td class="font-mono text-sm text-indigo-200">{{ sp.student_no }}</td>
+                <td class="text-white/70">{{ sp.department|default:"—" }}</td>
+                <td class="text-white/55 text-xs">{{ sp.created_at|date:"d.m.Y H:i" }}</td>
+                <td class="text-right">
+                    <form method="post" action="{% url 'dashboard:approve_student' sp.pk %}" class="inline-flex gap-1.5">
+                        {% csrf_token %}
+                        <button name="action" value="approve" type="submit"
+                                class="akd-btn akd-btn--success akd-btn--sm">
+                            <i data-lucide="check" class="h-3.5 w-3.5"></i>
+                            <span>{% trans "Onayla" %}</span>
+                        </button>
+                        <button name="action" value="reject" type="submit"
+                                class="akd-btn akd-btn--danger akd-btn--sm"
+                                onclick="return confirm('Bu öğrenciyi reddetmek istiyor musunuz?')">
+                            <i data-lucide="x" class="h-3.5 w-3.5"></i>
+                            <span>{% trans "Reddet" %}</span>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</section>
+
+{# ===== Akademisyenler ===== #}
+<section>
+    <h2 class="text-sm font-semibold text-white/60 uppercase tracking-widest mb-3">
+        <i data-lucide="user-round" class="inline h-3.5 w-3.5 mr-1"></i>
+        {% trans "Onay bekleyen akademisyenler" %}
+        <span class="ml-1 font-normal normal-case tracking-normal text-white/40">({{ pending_instructors|length }})</span>
+    </h2>
+
+    {% if not pending_instructors %}
+        <p class="text-sm text-white/50 py-4">{% trans "Onay bekleyen akademisyen yok." %}</p>
+    {% else %}
+    <div class="akd-table-wrap">
+        <table class="akd-table">
+            <thead><tr>
+                <th>{% trans "Ad Soyad" %}</th>
+                <th>{% trans "Kullanıcı adı" %}</th>
+                <th>{% trans "Sicil No" %}</th>
+                <th>{% trans "Unvan" %}</th>
+                <th>{% trans "Bölüm" %}</th>
+                <th class="text-right"></th>
+            </tr></thead>
+            <tbody>
+            {% for ip in pending_instructors %}
+            <tr>
+                <td class="font-medium text-white">{{ ip.user.get_full_name|default:ip.user.username }}</td>
+                <td class="text-white/70">{{ ip.user.username }}</td>
+                <td class="font-mono text-sm text-indigo-200">{{ ip.employee_no }}</td>
+                <td class="text-white/70">{{ ip.title|default:"—" }}</td>
+                <td class="text-white/70">{{ ip.department|default:"—" }}</td>
+                <td class="text-right">
+                    <form method="post" action="{% url 'dashboard:approve_instructor' ip.pk %}" class="inline-flex gap-1.5">
+                        {% csrf_token %}
+                        <button name="action" value="approve" type="submit"
+                                class="akd-btn akd-btn--success akd-btn--sm">
+                            <i data-lucide="check" class="h-3.5 w-3.5"></i>
+                            <span>{% trans "Onayla" %}</span>
+                        </button>
+                        <button name="action" value="reject" type="submit"
+                                class="akd-btn akd-btn--danger akd-btn--sm"
+                                onclick="return confirm('Bu akademisyeni reddetmek istiyor musunuz?')">
+                            <i data-lucide="x" class="h-3.5 w-3.5"></i>
+                            <span>{% trans "Reddet" %}</span>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}
