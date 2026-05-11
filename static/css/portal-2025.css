@@ -552,7 +552,12 @@ select.form-select {
   background-size: 5px 5px, 5px 5px;
   background-repeat: no-repeat;
   padding-right: 2.25rem;
-  /* Tarayıcıya dark mode native kontrol kullan — dropdown rengi için kritik */
+}
+
+/* Dark modda native select dropdown'ı koyu göster */
+html.dark .akd-form select,
+html.dark select.form-control,
+html.dark select.form-select {
   color-scheme: dark;
 }
 
