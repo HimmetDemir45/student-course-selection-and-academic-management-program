@@ -10,6 +10,9 @@
   --akd-bg: #050816;
   --akd-bg-elev: #080A18;
   --akd-bg-elev-2: #0B1220;
+  --akd-surface-1: rgba(255, 255, 255, 0.025);
+  --akd-surface-2: rgba(255, 255, 255, 0.05);
+  --akd-surface-3: rgba(255, 255, 255, 0.08);
 
   /* Lines */
   --akd-border: rgba(255, 255, 255, 0.08);
@@ -21,6 +24,7 @@
   --akd-text-muted: rgba(255, 255, 255, 0.62);
   --akd-text-dim: rgba(255, 255, 255, 0.45);
   --akd-text-faint: rgba(255, 255, 255, 0.32);
+  --akd-text-strong: #ffffff;
 
   /* Brand */
   --akd-indigo: #6366f1;
@@ -50,6 +54,78 @@
   --akd-radius-lg: 1rem;
   --akd-radius-xl: 1.25rem;
   --akd-radius-2xl: 1.5rem;
+}
+
+/* ----------------------------------------------------------------
+   LIGHT THEME — html:not(.dark) (toggle 'dark' class'ını söker)
+   Aynı değişken adları light değerlerle override edilir.
+   ---------------------------------------------------------------- */
+html:not(.dark) {
+  --akd-bg: #f5f7fb;
+  --akd-bg-elev: #ffffff;
+  --akd-bg-elev-2: #f0f2f9;
+  --akd-surface-1: rgba(15, 23, 42, 0.03);
+  --akd-surface-2: rgba(15, 23, 42, 0.06);
+  --akd-surface-3: rgba(15, 23, 42, 0.09);
+
+  --akd-border: rgba(15, 23, 42, 0.08);
+  --akd-border-strong: rgba(15, 23, 42, 0.16);
+  --akd-border-focus: rgba(79, 70, 229, 0.45);
+
+  --akd-text: rgba(15, 23, 42, 0.92);
+  --akd-text-muted: rgba(15, 23, 42, 0.62);
+  --akd-text-dim: rgba(15, 23, 42, 0.5);
+  --akd-text-faint: rgba(15, 23, 42, 0.4);
+  --akd-text-strong: #0f172a;
+
+  --akd-glow-indigo: 0 18px 60px rgba(79, 70, 229, 0.18);
+  --akd-glow-soft: 0 10px 30px rgba(15, 23, 42, 0.08);
+  --akd-shadow-card: 0 10px 30px rgba(15, 23, 42, 0.06);
+  --akd-shadow-elev: 0 18px 60px rgba(15, 23, 42, 0.12);
+}
+
+/* ----------------------------------------------------------------
+   SMOOTH THEME TRANSITION — renk değişimleri yumuşak geçer
+   prefers-reduced-motion altında devre dışı kalır.
+   ---------------------------------------------------------------- */
+html {
+  transition:
+    background-color 280ms ease,
+    color 280ms ease;
+}
+
+body,
+.akd-card,
+.akd-stat,
+.akd-table,
+.akd-toolbar,
+.akd-chip,
+.akd-input,
+.akd-btn,
+.btn,
+.card,
+.alert,
+.akd-page-header,
+aside,
+header,
+nav,
+.badge,
+input,
+select,
+textarea {
+  transition:
+    background-color 220ms ease,
+    border-color 220ms ease,
+    color 220ms ease,
+    box-shadow 220ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html, body, .akd-card, .akd-stat, .akd-table, .akd-toolbar,
+  .akd-chip, .akd-input, .akd-btn, .btn, .card, .alert,
+  aside, header, nav, .badge, input, select, textarea {
+    transition: none !important;
+  }
 }
 
 /* ----------------------------------------------------------------
@@ -1361,3 +1437,258 @@ input[type="radio"].form-check-input:checked::before {
     transition: none !important;
   }
 }
+
+/* ----------------------------------------------------------------
+   19. LIGHT-THEME OVERRIDES
+   Dark için optimize edilmiş "#fff" ve rgba(255,255,255,…) yüzeyleri
+   light'ta okunamaz; aşağıdaki override'lar yüzey/ink kontrastını sabitler.
+   Yalnızca html:not(.dark) altında uygulanır → dark görünüm aynı kalır.
+   ---------------------------------------------------------------- */
+
+html:not(.dark) body {
+  background: var(--akd-bg);
+  color: var(--akd-text);
+}
+
+/* Başlık metinleri: dark'ta saf beyaz → light'ta lacivert */
+html:not(.dark) .akd-page-header__title,
+html:not(.dark) .akd-card__title,
+html:not(.dark) .akd-stat__value,
+html:not(.dark) .akd-empty__title,
+html:not(.dark) .card-header,
+html:not(.dark) .h1, html:not(.dark) .h2, html:not(.dark) .h3,
+html:not(.dark) .h4, html:not(.dark) .h5, html:not(.dark) .h6,
+html:not(.dark) .text-white {
+  color: var(--akd-text-strong) !important;
+}
+
+/* Kart, stat, toolbar, tablo gibi yüzeyleri light arka plana indir */
+html:not(.dark) .akd-card,
+html:not(.dark) .card,
+html:not(.dark) .akd-stat,
+html:not(.dark) .akd-toolbar,
+html:not(.dark) .akd-table-wrap,
+html:not(.dark) .akd-empty {
+  background: var(--akd-bg-elev);
+  border-color: var(--akd-border);
+  box-shadow: var(--akd-shadow-card);
+}
+
+html:not(.dark) .akd-stat {
+  background:
+    radial-gradient(120% 120% at 0% 0%, rgba(79, 70, 229, 0.06), transparent 55%),
+    var(--akd-bg-elev);
+}
+
+/* Tablolar */
+html:not(.dark) .akd-table thead th,
+html:not(.dark) .table thead th {
+  background: var(--akd-bg-elev-2);
+  color: var(--akd-text-muted);
+  border-bottom-color: var(--akd-border);
+}
+
+html:not(.dark) .akd-table tbody td,
+html:not(.dark) .table tbody td {
+  color: var(--akd-text);
+  border-bottom-color: var(--akd-border);
+}
+
+html:not(.dark) .akd-table tbody tr:hover td,
+html:not(.dark) .table tbody tr:hover td {
+  background: var(--akd-surface-1);
+}
+
+/* Form girdileri */
+html:not(.dark) .akd-input,
+html:not(.dark) .akd-form input[type="text"],
+html:not(.dark) .akd-form input[type="email"],
+html:not(.dark) .akd-form input[type="password"],
+html:not(.dark) .akd-form input[type="number"],
+html:not(.dark) .akd-form input[type="search"],
+html:not(.dark) .akd-form select,
+html:not(.dark) .akd-form textarea,
+html:not(.dark) input.form-control,
+html:not(.dark) select.form-control,
+html:not(.dark) textarea.form-control,
+html:not(.dark) input.form-select,
+html:not(.dark) select.form-select {
+  background: #ffffff;
+  border-color: var(--akd-border-strong);
+  color: var(--akd-text-strong);
+}
+
+html:not(.dark) .akd-input:focus,
+html:not(.dark) input.form-control:focus,
+html:not(.dark) select.form-control:focus,
+html:not(.dark) textarea.form-control:focus {
+  background: #ffffff;
+  border-color: var(--akd-border-focus);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.16);
+}
+
+/* Butonlar — secondary/ghost light kontrast */
+html:not(.dark) .akd-btn--secondary,
+html:not(.dark) .btn-secondary,
+html:not(.dark) .btn-outline-secondary {
+  background: var(--akd-bg-elev);
+  border-color: var(--akd-border-strong);
+  color: var(--akd-text);
+}
+html:not(.dark) .akd-btn--secondary:hover,
+html:not(.dark) .btn-secondary:hover,
+html:not(.dark) .btn-outline-secondary:hover {
+  background: var(--akd-surface-2);
+  color: var(--akd-text-strong);
+}
+
+html:not(.dark) .akd-btn--ghost,
+html:not(.dark) .btn-link {
+  color: var(--akd-text-muted);
+}
+html:not(.dark) .akd-btn--ghost:hover,
+html:not(.dark) .btn-link:hover {
+  background: var(--akd-surface-1);
+  color: var(--akd-text-strong);
+}
+
+/* Badges */
+html:not(.dark) .akd-badge--neutral,
+html:not(.dark) .badge.bg-secondary,
+html:not(.dark) .badge.bg-light {
+  background: var(--akd-surface-1);
+  color: var(--akd-text-muted);
+}
+
+/* Sayfa kabuğu (sidebar/header) — base.html'deki sabit koyu renkleri override eder */
+html:not(.dark) aside.akd-shell-sidebar,
+html:not(.dark) header.akd-shell-header,
+html:not(.dark) .akd-shell-root {
+  background: var(--akd-bg-elev);
+  border-color: var(--akd-border);
+  color: var(--akd-text);
+}
+
+html:not(.dark) .akd-shell-root {
+  background: var(--akd-bg);
+}
+
+html:not(.dark) .akd-shell-nav-link {
+  color: var(--akd-text-muted);
+}
+html:not(.dark) .akd-shell-nav-link:hover,
+html:not(.dark) .akd-shell-nav-link.is-active {
+  background: var(--akd-surface-1);
+  color: var(--akd-text-strong);
+  box-shadow: inset 0 0 0 1px var(--akd-border-strong);
+}
+
+/* Tile chip vb ikon arka planları */
+html:not(.dark) .akd-tile-icon {
+  background: var(--akd-bg-elev-2);
+  border-color: var(--akd-border);
+  color: var(--akd-text);
+}
+
+/* Glow blob'larını light'ta yumuşat — koyu için tasarlananlar light arkaplanda ezici */
+html:not(.dark) .akd-bg-blobs > * {
+  opacity: 0.4;
+  filter: blur(60px);
+}
+
+/* ============================================================
+   20. SHELL TEXT — LIGHT THEME OVERRIDES
+   Şablonlar Tailwind'in `text-white`, `text-white/40`, `text-white/55`
+   gibi sabit-beyaz utility'lerini kullanıyor; light tema'da bu metinler
+   açık zeminde okunmuyor. Aşağıdaki kurallar yalnızca shell + main
+   altında bu utility'leri yeniden renklendirir.
+   ============================================================ */
+
+/* Sidebar & mobil header — tüm text-white varyantlarını okunabilir kıl. */
+html:not(.dark) .akd-shell-sidebar [class*="text-white"],
+html:not(.dark) .akd-shell-header  [class*="text-white"] {
+  color: var(--akd-text) !important;
+}
+
+/* Daha soluk olması beklenenler (etiketler, eyebrow, hint) → muted */
+html:not(.dark) .akd-shell-sidebar [class*="text-white/3"],
+html:not(.dark) .akd-shell-sidebar [class*="text-white/4"],
+html:not(.dark) .akd-shell-sidebar [class*="text-white/5"],
+html:not(.dark) .akd-shell-header  [class*="text-white/3"],
+html:not(.dark) .akd-shell-header  [class*="text-white/4"],
+html:not(.dark) .akd-shell-header  [class*="text-white/5"] {
+  color: var(--akd-text-muted) !important;
+}
+
+/* Sidebar'ın "Genel / Yönetim / Öğrenci" gibi grup başlıkları */
+html:not(.dark) .akd-shell-sidebar p[class*="uppercase"] {
+  color: var(--akd-text-faint) !important;
+}
+
+/* Aktif nav linki — koyu temada bg-white/10; light'ta belirgin yüzey gerek */
+html:not(.dark) .akd-shell-sidebar a[class*="bg-white/10"] {
+  background: var(--akd-surface-2) !important;
+  color: var(--akd-text-strong) !important;
+  box-shadow: inset 0 0 0 1px var(--akd-border-strong) !important;
+}
+
+/* Hover/idle nav linki için yumuşak yüzey */
+html:not(.dark) .akd-shell-sidebar a[class*="hover:bg-white/5"]:hover,
+html:not(.dark) .akd-shell-sidebar a[class*="hover:bg-white/10"]:hover {
+  background: var(--akd-surface-1) !important;
+  color: var(--akd-text-strong) !important;
+}
+
+/* Tema/Çıkış mini butonları sidebar alt kart içinde */
+html:not(.dark) .akd-shell-sidebar button[class*="bg-white/5"],
+html:not(.dark) .akd-shell-sidebar a[class*="bg-white/5"],
+html:not(.dark) .akd-shell-header  button[class*="bg-white/5"] {
+  background: var(--akd-surface-1) !important;
+  border-color: var(--akd-border-strong) !important;
+  color: var(--akd-text) !important;
+}
+
+/* Sidebar alt user-card konteyneri */
+html:not(.dark) .akd-shell-sidebar div[class*="bg-white/5"] {
+  background: var(--akd-surface-1) !important;
+  border-color: var(--akd-border) !important;
+}
+
+/* Page header title — gradient text light tema'da okunmuyor; gradienti kapat */
+html:not(.dark) h1.akd-page-header__title,
+html:not(.dark) .akd-page-header__title span[class*="bg-clip-text"] {
+  background: none !important;
+  -webkit-background-clip: border-box !important;
+          background-clip: border-box !important;
+  -webkit-text-fill-color: var(--akd-text-strong) !important;
+  color: var(--akd-text-strong) !important;
+}
+
+/* Page header subtitle/eyebrow */
+html:not(.dark) .akd-page-header__subtitle {
+  color: var(--akd-text-muted) !important;
+}
+html:not(.dark) .akd-page-header__eyebrow {
+  color: var(--akd-text-muted) !important;
+  background: var(--akd-surface-1) !important;
+  border-color: var(--akd-border) !important;
+}
+
+/* Auth sol panel hero başlığı — beyaz gradient text okunmuyor */
+html:not(.dark) main h1 span[class*="bg-clip-text"] {
+  background: none !important;
+  -webkit-background-clip: border-box !important;
+          background-clip: border-box !important;
+  -webkit-text-fill-color: var(--akd-text-strong) !important;
+  color: var(--akd-text-strong) !important;
+}
+
+/* Form/select içindeki gradient buton-text dışı tüm "text-white" → dark
+   Btn primary gibi gradient backgrounded butonlar light'ta da beyaz kalmalı,
+   onları hariç tut. */
+html:not(.dark) main [class*="text-white"]:not(.akd-btn--primary):not(.btn-primary):not([class*="bg-gradient"]):not([class*="bg-indigo"]):not([class*="bg-rose"]):not([class*="bg-emerald"]) {
+  color: var(--akd-text) !important;
+}
+
+/* Search/filter formundaki "text-slate-* dark:text-white/* placeholder" zaten
+   dark olmayan tema için slate-* fallback'i kullanır — özel iş gerekmez. */
