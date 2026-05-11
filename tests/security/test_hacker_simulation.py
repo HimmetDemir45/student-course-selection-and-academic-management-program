@@ -12,6 +12,8 @@ ve sistemin OWASP Top 10 sınıflarına karşı dayanıklı olduğunu doğrular:
 
 from __future__ import annotations
 
+import secrets
+
 import pytest
 from django.contrib.auth import get_user_model
 from django.test import Client
@@ -20,6 +22,11 @@ from django.urls import reverse
 pytestmark = [pytest.mark.security, pytest.mark.django_db]
 
 User = get_user_model()
+
+# Test parolaları runtime'da üretilir — sabit hardcoded credential yok.
+_HACKER_PASSWORD = secrets.token_urlsafe(16)
+_VICTIM_PASSWORD = secrets.token_urlsafe(16)
+_ADMIN_PASSWORD = secrets.token_urlsafe(16)
 
 
 # ---------------------------------------------------------------------------
@@ -33,7 +40,7 @@ def attacker():
     return User.objects.create_user(
         username="mr_hacker",
         email="hacker@evil.test",
-        password="h4ck-th3-pl4n3t-2026",
+        password=_HACKER_PASSWORD,
         role=User.Role.STUDENT,
     )
 
@@ -43,7 +50,7 @@ def victim_student():
     return User.objects.create_user(
         username="ayse_yilmaz",
         email="ayse@uni.test",
-        password="V1ctimSecret-9090",
+        password=_VICTIM_PASSWORD,
         role=User.Role.STUDENT,
     )
 
@@ -53,7 +60,7 @@ def real_admin():
     return User.objects.create_user(
         username="root_admin",
         email="root@uni.test",
-        password="Adm1n-Pass-Long-2026",
+        password=_ADMIN_PASSWORD,
         role=User.Role.ADMIN,
     )
 
@@ -325,7 +332,7 @@ def test_login_open_redirect_to_external_host_blocked(client, victim_student):
     """Login sonrası ?next=http://evil.test gibi harici hedefe yönlenmemeli."""
     response = client.post(
         reverse("accounts:login") + "?next=http://evil.test/steal",
-        data={"login": "ayse_yilmaz", "password": "V1ctimSecret-9090"},
+        data={"login": "ayse_yilmaz", "password": _VICTIM_PASSWORD},
         follow=False,
     )
     if response.status_code == 302:
@@ -345,7 +352,7 @@ def test_session_key_rotates_on_login(client, victim_student):
     pre = client.session.session_key  # boş olabilir
     client.post(
         reverse("accounts:login"),
-        data={"login": "ayse_yilmaz", "password": "V1ctimSecret-9090"},
+        data={"login": "ayse_yilmaz", "password": _VICTIM_PASSWORD},
     )
     post = client.session.session_key
     assert post is not None
@@ -360,7 +367,7 @@ def test_session_key_rotates_on_login(client, victim_student):
 def test_session_cookie_has_httponly_flag(client, victim_student):
     client.post(
         reverse("accounts:login"),
-        data={"login": "ayse_yilmaz", "password": "V1ctimSecret-9090"},
+        data={"login": "ayse_yilmaz", "password": _VICTIM_PASSWORD},
     )
     session_cookie = client.cookies.get("sessionid")
     assert session_cookie is not None, "Login sonrası session cookie set edilmedi."
