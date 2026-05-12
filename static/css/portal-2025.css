@@ -562,17 +562,17 @@ html.dark select.form-select {
 }
 
 /* Option elementleri: dark modda açık popup'ta okunabilir koyu zemin + açık metin */
-.akd-form select option,
-select.form-control option,
-select.form-select option,
-.akd-input option {
+html.dark .akd-form select option,
+html.dark select.form-control option,
+html.dark select.form-select option,
+html.dark .akd-input option {
   background-color: #1a1d2e;
   color: #e2e8f0;
 }
 
-.akd-form select option:checked,
-select.form-control option:checked,
-select.form-select option:checked {
+html.dark .akd-form select option:checked,
+html.dark select.form-control option:checked,
+html.dark select.form-select option:checked {
   background-color: #3730a3;   /* indigo-800 */
   color: #ffffff;
 }
@@ -1679,13 +1679,20 @@ html:not(.dark) select.form-select {
   color: var(--akd-text-strong);
 }
 
-/* Light temada select: ok oku koyu + color-scheme light (native dropdown açık zemin) */
+/* Light temada select: ok oku koyu + color-scheme light (native dropdown açık zemin)
+   background-position/size/repeat burada tekrarlanıyor çünkü üstteki
+   "background: #ffffff" shorthand bu değerleri sıfırlar. */
 html:not(.dark) .akd-form select,
 html:not(.dark) select.form-control,
 html:not(.dark) select.form-select {
   background-image:
     linear-gradient(45deg, transparent 50%, rgba(15,23,42,0.6) 50%),
     linear-gradient(135deg, rgba(15,23,42,0.6) 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) calc(50% - 2px),
+    calc(100% - 13px) calc(50% - 2px);
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
   color-scheme: light;
 }
 

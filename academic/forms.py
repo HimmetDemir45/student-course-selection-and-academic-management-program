@@ -28,6 +28,13 @@ class AnnouncementForm(forms.ModelForm):
             "target_role": _("Hedef kitle"),
             "is_active": _("Aktif"),
         }
+        widgets = {
+            "title": forms.TextInput(attrs={"class": "form-control"}),
+            "body": forms.Textarea(attrs={"class": "form-control"}),
+            "semester": forms.Select(attrs={"class": "form-select"}),
+            "department": forms.Select(attrs={"class": "form-select"}),
+            "target_role": forms.Select(attrs={"class": "form-select"}),
+        }
 
 
 class GradeForm(forms.ModelForm):

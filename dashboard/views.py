@@ -3,6 +3,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import redirect
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views import View
@@ -231,7 +232,7 @@ class UserApprovalQueueView(LoginRequiredMixin, ListView):
         )
         ctx["breadcrumb_items"] = items(
             home(),
-            {"label": _("Pano"), "url": "dashboard:index"},
+            {"label": _("Pano"), "url": reverse("dashboard:index")},
             {"label": _("Kullanıcı onayları"), "url": None},
         )
         return ctx

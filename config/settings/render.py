@@ -26,8 +26,13 @@ STORAGES = {
     },
 }
 
+# Manifest'te kayıt yoksa 500 fırlatmak yerine orijinal URL döner
+WHITENOISE_MANIFEST_STRICT = False
+
 STATIC_URL = "/static/"
-STATICFILES_DIRS = []
+
+# Veritabanı bağlantısını worker ömrü boyunca canlı tut (Render'da faydalı)
+CONN_MAX_AGE = 60
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 USE_X_FORWARDED_HOST = env.bool("DJANGO_USE_X_FORWARDED_HOST", default=True)  # noqa: F405
