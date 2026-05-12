@@ -48,34 +48,36 @@ class StudentRequiredMixin(RoleRequiredMixin):
     allowed_roles = ("student",)
 
     def dispatch(self, request, *args, **kwargs):
-        resp = super().dispatch(request, *args, **kwargs)
+        # Onay kontrolü super()'dan ÖNCE yapılmalı; aksi hâlde view post() metodu
+        # (ör. enrollment kaydı) çalıştıktan sonra redirect döner ama DB yazımı
+        # zaten gerçekleşmiş olur.
         if request.user.is_authenticated and request.user.role == "student":
             profile = getattr(request.user, "student_profile", None)
-            if profile and not profile.is_approved:
+            if profile is not None and not profile.is_approved:
                 messages.warning(
                     request,
                     "Hesabınız henüz yönetici tarafından onaylanmadı. "
                     "Onaylandıktan sonra bu alana erişebilirsiniz.",
                 )
                 return redirect("core:home")
-        return resp
+        return super().dispatch(request, *args, **kwargs)
 
 
 class InstructorRequiredMixin(RoleRequiredMixin):
     allowed_roles = ("instructor", "admin")
 
     def dispatch(self, request, *args, **kwargs):
-        resp = super().dispatch(request, *args, **kwargs)
+        # Onay kontrolü super()'dan ÖNCE — StudentRequiredMixin ile aynı gerekçe.
         if request.user.is_authenticated and request.user.role == "instructor":
             profile = getattr(request.user, "instructor_profile", None)
-            if profile and not profile.is_approved:
+            if profile is not None and not profile.is_approved:
                 messages.warning(
                     request,
                     "Hesabınız henüz yönetici tarafından onaylanmadı. "
                     "Onaylandıktan sonra bu alana erişebilirsiniz.",
                 )
                 return redirect("core:home")
-        return resp
+        return super().dispatch(request, *args, **kwargs)
 
 
 class FounderAdminRequiredMixin(LoginRequiredMixin):
