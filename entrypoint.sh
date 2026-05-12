@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-: "${DJANGO_SETTINGS_MODULE:=config.settings.prod}"
+: "${DJANGO_SETTINGS_MODULE:=config.settings.render}"
 
 python manage.py migrate --noinput
 python manage.py collectstatic --noinput
