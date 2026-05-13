@@ -8,7 +8,7 @@ from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views import View
-from django.views.generic import ListView, TemplateView, UpdateView
+from django.views.generic import ListView, TemplateView, UpdateView, CreateView
 
 from accounts.models import AdminRequest, User
 from core.breadcrumbs import home, items
@@ -407,6 +407,42 @@ class SemesterManagementView(AdminRequiredMixin, ListView):
         return ctx
 
 
+class SemesterCreateView(AdminRequiredMixin, CreateView):
+    """
+    Yeni dönem oluştur.
+    """
+    model = Semester
+    form_class = SemesterForm
+    template_name = "dashboard/semester_form.html"
+    success_url = reverse_lazy("dashboard:semester_management")
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["breadcrumb_items"] = items(
+            home(),
+            {"label": _("Pano"), "url": reverse("dashboard:index")},
+            {"label": _("Dönem Yönetimi"), "url": reverse("dashboard:semester_management")},
+            {"label": _("Yeni Dönem"), "url": None},
+        )
+        return ctx
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(
+            self.request,
+            _("'%(name)s' dönem oluşturuldu.") % {"name": form.instance.name}
+        )
+        log_event(
+            event_type="semester.create",
+            actor=self.request.user,
+            target_type="academic.Semester",
+            target_id=str(form.instance.pk),
+            metadata={"name": form.instance.name, "academic_year": form.instance.academic_year},
+            request=self.request,
+        )
+        return response
+
+
 class SemesterEditView(AdminRequiredMixin, UpdateView):
     """
     Dönemin add_drop_start ve add_drop_end tarihlerini düzenle.
@@ -448,14 +484,23 @@ class SemesterEditView(AdminRequiredMixin, UpdateView):
 
 def toggle_semester_active(request, pk):
     """
-    Dönemin is_active durumunu aç/kapat.
+    Dönemin is_active durumunu aç/kapat. Aynı anda sadece 1 dönem active olabilir.
     """
     if request.method != "POST" or not request.user.is_authenticated or request.user.role != "admin":
         return redirect("dashboard:semester_management")
 
     semester = get_object_or_404(Semester, pk=pk)
     previous_state = semester.is_active
-    semester.is_active = not semester.is_active
+
+    # Aktif hale getirmek istiyorsa, diğer aktif dönemleri pasif yap
+    if not semester.is_active:
+        Semester.objects.filter(is_active=True).exclude(pk=pk).update(is_active=False)
+        semester.is_active = True
+        action = "activated"
+    else:
+        semester.is_active = False
+        action = "deactivated"
+
     semester.save(update_fields=["is_active", "updated_at"])
 
     log_event(

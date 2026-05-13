@@ -22,6 +22,7 @@ urlpatterns = [
     path("kullanici-onaylari/akademisyen/<int:pk>/", views.ApproveInstructorView.as_view(), name="approve_instructor"),
     path("istatistik/", views.StatisticsView.as_view(), name="statistics"),
     path("donemler/", views.SemesterManagementView.as_view(), name="semester_management"),
+    path("donemler/yeni/", views.SemesterCreateView.as_view(), name="semester_create"),
     path("donemler/<int:pk>/duzenle/", views.SemesterEditView.as_view(), name="semester_edit"),
     path("donemler/<int:pk>/ac-kapat/", views.toggle_semester_active, name="semester_toggle_active"),
 ]
