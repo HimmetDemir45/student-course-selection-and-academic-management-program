@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Öğrenci Ataması — Akademik 2.0" %}{% endblock %}
+
+{% block content %}
+<header class="akd-page-header">
+    <div class="akd-page-header__intro">
+        <span class="akd-page-header__eyebrow">
+            <i data-lucide="users" class="h-3 w-3"></i>
+            {% trans "Yönetim" %}
+        </span>
+        <h1 class="akd-page-header__title">{% trans "Öğrenci Ataması" %}</h1>
+        <p class="akd-page-header__subtitle">
+            {% trans "Öğrencileri programa ve sınıfa atayın, danışman belirleyin." %}
+        </p>
+    </div>
+    <div class="akd-page-header__actions">
+        <a class="akd-btn akd-btn--secondary akd-btn--sm" href="{% url 'dashboard:index' %}">
+            <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i>
+            <span>{% trans "Geri" %}</span>
+        </a>
+    </div>
+</header>
+
+<div class="mb-6">
+    <form method="get" class="flex gap-2">
+        <input
+            type="text"
+            name="q"
+            placeholder="{% trans 'Ad, soyad, numarası ara...' %}"
+            value="{{ search_query }}"
+            class="akd-input flex-1"
+        />
+        <button type="submit" class="akd-btn akd-btn--primary">
+            <i data-lucide="search" class="h-4 w-4"></i>
+        </button>
+    </form>
+</div>
+
+{% if not students %}
+    {% include "includes/empty_state.html" with empty_title=_("Öğrenci yok") empty_message=_("Kayıtlı öğrenci bulunamadı.") empty_icon="users" %}
+{% else %}
+
+<div class="akd-table-wrap">
+    <table class="akd-table">
+        <thead>
+            <tr>
+                <th>{% trans "Adı Soyadı" %}</th>
+                <th>{% trans "Numarası" %}</th>
+                <th>{% trans "Bölüm" %}</th>
+                <th>{% trans "Program" %}</th>
+                <th style="width: 10rem;">{% trans "Sınıf" %}</th>
+                <th>{% trans "Danışman" %}</th>
+                <th style="width: 15rem;" class="text-end"></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for student in students %}
+            <tr>
+                <td class="font-medium" style="color: var(--akd-text)">{{ student.user.get_full_name }}</td>
+                <td class="font-mono text-sm" style="color: var(--akd-text-muted)">{{ student.student_no }}</td>
+                <td class="text-sm" style="color: var(--akd-text-muted)">
+                    {% if student.department %}
+                        {{ student.department.code }}
+                    {% else %}
+                        <span style="color: var(--akd-text-faint)">-</span>
+                    {% endif %}
+                </td>
+                <td class="text-sm" style="color: var(--akd-text-muted)">
+                    {% if student.program %}
+                        {{ student.program.code }}
+                    {% else %}
+                        <span style="color: var(--akd-text-faint)">-</span>
+                    {% endif %}
+                </td>
+                <td class="text-sm" style="color: var(--akd-text-muted)">
+                    {% if student.enrollment_year %}
+                        {{ student.enrollment_year }}. Yıl
+                    {% else %}
+                        <span style="color: var(--akd-text-faint)">-</span>
+                    {% endif %}
+                </td>
+                <td class="text-sm" style="color: var(--akd-text-muted)">
+                    {% if student.advisor %}
+                        {{ student.advisor.user.get_full_name }}
+                    {% else %}
+                        <span style="color: var(--akd-text-faint)">-</span>
+                    {% endif %}
+                </td>
+                <td class="text-end">
+                    <div class="inline-flex gap-1.5 items-center">
+                        <a class="akd-btn akd-btn--secondary akd-btn--sm"
+                           href="{% url 'dashboard:student_assignment_edit' student.pk %}">
+                            <i data-lucide="pencil" class="h-3.5 w-3.5"></i>
+                            <span>{% trans "Ata" %}</span>
+                        </a>
+                    </div>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if is_paginated %}
+    <div class="mt-6 flex gap-2 justify-center">
+        {% if page_obj.has_previous %}
+            <a href="?page=1{% if search_query %}&q={{ search_query }}{% endif %}" class="akd-btn akd-btn--ghost akd-btn--sm">
+                {% trans "İlk" %}
+            </a>
+            <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}" class="akd-btn akd-btn--ghost akd-btn--sm">
+                {% trans "Önceki" %}
+            </a>
+        {% endif %}
+
+        <span class="text-white/60 text-sm">
+            {% trans "Sayfa" %} {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+        </span>
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}" class="akd-btn akd-btn--ghost akd-btn--sm">
+                {% trans "Sonraki" %}
+            </a>
+            <a href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&q={{ search_query }}{% endif %}" class="akd-btn akd-btn--ghost akd-btn--sm">
+                {% trans "Son" %}
+            </a>
+        {% endif %}
+    </div>
+{% endif %}
+
+{% endif %}
+{% endblock %}

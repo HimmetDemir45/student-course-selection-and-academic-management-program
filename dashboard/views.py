@@ -8,7 +8,7 @@ from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views import View
-from django.views.generic import ListView, TemplateView, UpdateView
+from django.views.generic import ListView, TemplateView, UpdateView, CreateView
 
 from accounts.models import AdminRequest, User
 from core.breadcrumbs import home, items
@@ -16,6 +16,7 @@ from instructors.models import InstructorProfile
 from students.models import StudentProfile
 from academic.models import Announcement, Semester
 from academic.forms import SemesterForm
+from .forms import StudentAssignmentForm
 from audit_logs.models import AuditLog
 from audit_logs.services import log_event
 from courses.models import CourseOffering
@@ -407,6 +408,42 @@ class SemesterManagementView(AdminRequiredMixin, ListView):
         return ctx
 
 
+class SemesterCreateView(AdminRequiredMixin, CreateView):
+    """
+    Yeni dönem oluştur.
+    """
+    model = Semester
+    form_class = SemesterForm
+    template_name = "dashboard/semester_form.html"
+    success_url = reverse_lazy("dashboard:semester_management")
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["breadcrumb_items"] = items(
+            home(),
+            {"label": _("Pano"), "url": reverse("dashboard:index")},
+            {"label": _("Dönem Yönetimi"), "url": reverse("dashboard:semester_management")},
+            {"label": _("Yeni Dönem"), "url": None},
+        )
+        return ctx
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(
+            self.request,
+            _("'%(name)s' dönem oluşturuldu.") % {"name": form.instance.name}
+        )
+        log_event(
+            event_type="semester.create",
+            actor=self.request.user,
+            target_type="academic.Semester",
+            target_id=str(form.instance.pk),
+            metadata={"name": form.instance.name, "academic_year": form.instance.academic_year},
+            request=self.request,
+        )
+        return response
+
+
 class SemesterEditView(AdminRequiredMixin, UpdateView):
     """
     Dönemin add_drop_start ve add_drop_end tarihlerini düzenle.
@@ -448,14 +485,23 @@ class SemesterEditView(AdminRequiredMixin, UpdateView):
 
 def toggle_semester_active(request, pk):
     """
-    Dönemin is_active durumunu aç/kapat.
+    Dönemin is_active durumunu aç/kapat. Aynı anda sadece 1 dönem active olabilir.
     """
     if request.method != "POST" or not request.user.is_authenticated or request.user.role != "admin":
         return redirect("dashboard:semester_management")
 
     semester = get_object_or_404(Semester, pk=pk)
     previous_state = semester.is_active
-    semester.is_active = not semester.is_active
+
+    # Aktif hale getirmek istiyorsa, diğer aktif dönemleri pasif yap
+    if not semester.is_active:
+        Semester.objects.filter(is_active=True).exclude(pk=pk).update(is_active=False)
+        semester.is_active = True
+        action = "activated"
+    else:
+        semester.is_active = False
+        action = "deactivated"
+
     semester.save(update_fields=["is_active", "updated_at"])
 
     log_event(
@@ -475,3 +521,78 @@ def toggle_semester_active(request, pk):
         },
     )
     return redirect("dashboard:semester_management")
+
+
+class StudentAssignmentListView(AdminRequiredMixin, ListView):
+    """
+    Yönetici öğrencileri listeleyip, sınıf ve programa atayabilir.
+    """
+    model = StudentProfile
+    template_name = "dashboard/student_assignment_list.html"
+    context_object_name = "students"
+    paginate_by = 25
+
+    def get_queryset(self):
+        qs = StudentProfile.objects.select_related("user", "program", "department", "advisor")
+        # Arama
+        q = self.request.GET.get("q", "").strip()
+        if q:
+            qs = qs.filter(
+                Q(user__first_name__icontains=q) |
+                Q(user__last_name__icontains=q) |
+                Q(student_no__icontains=q) |
+                Q(user__username__icontains=q)
+            )
+        return qs.order_by("-created_at")
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["search_query"] = self.request.GET.get("q", "").strip()
+        ctx["breadcrumb_items"] = items(
+            home(),
+            {"label": _("Pano"), "url": reverse("dashboard:index")},
+            {"label": _("Öğrenci Ataması"), "url": None},
+        )
+        return ctx
+
+
+class StudentAssignmentEditView(AdminRequiredMixin, UpdateView):
+    """
+    Yönetici bir öğrenciyi programa/sınıfa atar.
+    """
+    model = StudentProfile
+    form_class = StudentAssignmentForm
+    template_name = "dashboard/student_assignment_form.html"
+    success_url = reverse_lazy("dashboard:student_assignment_list")
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["breadcrumb_items"] = items(
+            home(),
+            {"label": _("Pano"), "url": reverse("dashboard:index")},
+            {"label": _("Öğrenci Ataması"), "url": reverse("dashboard:student_assignment_list")},
+            {"label": _("Düzenle"), "url": None},
+        )
+        return ctx
+
+    def form_valid(self, form):
+        messages.success(
+            self.request,
+            _("%(name)s öğrencisinin ataması güncellendi.") % {
+                "name": form.instance.user.get_full_name()
+            }
+        )
+        log_event(
+            event_type="student.assignment_updated",
+            actor=self.request.user,
+            target_type="students.StudentProfile",
+            target_id=str(form.instance.pk),
+            metadata={
+                "student_no": form.instance.student_no,
+                "program": str(form.instance.program) if form.instance.program else "None",
+                "enrollment_year": form.instance.enrollment_year,
+                "advisor": str(form.instance.advisor) if form.instance.advisor else "None",
+            },
+            request=self.request,
+        )
+        return super().form_valid(form)

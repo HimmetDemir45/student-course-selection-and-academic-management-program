@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Ders Kayıtlarını İncelemesi — Akademik 2.0" %}{% endblock %}
+
+{% block content %}
+<header class="akd-page-header">
+    <div class="akd-page-header__intro">
+        <span class="akd-page-header__eyebrow">
+            <i data-lucide="book-open" class="h-3 w-3"></i>
+            {% trans "Eğitim Görevlisi" %}
+        </span>
+        <h1 class="akd-page-header__title">{% trans "Ders Kayıtlarını İncelemesi" %}</h1>
+        <p class="akd-page-header__subtitle">
+            {% if active_semester %}
+                {% trans "Aktif Dönem:" %} <strong>{{ active_semester.name }}</strong>
+            {% else %}
+                {% trans "Şu anda aktif dönem yok." %}
+            {% endif %}
+        </p>
+    </div>
+    <div class="akd-page-header__actions">
+        <a class="akd-btn akd-btn--secondary akd-btn--sm" href="{% url 'instructors:index' %}">
+            <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i>
+            <span>{% trans "Geri" %}</span>
+        </a>
+    </div>
+</header>
+
+{% if error %}
+    <div class="bg-red-500/10 border border-red-500/20 rounded-lg p-4 mb-6">
+        <p class="text-red-200">{{ error }}</p>
+    </div>
+{% endif %}
+
+{% if not courses_with_enrollments %}
+    {% include "includes/empty_state.html" with empty_title=_("Ders yok") empty_message=_("Bu dönem için kayıtlı ders yok.") empty_icon="book-open" %}
+{% else %}
+
+    {% for course_item in courses_with_enrollments %}
+        <div class="akd-card mb-6">
+            <div class="flex items-start justify-between mb-4 pb-4 border-b border-white/10">
+                <div>
+                    <h3 class="text-lg font-semibold text-white">
+                        {{ course_item.offering.course.code }} - {{ course_item.offering.course.name }}
+                    </h3>
+                    <p class="text-sm text-white/60 mt-1">
+                        {% trans "Bölüm:" %} {{ course_item.offering.course.department.code }}
+                        • {% trans "Kredi:" %} {{ course_item.offering.course.credits }}
+                    </p>
+                </div>
+                <div class="text-right">
+                    <div class="text-2xl font-bold text-white">{{ course_item.total }}</div>
+                    <p class="text-xs text-white/60">{% trans "Kayıtlı" %}</p>
+                    {% if course_item.pending_review > 0 %}
+                        <div class="mt-2">
+                            <span class="inline-block px-2 py-1 bg-yellow-500/20 text-yellow-200 text-xs rounded">
+                                {{ course_item.pending_review }} {% trans "inceleme bekliyor" %}
+                            </span>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if course_item.enrollments %}
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="border-b border-white/10">
+                                <th class="text-left py-2 px-3 text-white/70 font-medium">{% trans "Öğrenci" %}</th>
+                                <th class="text-left py-2 px-3 text-white/70 font-medium">{% trans "Öğr. No" %}</th>
+                                <th class="text-left py-2 px-3 text-white/70 font-medium">{% trans "Durum" %}</th>
+                                <th class="text-left py-2 px-3 text-white/70 font-medium">{% trans "Onay Durumu" %}</th>
+                                <th class="text-right py-2 px-3"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for enrollment in course_item.enrollments %}
+                                <tr class="border-b border-white/5 hover:bg-white/5 transition">
+                                    <td class="py-3 px-3 text-white">
+                                        {{ enrollment.student.user.get_full_name }}
+                                    </td>
+                                    <td class="py-3 px-3 text-white/70 font-mono">
+                                        {{ enrollment.student.student_no }}
+                                    </td>
+                                    <td class="py-3 px-3">
+                                        <span class="inline-block px-2 py-1 rounded text-xs font-medium
+                                            {% if enrollment.status == 'enrolled' %}
+                                                bg-green-500/20 text-green-200
+                                            {% elif enrollment.status == 'pending' %}
+                                                bg-yellow-500/20 text-yellow-200
+                                            {% elif enrollment.status == 'dropped' %}
+                                                bg-gray-500/20 text-gray-300
+                                            {% else %}
+                                                bg-blue-500/20 text-blue-200
+                                            {% endif %}
+                                        ">
+                                            {% if enrollment.status == 'enrolled' %}
+                                                {% trans "Kayıtlı" %}
+                                            {% elif enrollment.status == 'pending' %}
+                                                {% trans "Bekleme" %}
+                                            {% elif enrollment.status == 'dropped' %}
+                                                {% trans "Bırakılmış" %}
+                                            {% else %}
+                                                {{ enrollment.get_status_display }}
+                                            {% endif %}
+                                        </span>
+                                    </td>
+                                    <td class="py-3 px-3">
+                                        {% if enrollment.instructor_approved %}
+                                            <span class="inline-block px-2 py-1 bg-green-500/20 text-green-200 text-xs rounded">
+                                                <i data-lucide="check" class="inline h-3 w-3 mr-1"></i>
+                                                {% trans "Onaylı" %}
+                                            </span>
+                                        {% else %}
+                                            <span class="inline-block px-2 py-1 bg-amber-500/20 text-amber-200 text-xs rounded">
+                                                <i data-lucide="alert-circle" class="inline h-3 w-3 mr-1"></i>
+                                                {% trans "Bekleme" %}
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="py-3 px-3 text-right">
+                                        {% if not enrollment.instructor_approved and enrollment.status in 'enrolled,pending' %}
+                                            <button
+                                                class="akd-btn akd-btn--success akd-btn--sm approve-btn"
+                                                data-enrollment-id="{{ enrollment.pk }}"
+                                            >
+                                                <i data-lucide="check" class="h-3.5 w-3.5"></i>
+                                                <span>{% trans "Onayla" %}</span>
+                                            </button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+    {% endfor %}
+
+{% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const approveButtons = document.querySelectorAll('.approve-btn');
+
+    approveButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const enrollmentId = this.dataset.enrollmentId;
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value ||
+                            document.querySelector('meta[name="csrf-token"]')?.content;
+
+            fetch(`{% url 'instructors:enrollment_approve' enrollment_id=0 %}`.replace('/0/', '/' + enrollmentId + '/'), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.error || '{% trans "Hata oluştu" %}');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('{% trans "Bir hata oluştu" %}');
+            });
+        });
+    });
+});
+</script>
+
+{% endblock %}

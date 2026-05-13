@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 from core.models import TimeStampedModel
 from core.services.enrollment_rules import validate_enrollment_save
@@ -28,6 +29,18 @@ class Enrollment(TimeStampedModel):
         default=Status.ENROLLED,
         db_index=True,
     )
+
+    # Eğitim görevlisi onayı (instructor approval)
+    instructor_approved = models.BooleanField(default=False)
+    instructor_approved_by = models.ForeignKey(
+        "instructors.InstructorProfile",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="approved_enrollments",
+    )
+    instructor_approved_at = models.DateTimeField(null=True, blank=True)
+    instructor_comment = models.TextField(blank=True, help_text="Eğitim görevlisinin notu")
 
     class Meta:
         ordering = ("-created_at",)

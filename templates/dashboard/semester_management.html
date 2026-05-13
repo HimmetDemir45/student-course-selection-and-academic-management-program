@@ -16,6 +16,10 @@
         </p>
     </div>
     <div class="akd-page-header__actions">
+        <a class="akd-btn akd-btn--primary akd-btn--sm" href="{% url 'dashboard:semester_create' %}">
+            <i data-lucide="plus" class="h-3.5 w-3.5"></i>
+            <span>{% trans "Yeni Dönem" %}</span>
+        </a>
         <a class="akd-btn akd-btn--secondary akd-btn--sm" href="{% url 'dashboard:index' %}">
             <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i>
             <span>{% trans "Geri" %}</span>
@@ -26,6 +30,13 @@
 {% if not semesters %}
     {% include "includes/empty_state.html" with empty_title=_("Dönem yok") empty_message=_("Henüz dönem oluşturulmamıştır.") empty_icon="calendar" %}
 {% else %}
+
+<div class="mb-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+    <p class="text-sm text-blue-200">
+        <i data-lucide="info" class="inline h-4 w-4 mr-2"></i>
+        {% trans "Şu anda sadece bir dönem aktif olabilir. Yeni bir dönem aktifleştirmek öncekini otomatik olarak kapatacaktır." %}
+    </p>
+</div>
 
 <div class="akd-table-wrap">
     <table class="akd-table">

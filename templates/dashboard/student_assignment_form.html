@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Öğrenci Ataması — Akademik 2.0" %}{% endblock %}
+
+{% block content %}
+<header class="akd-page-header">
+    <div class="akd-page-header__intro">
+        <span class="akd-page-header__eyebrow">
+            <i data-lucide="users" class="h-3 w-3"></i>
+            {% trans "Yönetim" %}
+        </span>
+        <h1 class="akd-page-header__title">{% trans "Öğrenci Ataması" %}</h1>
+        <p class="akd-page-header__subtitle">
+            <strong>{{ object.user.get_full_name }}</strong> ({{ object.student_no }})
+        </p>
+    </div>
+    <div class="akd-page-header__actions">
+        <a class="akd-btn akd-btn--secondary akd-btn--sm" href="{% url 'dashboard:student_assignment_list' %}">
+            <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i>
+            <span>{% trans "Geri" %}</span>
+        </a>
+    </div>
+</header>
+
+<section class="akd-card max-w-2xl">
+    <form method="post" novalidate class="akd-form">
+        {% csrf_token %}
+        {% include "includes/form_errors.html" with form=form %}
+
+        <div class="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 mb-6">
+            <p class="text-sm text-blue-200">
+                <i data-lucide="info" class="inline h-4 w-4 mr-2"></i>
+                {% trans "Öğrenci bilgilerini düzenleyerek programa ve sınıfa atayabilirsiniz." %}
+            </p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div class="akd-form-group">
+                <label class="akd-label" for="{{ form.department.id_for_label }}">{{ form.department.label }}</label>
+                {{ form.department }}
+                {% if form.department.help_text %}<p class="akd-form-hint">{{ form.department.help_text }}</p>{% endif %}
+                {% for e in form.department.errors %}<p class="akd-form-error">{{ e }}</p>{% endfor %}
+            </div>
+            <div class="akd-form-group">
+                <label class="akd-label" for="{{ form.program.id_for_label }}">{{ form.program.label }}</label>
+                {{ form.program }}
+                {% if form.program.help_text %}<p class="akd-form-hint">{{ form.program.help_text }}</p>{% endif %}
+                {% for e in form.program.errors %}<p class="akd-form-error">{{ e }}</p>{% endfor %}
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div class="akd-form-group">
+                <label class="akd-label" for="{{ form.enrollment_year.id_for_label }}">{{ form.enrollment_year.label }}</label>
+                {{ form.enrollment_year }}
+                {% if form.enrollment_year.help_text %}<p class="akd-form-hint">{{ form.enrollment_year.help_text }}</p>{% endif %}
+                {% for e in form.enrollment_year.errors %}<p class="akd-form-error">{{ e }}</p>{% endfor %}
+            </div>
+            <div class="akd-form-group">
+                <label class="akd-label" for="{{ form.advisor.id_for_label }}">{{ form.advisor.label }}</label>
+                {{ form.advisor }}
+                {% if form.advisor.help_text %}<p class="akd-form-hint">{{ form.advisor.help_text }}</p>{% endif %}
+                {% for e in form.advisor.errors %}<p class="akd-form-error">{{ e }}</p>{% endfor %}
+            </div>
+        </div>
+
+        <div class="akd-form-group">
+            <label class="akd-label flex items-center gap-2 cursor-pointer">
+                {{ form.is_approved }}
+                <span>{{ form.is_approved.label }}</span>
+            </label>
+            {% if form.is_approved.help_text %}<p class="akd-form-hint">{{ form.is_approved.help_text }}</p>{% endif %}
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2 mt-6">
+            <button type="submit" class="akd-btn akd-btn--primary">
+                <i data-lucide="save" class="h-4 w-4"></i>
+                <span>{% trans "Kaydet" %}</span>
+            </button>
+            <a class="akd-btn akd-btn--ghost" href="{% url 'dashboard:student_assignment_list' %}">
+                <i data-lucide="x" class="h-4 w-4"></i>
+                <span>{% trans "İptal" %}</span>
+            </a>
+        </div>
+    </form>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const deptSelect = document.getElementById('{{ form.department.id_for_label }}');
+    const progSelect = document.getElementById('{{ form.program.id_for_label }}');
+
+    function updatePrograms() {
+        const deptId = deptSelect.value;
+        if (!deptId) {
+            progSelect.innerHTML = '<option value="">---------</option>';
+            return;
+        }
+
+        fetch(`/api/department/${deptId}/programs/`)
+            .then(response => response.json())
+            .then(data => {
+                progSelect.innerHTML = '<option value="">---------</option>';
+                data.programs.forEach(prog => {
+                    const option = document.createElement('option');
+                    option.value = prog.id;
+                    option.textContent = prog.code + ' - ' + prog.name;
+                    progSelect.appendChild(option);
+                });
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    if (deptSelect) {
+        deptSelect.addEventListener('change', updatePrograms);
+    }
+});
+</script>
+{% endblock %}

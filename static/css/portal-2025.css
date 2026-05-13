@@ -96,6 +96,23 @@ html:not(.dark) {
 html:not(.dark) body { color-scheme: light; }
 html.dark body { color-scheme: dark; }
 
+/* Light Mode Tailwind Overrides — Light theme'de text-white vb. düzelt */
+html:not(.dark) .text-white { color: var(--akd-text); }
+html:not(.dark) .text-white\/70 { color: var(--akd-text-muted); }
+html:not(.dark) .text-white\/60 { color: var(--akd-text-muted); }
+html:not(.dark) .text-white\/50 { color: var(--akd-text-dim); }
+html:not(.dark) .text-white\/40 { color: var(--akd-text-faint); }
+html:not(.dark) .text-white\/30 { color: var(--akd-text-faint); }
+html:not(.dark) .text-white\/20 { color: var(--akd-text-faint); }
+
+html:not(.dark) .bg-white\/5 { background-color: var(--akd-surface-1); }
+html:not(.dark) .bg-white\/10 { background-color: var(--akd-surface-2); }
+html:not(.dark) .bg-white\/[0.025] { background-color: var(--akd-surface-1); }
+
+html:not(.dark) .border-white\/10 { border-color: var(--akd-border); }
+html:not(.dark) .border-white\/5 { border-color: var(--akd-border); }
+html:not(.dark) .border-white\/20 { border-color: var(--akd-border-strong); }
+
 /* ----------------------------------------------------------------
    LIGHT THEME — html:not(.dark) (toggle 'dark' class'ını söker)
    Aynı değişken adları light değerlerle override edilir.
