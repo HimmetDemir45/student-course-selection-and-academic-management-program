@@ -1,0 +1,16 @@
+{% load i18n %}
+{% if breadcrumb_items %}
+<nav class="akd-breadcrumb" aria-label="{% trans 'Sayfa yolu' %}">
+    {% for item in breadcrumb_items %}
+        {% if item.url and not item.is_last %}
+            <a href="{{ item.url }}">{{ item.label }}</a>
+            <span class="akd-breadcrumb__sep" aria-hidden="true">›</span>
+        {% else %}
+            <span class="akd-breadcrumb__current"{% if item.is_last %} aria-current="page"{% endif %}>{{ item.label }}</span>
+            {% if not forloop.last %}
+            <span class="akd-breadcrumb__sep" aria-hidden="true">›</span>
+            {% endif %}
+        {% endif %}
+    {% endfor %}
+</nav>
+{% endif %}
