@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Dönem Düzenle — Akademik 2.0" %}{% endblock %}
+
+{% block content %}
+<header class="akd-page-header">
+    <div class="akd-page-header__intro">
+        <span class="akd-page-header__eyebrow">
+            <i data-lucide="calendar" class="h-3 w-3"></i>
+            {% trans "Yönetim" %}
+        </span>
+        <h1 class="akd-page-header__title">{% trans "Dönem Düzenle" %}</h1>
+        <p class="akd-page-header__subtitle">
+            {% trans "Ders ekleme/bırakma penceresi tarihlerini ve diğer ayarları düzenleyin." %}
+        </p>
+    </div>
+    <div class="akd-page-header__actions">
+        <a class="akd-btn akd-btn--secondary akd-btn--sm" href="{% url 'dashboard:semester_management' %}">
+            <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i>
+            <span>{% trans "Geri" %}</span>
+        </a>
+    </div>
+</header>
+
+<section class="akd-card max-w-2xl">
+    <form method="post" novalidate class="akd-form">
+        {% csrf_token %}
+        {% include "includes/form_errors.html" with form=form %}
+
+        <div class="akd-form-group">
+            <label class="akd-label">{% trans "Dönem" %}</label>
+            <div class="text-white/70 text-sm">{{ form.instance.name }}</div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div class="akd-form-group">
+                <label class="akd-label" for="{{ form.start_date.id_for_label }}">{{ form.start_date.label }}</label>
+                <div class="text-white/70 text-sm">{{ form.instance.start_date|date:"d.m.Y" }}</div>
+            </div>
+            <div class="akd-form-group">
+                <label class="akd-label" for="{{ form.end_date.id_for_label }}">{{ form.end_date.label }}</label>
+                <div class="text-white/70 text-sm">{{ form.instance.end_date|date:"d.m.Y" }}</div>
+            </div>
+        </div>
+
+        <hr class="border-white/10 my-6">
+
+        <p class="text-xs text-white/50 mb-4 font-semibold uppercase tracking-widest">
+            {% trans "Ders Ekleme/Bırakma Penceresi" %}
+        </p>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div class="akd-form-group">
+                <label class="akd-label" for="{{ form.add_drop_start.id_for_label }}">{{ form.add_drop_start.label }}</label>
+                {{ form.add_drop_start }}
+                {% if form.add_drop_start.help_text %}<p class="akd-form-hint">{{ form.add_drop_start.help_text }}</p>{% endif %}
+                {% for e in form.add_drop_start.errors %}<p class="akd-form-error">{{ e }}</p>{% endfor %}
+            </div>
+            <div class="akd-form-group">
+                <label class="akd-label" for="{{ form.add_drop_end.id_for_label }}">{{ form.add_drop_end.label }}</label>
+                {{ form.add_drop_end }}
+                {% if form.add_drop_end.help_text %}<p class="akd-form-hint">{{ form.add_drop_end.help_text }}</p>{% endif %}
+                {% for e in form.add_drop_end.errors %}<p class="akd-form-error">{{ e }}</p>{% endfor %}
+            </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2 mt-6">
+            <button type="submit" class="akd-btn akd-btn--primary">
+                <i data-lucide="save" class="h-4 w-4"></i>
+                <span>{% trans "Kaydet" %}</span>
+            </button>
+            <a class="akd-btn akd-btn--ghost" href="{% url 'dashboard:semester_management' %}">
+                <i data-lucide="x" class="h-4 w-4"></i>
+                <span>{% trans "İptal" %}</span>
+            </a>
+        </div>
+    </form>
+</section>
+
+{% endblock %}

@@ -1,23 +1,25 @@
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Count, Q
-from django.shortcuts import redirect
-from django.urls import reverse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views import View
-from django.views.generic import ListView, TemplateView
+from django.views.generic import ListView, TemplateView, UpdateView
 
 from accounts.models import AdminRequest, User
 from core.breadcrumbs import home, items
 from instructors.models import InstructorProfile
 from students.models import StudentProfile
 from academic.models import Announcement, Semester
+from academic.forms import SemesterForm
 from audit_logs.models import AuditLog
 from audit_logs.services import log_event
 from courses.models import CourseOffering
-from core.permissions import FounderAdminRequiredMixin
+from core.permissions import AdminRequiredMixin, FounderAdminRequiredMixin
 from core.services.enrollment_rules import is_within_add_drop
 from enrollments.models import Enrollment
 
@@ -381,3 +383,95 @@ class StatisticsView(LoginRequiredMixin, TemplateView):
             {"label": _("İstatistikler"), "url": None},
         )
         return ctx
+
+
+class SemesterManagementView(AdminRequiredMixin, ListView):
+    """
+    Dönemleri listeleyip düzenle: is_active'i aç/kapat, ekleme/bırakma penceresi tarihlerini düzenle.
+    """
+    model = Semester
+    template_name = "dashboard/semester_management.html"
+    context_object_name = "semesters"
+    paginate_by = 20
+
+    def get_queryset(self):
+        return Semester.objects.all().order_by("-academic_year", "term")
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["breadcrumb_items"] = items(
+            home(),
+            {"label": _("Pano"), "url": reverse("dashboard:index")},
+            {"label": _("Dönem Yönetimi"), "url": None},
+        )
+        return ctx
+
+
+class SemesterEditView(AdminRequiredMixin, UpdateView):
+    """
+    Dönemin add_drop_start ve add_drop_end tarihlerini düzenle.
+    """
+    model = Semester
+    form_class = SemesterForm
+    template_name = "dashboard/semester_form.html"
+    success_url = reverse_lazy("dashboard:semester_management")
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["breadcrumb_items"] = items(
+            home(),
+            {"label": _("Pano"), "url": reverse("dashboard:index")},
+            {"label": _("Dönem Yönetimi"), "url": reverse("dashboard:semester_management")},
+            {"label": _("Dönem Düzenle"), "url": None},
+        )
+        return ctx
+
+    def form_valid(self, form):
+        messages.success(
+            self.request,
+            _("'%(name)s' döneminin ayarları güncellendi.") % {"name": form.instance.name}
+        )
+        log_event(
+            event_type="semester.edit",
+            actor=self.request.user,
+            target_type="academic.Semester",
+            target_id=str(form.instance.pk),
+            metadata={
+                "name": form.instance.name,
+                "add_drop_start": str(form.instance.add_drop_start) if form.instance.add_drop_start else "None",
+                "add_drop_end": str(form.instance.add_drop_end) if form.instance.add_drop_end else "None",
+            },
+            request=self.request,
+        )
+        return super().form_valid(form)
+
+
+def toggle_semester_active(request, pk):
+    """
+    Dönemin is_active durumunu aç/kapat.
+    """
+    if request.method != "POST" or not request.user.is_authenticated or request.user.role != "admin":
+        return redirect("dashboard:semester_management")
+
+    semester = get_object_or_404(Semester, pk=pk)
+    previous_state = semester.is_active
+    semester.is_active = not semester.is_active
+    semester.save(update_fields=["is_active", "updated_at"])
+
+    log_event(
+        event_type="semester.toggle_active",
+        actor=request.user,
+        target_type="academic.Semester",
+        target_id=str(semester.pk),
+        metadata={"from": previous_state, "to": semester.is_active, "name": semester.name},
+        request=request,
+    )
+
+    messages.success(
+        request,
+        _("'%(name)s' dönemi %(state)s hale getirildi.") % {
+            "name": semester.name,
+            "state": _("aktif") if semester.is_active else _("pasif"),
+        },
+    )
+    return redirect("dashboard:semester_management")

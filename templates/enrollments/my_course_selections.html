@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Ders Seçimlerim — Akademik 2.0" %}{% endblock %}
+
+{% block content %}
+<header class="akd-page-header">
+    <div class="akd-page-header__intro">
+        <span class="akd-page-header__eyebrow">
+            <i data-lucide="graduation-cap" class="h-3 w-3"></i>
+            {% trans "Öğrenci" %}
+        </span>
+        <h1 class="akd-page-header__title">{% trans "Ders Seçimlerim" %}</h1>
+        <p class="akd-page-header__subtitle">
+            {% trans "Aktif dönem ders seçimlerinizi ve onay durumlarını takip edebilirsiniz." %}
+        </p>
+    </div>
+    <div class="akd-page-header__actions">
+        <a class="akd-btn akd-btn--primary akd-btn--sm" href="{% url 'enrollments:browse' %}">
+            <i data-lucide="plus" class="h-3.5 w-3.5"></i>
+            <span>{% trans "Ders ekle" %}</span>
+        </a>
+        <a class="akd-btn akd-btn--secondary akd-btn--sm" href="{% url 'students:index' %}">
+            <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i>
+            <span>{% trans "Geri" %}</span>
+        </a>
+    </div>
+</header>
+
+{% if not current_semester %}
+    {% include "includes/empty_state.html" with empty_title=_("Aktif dönem yok") empty_message=_("Şu anda aktif bir dönem bulunmamaktadır. Yönetici ile iletişime geçin.") empty_icon="alert-circle" %}
+
+{% elif not pending_enrollments and not enrolled_enrollments and not dropped_enrollments %}
+    {% include "includes/empty_state.html" with empty_title=_("Ders seçiminiz yok") empty_message=_("Henüz aktif dönem için ders seçmediniz. Şubeler listesinden ders ekleyebilirsiniz.") empty_icon="inbox" %}
+
+{% else %}
+
+{# Dönem başlığı ve statüsü #}
+<div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+    <div class="flex items-center gap-3">
+        <h2 class="text-base font-semibold text-white">{{ current_semester.name }}</h2>
+        {% if current_semester.term == "fall" %}
+            <span class="akd-badge akd-badge--neutral">{% trans "Güz" %}</span>
+        {% elif current_semester.term == "spring" %}
+            <span class="akd-badge akd-badge--success">{% trans "Bahar" %}</span>
+        {% else %}
+            <span class="akd-badge akd-badge--neutral">{% trans "Yaz" %}</span>
+        {% endif %}
+    </div>
+    <div class="flex items-center gap-3">
+        {# Toplam kredi #}
+        <span class="text-xs text-white/55">
+            {% trans "Toplam:" %}
+            <strong class="text-white/85">{{ total_credits }} {% trans "kredi" %}</strong>
+        </span>
+        {# Ekleme/bırakma penceresi #}
+        {% if within_window %}
+            <span class="akd-badge akd-badge--success">
+                <i data-lucide="calendar-check" class="h-3 w-3"></i>
+                {% trans "Ekleme/bırakma açık" %}
+            </span>
+        {% else %}
+            {% if current_semester.add_drop_start %}
+                <span class="akd-badge akd-badge--neutral">
+                    <i data-lucide="lock" class="h-3 w-3"></i>
+                    {% trans "Ekleme/bırakma kapalı" %}
+                </span>
+            {% else %}
+                <span class="akd-badge akd-badge--neutral">
+                    <i data-lucide="info" class="h-3 w-3"></i>
+                    {% trans "Pencere tanımsız" %}
+                </span>
+            {% endif %}
+        {% endif %}
+    </div>
+</div>
+
+{# ────────────── Danışman onayı bekleyenler ────────────── #}
+{% if pending_enrollments %}
+<div class="mb-6">
+    <p class="text-xs font-semibold text-amber-300/80 uppercase tracking-widest mb-2">
+        <i data-lucide="clock" class="inline h-3 w-3 mr-1"></i>
+        {% trans "Danışman onayı beklemekte" %}
+        <span class="ml-1 font-normal normal-case text-white/40">({{ pending_enrollments|length }})</span>
+    </p>
+    <div class="akd-table-wrap">
+        <table class="akd-table">
+            <thead>
+                <tr>
+                    <th scope="col">{% trans "Ders" %}</th>
+                    <th scope="col" style="width: 5rem;">{% trans "Şube" %}</th>
+                    <th scope="col" style="width: 5rem;" class="text-center">{% trans "Kredi" %}</th>
+                    <th scope="col" style="width: 13rem;">{% trans "Öğretim Üyesi" %}</th>
+                    <th scope="col" style="width: 9rem;">{% trans "Durum" %}</th>
+                    <th scope="col" style="width: 8rem;" class="text-end"></th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for enr in pending_enrollments %}
+                <tr class="bg-amber-500/5 border-l-2 border-amber-400/30">
+                    <td class="font-medium">
+                        <div class="flex items-center gap-2.5">
+                            <span class="font-mono text-xs text-amber-200 px-2 py-1 rounded-md bg-amber-500/15 border border-amber-400/25 flex-shrink-0">
+                                {{ enr.section.offering.course.code }}
+                            </span>
+                            <span class="truncate text-white/90">{{ enr.section.offering.course.name }}</span>
+                        </div>
+                    </td>
+                    <td class="text-white/75 font-semibold">{{ enr.section.offering.section }}</td>
+                    <td class="text-center text-white/70 text-sm">{{ enr.section.offering.course.credits|default:"—" }}</td>
+                    <td class="text-white/60 text-sm">
+                        {% if enr.section.offering.instructor %}
+                            {{ enr.section.offering.instructor.user.get_full_name|default:enr.section.offering.instructor.user.username }}
+                        {% else %}—{% endif %}
+                    </td>
+                    <td>
+                        <span class="akd-badge akd-badge--warning">
+                            <i data-lucide="clock" class="h-3 w-3"></i>
+                            {% trans "Beklemede" %}
+                        </span>
+                    </td>
+                    <td class="text-end">
+                        <form method="post" action="{% url 'enrollments:drop' enr.pk %}">
+                            {% csrf_token %}
+                            <button type="submit"
+                                    class="akd-btn akd-btn--danger akd-btn--sm"
+                                    onclick="return confirm('{% trans "Bu ders talebini iptal etmek istiyor musun?" %}')"
+                                    aria-label="{% trans 'Talebi iptal et' %}">
+                                <i data-lucide="x" class="h-3.5 w-3.5"></i>
+                                <span>{% trans "İptal" %}</span>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{# ────────────── Onaylı / kayıtlı dersler ────────────── #}
+{% if enrolled_enrollments %}
+<div class="mb-6">
+    <p class="text-xs font-semibold text-emerald-300/80 uppercase tracking-widest mb-2">
+        <i data-lucide="check-circle-2" class="inline h-3 w-3 mr-1"></i>
+        {% trans "Onaylı Kayıtlar" %}
+        <span class="ml-1 font-normal normal-case text-white/40">({{ enrolled_enrollments|length }})</span>
+    </p>
+    <div class="akd-table-wrap">
+        <table class="akd-table">
+            <thead>
+                <tr>
+                    <th scope="col">{% trans "Ders" %}</th>
+                    <th scope="col" style="width: 5rem;">{% trans "Şube" %}</th>
+                    <th scope="col" style="width: 5rem;" class="text-center">{% trans "Kredi" %}</th>
+                    <th scope="col" style="width: 13rem;">{% trans "Öğretim Üyesi" %}</th>
+                    <th scope="col" style="width: 10rem;">{% trans "Derslik" %}</th>
+                    <th scope="col" style="width: 9rem;">{% trans "Durum" %}</th>
+                    <th scope="col" style="width: 8rem;" class="text-end"></th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for enr in enrolled_enrollments %}
+                <tr class="bg-emerald-500/5 border-l-2 border-emerald-400/30">
+                    <td class="font-medium">
+                        <div class="flex items-center gap-2.5">
+                            <span class="font-mono text-xs text-indigo-200 px-2 py-1 rounded-md bg-indigo-500/15 border border-indigo-400/25 flex-shrink-0">
+                                {{ enr.section.offering.course.code }}
+                            </span>
+                            <span class="truncate text-white/90">{{ enr.section.offering.course.name }}</span>
+                        </div>
+                    </td>
+                    <td class="text-white/75 font-semibold">{{ enr.section.offering.section }}</td>
+                    <td class="text-center text-white/70 text-sm">{{ enr.section.offering.course.credits|default:"—" }}</td>
+                    <td class="text-white/60 text-sm">
+                        {% if enr.section.offering.instructor %}
+                            {{ enr.section.offering.instructor.user.get_full_name|default:enr.section.offering.instructor.user.username }}
+                        {% else %}—{% endif %}
+                    </td>
+                    <td class="text-white/55 text-sm">
+                        {% if enr.section.offering.classroom %}
+                            {{ enr.section.offering.classroom.building }} {{ enr.section.offering.classroom.room_number }}
+                        {% else %}—{% endif %}
+                    </td>
+                    <td>
+                        <span class="akd-badge akd-badge--success">
+                            <i data-lucide="check" class="h-3 w-3"></i>
+                            {% trans "Onaylı" %}
+                        </span>
+                    </td>
+                    <td class="text-end">
+                        {% if within_window %}
+                        <form method="post" action="{% url 'enrollments:drop' enr.pk %}">
+                            {% csrf_token %}
+                            <button type="submit"
+                                    class="akd-btn akd-btn--danger akd-btn--sm"
+                                    onclick="return confirm('{{ enr.section.offering.course.code }} {% trans "dersini bırakmak istediğine emin misin?" %}')"
+                                    aria-label="{% trans 'Dersi bırak' %}">
+                                <i data-lucide="log-out" class="h-3.5 w-3.5"></i>
+                                <span>{% trans "Bırak" %}</span>
+                            </button>
+                        </form>
+                        {% else %}
+                        <span class="text-xs text-white/30">{% trans "Pencere kapalı" %}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{# ────────────── Bırakılan dersler ────────────── #}
+{% if dropped_enrollments %}
+<div>
+    <p class="text-xs font-semibold text-slate-400/80 uppercase tracking-widest mb-2">
+        <i data-lucide="trash-2" class="inline h-3 w-3 mr-1"></i>
+        {% trans "Bıraktığım Dersler" %}
+        <span class="ml-1 font-normal normal-case text-white/40">({{ dropped_enrollments|length }})</span>
+    </p>
+    <div class="akd-table-wrap">
+        <table class="akd-table">
+            <thead>
+                <tr>
+                    <th scope="col">{% trans "Ders" %}</th>
+                    <th scope="col" style="width: 5rem;">{% trans "Şube" %}</th>
+                    <th scope="col" style="width: 5rem;" class="text-center">{% trans "Kredi" %}</th>
+                    <th scope="col" style="width: 13rem;">{% trans "Öğretim Üyesi" %}</th>
+                    <th scope="col" style="width: 9rem;">{% trans "Durum" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for enr in dropped_enrollments %}
+                <tr class="bg-slate-500/5 border-l-2 border-slate-400/30 opacity-60">
+                    <td class="font-medium">
+                        <div class="flex items-center gap-2.5">
+                            <span class="font-mono text-xs text-slate-300 px-2 py-1 rounded-md bg-slate-500/15 border border-slate-400/25 flex-shrink-0">
+                                {{ enr.section.offering.course.code }}
+                            </span>
+                            <span class="truncate text-white/90">{{ enr.section.offering.course.name }}</span>
+                        </div>
+                    </td>
+                    <td class="text-white/75 font-semibold">{{ enr.section.offering.section }}</td>
+                    <td class="text-center text-white/70 text-sm">{{ enr.section.offering.course.credits|default:"—" }}</td>
+                    <td class="text-white/60 text-sm">
+                        {% if enr.section.offering.instructor %}
+                            {{ enr.section.offering.instructor.user.get_full_name|default:enr.section.offering.instructor.user.username }}
+                        {% else %}—{% endif %}
+                    </td>
+                    <td>
+                        <span class="akd-badge akd-badge--slate">
+                            <i data-lucide="trash-2" class="h-3 w-3"></i>
+                            {% trans "Bırakıldı" %}
+                        </span>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% endif %}
+
+{% endblock %}
