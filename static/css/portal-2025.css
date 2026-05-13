@@ -2104,6 +2104,33 @@ html:not(.dark) [class*="bg-violet-6"] [data-lucide] {
   color: rgba(255, 255, 255, 0.9) !important;
 }
 
+/* ----------------------------------------------------------------
+   PRINT
+   ---------------------------------------------------------------- */
+@media print {
+  .phase15-no-print,
+  .akd-no-print {
+    display: none !important;
+  }
+
+  .akd-shell-sidebar,
+  .akd-shell-header,
+  [data-mobile-sidebar] {
+    display: none !important;
+  }
+
+  .akd-card,
+  .card {
+    box-shadow: none !important;
+    border: 1px solid #e2e8f0 !important;
+  }
+
+  body {
+    background: #fff !important;
+    color: #0f172a !important;
+  }
+}
+
 /* Sidebar aktif bağlantı — border-white/20 class, "bg-white/10 text-white" ile birlikte
    geldiğinde aktif durumu yeterince spesifik işaret eder. */
 html:not(.dark) .akd-shell-sidebar a[class*="border-white/20"] {

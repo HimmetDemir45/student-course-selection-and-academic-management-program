@@ -9,13 +9,13 @@
     {% include "includes/page_header.html" with header_title=transcript_title header_eyebrow=_("Öğrenci") header_subtitle=_("Dönem bazında detaylı not görünümü ve kümülatif GPA.") header_actions_template="includes/page_header_actions/transcript.html" %}
 
     {% if no_profile %}
-        <div class="akd-alert akd-alert--warning phase17-alert" role="alert">
+        <div class="akd-alert akd-alert--warning" role="alert">
             <i data-lucide="alert-triangle" class="akd-alert__icon" aria-hidden="true"></i>
             <span>{% trans "Öğrenci profiliniz tanımlı değil." %}</span>
         </div>
     {% else %}
         {# Genel GPA özeti — ekran #}
-        <section class="akd-card mb-6 phase15-no-print phase17-transcript-meta">
+        <section class="akd-card mb-6 phase15-no-print">
             <div class="flex flex-wrap items-center justify-between gap-4">
                 <div class="flex items-center gap-4">
                     <span class="akd-stat__icon akd-stat__icon--violet flex-shrink-0">
@@ -48,7 +48,7 @@
         {% endif %}
 
         {% for block in semester_blocks %}
-        <section class="akd-card akd-card--flush mb-4 phase17-transcript-section" aria-labelledby="sem-h-{{ block.semester.pk }}">
+        <section class="akd-card akd-card--flush mb-4" aria-labelledby="sem-h-{{ block.semester.pk }}">
             <header class="akd-card__header flex-wrap">
                 <div class="flex items-center gap-3 min-w-0">
                     <span class="akd-stat__icon akd-stat__icon--cyan flex-shrink-0" style="width: 2rem; height: 2rem;">

@@ -109,6 +109,14 @@ jobs:
           files: coverage.xml
           fail_ci_if_error: true
 
+      - name: Detect-secrets taraması
+        run: |
+          pip install detect-secrets
+          test -f .secrets.baseline
+          python -m detect_secrets scan --baseline .secrets.baseline --all-files \
+            --exclude-files '(htmlcov/|\.coverage$|coverage\.xml|node_modules/|\.git/|__pycache__/|\.pyc$|agent-transcripts/)'
+        continue-on-error: true
+
       - name: SBOM (CycloneDX)
         run: |
           pip install cyclonedx-bom
