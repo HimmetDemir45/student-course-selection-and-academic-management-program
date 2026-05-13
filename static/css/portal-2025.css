@@ -2141,6 +2141,26 @@ html:not(.dark) .akd-shell-sidebar a[class*="border-white/20"] {
 }
 
 /* ============================================================
+   22. LIGHT THEME — FOCUS RING OFFSET
+   Tailwind'in focus-visible:ring-offset-[#050816] koyu renk
+   sabit değeri, light temada koyu mavi kutu oluşturur.
+   Aşağıdaki kural bu rengi sayfanın arka planıyla uyumlu hale getirir.
+   ============================================================ */
+
+html:not(.dark) [class*="ring-offset-\[#050816\]"]:focus-visible {
+  --tw-ring-offset-color: var(--akd-bg) !important;
+}
+
+/* Auth sayfaları: split-screen sol panel ve form bölümü
+   Sabit bg-[#050816] divider zeminlerini light arkaplanla uyumlu yap
+   (portal-2025.css zaten .bg-\[\#050816\] override ediyor — bu kural
+    auth section içindeki span'lara ek güvence sağlar). */
+html:not(.dark) section [class*="bg-\[#050816\]"],
+html:not(.dark) div[class*="bg-\[#050816\]"]:not([class*="from-"]):not([class*="via-"]) {
+  background-color: var(--akd-bg) !important;
+}
+
+/* ============================================================
    21. LIGHT THEME — STATUS COLORS
    Dark tema için tasarlanmış pastel renk değerleri (#fca5a5,
    #6ee7b7, #fcd34d, #fecaca vb.) beyaz zeminde okunmuyor.
@@ -2286,4 +2306,44 @@ html:not(.dark) .akd-breadcrumb a:hover,
 html:not(.dark) .breadcrumb a:hover,
 html:not(.dark) .breadcrumb-item a:hover {
   color: var(--akd-indigo) !important;
+}
+
+/* ============================================================
+   23. LIGHT THEME — PASTEL TAILWIND TEXT COLORS
+   text-indigo-200/300, text-emerald-300, text-rose-300 vb.
+   koyu temada okunabilir pastel tonlar; beyaz zeminde kontrast
+   yetersiz. Aşağıdaki kurallar bu renkleri koyu eşdeğerleriyle
+   değiştirir.
+   İstisna: doygun koyu arkaplan (bg-indigo-6xx, bg-rose-5xx vb.)
+   içindeki öğeler — onlarda zaten section XX kuralı beyaz korur.
+   ============================================================ */
+
+html:not(.dark) .text-indigo-200 { color: #4338ca !important; }
+html:not(.dark) .text-indigo-300 { color: #4f46e5 !important; }
+html:not(.dark) .text-indigo-400 { color: #6366f1 !important; }
+html:not(.dark) .text-violet-300 { color: #7c3aed !important; }
+html:not(.dark) .text-violet-400 { color: #8b5cf6 !important; }
+html:not(.dark) .text-cyan-300   { color: #0891b2 !important; }
+html:not(.dark) .text-cyan-400   { color: #06b6d4 !important; }
+html:not(.dark) .text-emerald-300 { color: #059669 !important; }
+html:not(.dark) .text-emerald-400 { color: #10b981 !important; }
+html:not(.dark) .text-rose-300   { color: #e11d48 !important; }
+html:not(.dark) .text-rose-400   { color: #f43f5e !important; }
+html:not(.dark) .text-amber-300  { color: #d97706 !important; }
+html:not(.dark) .text-amber-400  { color: #f59e0b !important; }
+html:not(.dark) .text-sky-300    { color: #0284c7 !important; }
+html:not(.dark) .text-sky-400    { color: #38bdf8 !important; }
+
+/* Doygun koyu bg içindeki pastel metinleri geri al (contrast zaten sağlanmış) */
+html:not(.dark) [class*="bg-indigo-5"] .text-indigo-200,
+html:not(.dark) [class*="bg-indigo-5"] .text-indigo-300,
+html:not(.dark) [class*="bg-indigo-6"] .text-indigo-200,
+html:not(.dark) [class*="bg-indigo-6"] .text-indigo-300,
+html:not(.dark) [class*="bg-violet-5"] .text-violet-300,
+html:not(.dark) [class*="bg-violet-6"] .text-violet-300,
+html:not(.dark) [class*="bg-rose-5"]   .text-rose-300,
+html:not(.dark) [class*="bg-rose-6"]   .text-rose-300,
+html:not(.dark) [class*="bg-emerald-5"] .text-emerald-300,
+html:not(.dark) [class*="bg-emerald-6"] .text-emerald-300 {
+  color: rgba(255, 255, 255, 0.92) !important;
 }
