@@ -170,6 +170,10 @@
             <i data-lucide="bell" class="h-4 w-4"></i>
             <span>{% trans "Duyurular" %}</span>
         </a>
+        <a class="akd-btn akd-btn--secondary" href="{% url 'dashboard:statistics' %}">
+            <i data-lucide="bar-chart-2" class="h-4 w-4"></i>
+            <span>{% trans "İstatistikler" %}</span>
+        </a>
     </div>
 </section>
 
@@ -247,6 +251,10 @@
         <a class="akd-btn akd-btn--secondary" href="{% url 'academic:announcement_list' %}">
             <i data-lucide="bell" class="h-4 w-4"></i>
             <span>{% trans "Duyurular" %}</span>
+        </a>
+        <a class="akd-btn akd-btn--secondary" href="{% url 'dashboard:statistics' %}">
+            <i data-lucide="bar-chart-2" class="h-4 w-4"></i>
+            <span>{% trans "İstatistikler" %}</span>
         </a>
     </div>
 </section>

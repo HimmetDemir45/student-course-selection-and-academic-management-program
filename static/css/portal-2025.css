@@ -2076,3 +2076,39 @@ html.dark [data-ui-theme-toggle] [data-icon-sun] { display: none; }
 html.dark [data-ui-theme-toggle] [data-icon-moon] { display: inline-flex; }
 html:not(.dark) [data-ui-theme-toggle] [data-icon-sun] { display: inline-flex; }
 html:not(.dark) [data-ui-theme-toggle] [data-icon-moon] { display: none; }
+
+/* ============================================================
+   XX. DOLU RENK ARKAPLAN İÇİNDE METİN — LIGHT TEMA
+   bg-indigo-5xx/6xx, bg-rose-5xx/6xx, bg-emerald-5xx/6xx,
+   bg-violet-5xx/6xx gibi doygun orta-koyu arkaplan üstünde
+   text-white* çocuklarının rengini beyaz tut (arka plan koyu
+   olduğu için okunabilir kalır; genel text-white→koyu kuralı
+   burada istenmeyen sonuç üretir).
+   ============================================================ */
+html:not(.dark) [class*="bg-indigo-5"] [class*="text-white"],
+html:not(.dark) [class*="bg-indigo-6"] [class*="text-white"],
+html:not(.dark) [class*="bg-indigo-7"] [class*="text-white"],
+html:not(.dark) [class*="bg-violet-5"] [class*="text-white"],
+html:not(.dark) [class*="bg-violet-6"] [class*="text-white"],
+html:not(.dark) [class*="bg-rose-5"]   [class*="text-white"],
+html:not(.dark) [class*="bg-rose-6"]   [class*="text-white"],
+html:not(.dark) [class*="bg-emerald-5"][class*="text-white"],
+html:not(.dark) [class*="bg-emerald-6"][class*="text-white"] {
+  color: rgba(255, 255, 255, 0.95) !important;
+}
+
+/* Haftalık program slot kartlarındaki Lucide ikon rengi de beyaz kalmalı */
+html:not(.dark) [class*="bg-indigo-6"] [data-lucide],
+html:not(.dark) [class*="bg-rose-6"]   [data-lucide],
+html:not(.dark) [class*="bg-violet-6"] [data-lucide] {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Sidebar aktif bağlantı — border-white/20 class, "bg-white/10 text-white" ile birlikte
+   geldiğinde aktif durumu yeterince spesifik işaret eder. */
+html:not(.dark) .akd-shell-sidebar a[class*="border-white/20"] {
+  background: var(--akd-surface-2) !important;
+  border-color: var(--akd-border-strong) !important;
+  color: var(--akd-text-strong) !important;
+  box-shadow: inset 0 0 0 1px var(--akd-border-strong) !important;
+}

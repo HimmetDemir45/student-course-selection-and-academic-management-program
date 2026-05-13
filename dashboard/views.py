@@ -1,7 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils import timezone
@@ -250,6 +250,81 @@ class ApproveStudentView(LoginRequiredMixin, View):
         if not profile:
             messages.error(request, _("Öğrenci profili bulunamadı."))
             return redirect("dashboard:user_approvals")
+
+
+class StatisticsView(LoginRequiredMixin, TemplateView):
+    template_name = "dashboard/statistics.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated or request.user.role != "admin":
+            messages.error(request, _("Bu sayfaya erişim yetkiniz yok."))
+            return redirect("core:home")
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        from students.models import StudentProfile
+        from courses.models import Course
+        from academic.models import Program
+        from enrollments.models import Enrollment
+        from instructors.models import InstructorProfile
+
+        ctx = super().get_context_data(**kwargs)
+
+        ctx["total_students"] = StudentProfile.objects.count()
+        ctx["approved_students"] = StudentProfile.objects.filter(is_approved=True).count()
+        ctx["total_instructors"] = InstructorProfile.objects.filter(is_approved=True).count()
+        ctx["total_active_courses"] = Course.objects.filter(is_active=True).count()
+
+        status_counts = list(
+            Enrollment.objects.values("status").annotate(count=Count("id")).order_by("status")
+        )
+        total_enrollments = sum(r["count"] for r in status_counts) or 1
+        ctx["total_enrollments"] = total_enrollments
+
+        status_map = {r["status"]: r["count"] for r in status_counts}
+        ctx["enrollment_status_rows"] = [
+            {"label": _("Kayıtlı"), "status": "enrolled", "count": status_map.get("enrolled", 0), "color": "emerald"},
+            {"label": _("Beklemede"), "status": "pending", "count": status_map.get("pending", 0), "color": "amber"},
+            {"label": _("Tamamlandı"), "status": "completed", "count": status_map.get("completed", 0), "color": "indigo"},
+            {"label": _("Bırakıldı"), "status": "dropped", "count": status_map.get("dropped", 0), "color": "rose"},
+            {"label": _("Çekildi"), "status": "withdrawn", "count": status_map.get("withdrawn", 0), "color": "slate"},
+        ]
+        for row in ctx["enrollment_status_rows"]:
+            row["pct"] = round(row["count"] / total_enrollments * 100)
+
+        ctx["top_courses"] = list(
+            Enrollment.objects
+            .filter(status__in=("enrolled", "pending", "completed"))
+            .values("section__offering__course__code", "section__offering__course__name")
+            .annotate(count=Count("id"))
+            .order_by("-count")[:10]
+        )
+
+        ctx["students_per_program"] = list(
+            StudentProfile.objects
+            .filter(program__isnull=False)
+            .values("program__code", "program__name")
+            .annotate(count=Count("id"))
+            .order_by("-count")[:10]
+        )
+
+        ctx["students_per_dept"] = list(
+            StudentProfile.objects
+            .filter(department__isnull=False)
+            .values("department__code", "department__name")
+            .annotate(count=Count("id"))
+            .order_by("-count")[:8]
+        )
+
+        ctx["pending_student_approvals"] = StudentProfile.objects.filter(is_approved=False).count()
+        ctx["pending_enrollments"] = Enrollment.objects.filter(status=Enrollment.Status.PENDING).count()
+
+        ctx["breadcrumb_items"] = items(
+            home(),
+            {"label": _("Pano"), "url": reverse("dashboard:index")},
+            {"label": _("İstatistikler"), "url": None},
+        )
+        return ctx
         action = request.POST.get("action", "approve")
         if action == "reject":
             profile.user.is_active = False
@@ -300,3 +375,78 @@ class ApproveInstructorView(LoginRequiredMixin, View):
             request=request,
         )
         return redirect("dashboard:user_approvals")
+
+
+class StatisticsView(LoginRequiredMixin, TemplateView):
+    template_name = "dashboard/statistics.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated or request.user.role != "admin":
+            messages.error(request, _("Bu sayfaya erişim yetkiniz yok."))
+            return redirect("core:home")
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        from students.models import StudentProfile
+        from courses.models import Course
+        from enrollments.models import Enrollment
+        from instructors.models import InstructorProfile
+
+        ctx = super().get_context_data(**kwargs)
+
+        ctx["total_students"] = StudentProfile.objects.count()
+        ctx["approved_students"] = StudentProfile.objects.filter(is_approved=True).count()
+        ctx["total_instructors"] = InstructorProfile.objects.filter(is_approved=True).count()
+        ctx["total_active_courses"] = Course.objects.filter(is_active=True).count()
+
+        status_counts = list(
+            Enrollment.objects.values("status").annotate(count=Count("id")).order_by("status")
+        )
+        raw_total = sum(r["count"] for r in status_counts)
+        ctx["total_enrollments"] = raw_total
+        divisor = raw_total or 1
+
+        status_map = {r["status"]: r["count"] for r in status_counts}
+        ctx["enrollment_status_rows"] = [
+            {"label": _("Kayıtlı"), "status": "enrolled", "count": status_map.get("enrolled", 0), "color": "emerald"},
+            {"label": _("Beklemede"), "status": "pending", "count": status_map.get("pending", 0), "color": "amber"},
+            {"label": _("Tamamlandı"), "status": "completed", "count": status_map.get("completed", 0), "color": "indigo"},
+            {"label": _("Bırakıldı"), "status": "dropped", "count": status_map.get("dropped", 0), "color": "rose"},
+            {"label": _("Çekildi"), "status": "withdrawn", "count": status_map.get("withdrawn", 0), "color": "slate"},
+        ]
+        for row in ctx["enrollment_status_rows"]:
+            row["pct"] = round(row["count"] / divisor * 100)
+
+        ctx["top_courses"] = list(
+            Enrollment.objects
+            .filter(status__in=("enrolled", "pending", "completed"))
+            .values("section__offering__course__code", "section__offering__course__name")
+            .annotate(count=Count("id"))
+            .order_by("-count")[:10]
+        )
+
+        ctx["students_per_program"] = list(
+            StudentProfile.objects
+            .filter(program__isnull=False)
+            .values("program__code", "program__name")
+            .annotate(count=Count("id"))
+            .order_by("-count")[:10]
+        )
+
+        ctx["students_per_dept"] = list(
+            StudentProfile.objects
+            .filter(department__isnull=False)
+            .values("department__code", "department__name")
+            .annotate(count=Count("id"))
+            .order_by("-count")[:8]
+        )
+
+        ctx["pending_student_approvals"] = StudentProfile.objects.filter(is_approved=False).count()
+        ctx["pending_enrollments"] = Enrollment.objects.filter(status=Enrollment.Status.PENDING).count()
+
+        ctx["breadcrumb_items"] = items(
+            home(),
+            {"label": _("Pano"), "url": reverse("dashboard:index")},
+            {"label": _("İstatistikler"), "url": None},
+        )
+        return ctx

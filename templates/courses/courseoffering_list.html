@@ -33,7 +33,7 @@
                 <th scope="col" style="width: 13rem;">{% trans "Öğretim elemanı" %}</th>
                 <th scope="col" style="width: 6rem;">{% trans "Kontenjan" %}</th>
                 <th scope="col" style="width: 7rem;">{% trans "Etkin" %}</th>
-                {% if user.role == "admin" %}<th scope="col" style="width: 11rem;" class="text-end"></th>{% endif %}
+                {% if user.role == "admin" %}<th scope="col" style="width: 14rem;" class="text-end"></th>{% endif %}
             </tr>
         </thead>
         <tbody>
@@ -78,6 +78,11 @@
                 {% if user.role == "admin" %}
                 <td class="text-end">
                     <div class="inline-flex gap-1.5">
+                        <a class="akd-btn akd-btn--secondary akd-btn--sm"
+                           href="{% url 'academic:timeslot_manage' obj.pk %}"
+                           title="{% trans 'Zaman dilimlerini yönet' %}">
+                            <i data-lucide="clock" class="h-3.5 w-3.5"></i>
+                        </a>
                         <a class="akd-btn akd-btn--secondary akd-btn--sm" href="{% url 'courses:offering_update' obj.pk %}">
                             <i data-lucide="pencil" class="h-3.5 w-3.5"></i>
                             <span>{% trans "Düzenle" %}</span>

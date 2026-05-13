@@ -1,7 +1,17 @@
 from django import forms
 from django.utils.translation import gettext_lazy as _
 
-from .models import Classroom, Course, CourseOffering
+from .models import Classroom, Course, CourseOffering, ElectivePool
+
+
+def _apply_akd_input(form):
+    """Apply akd-input class to all non-checkbox / non-multi-checkbox widgets."""
+    for _name, field in form.fields.items():
+        if not isinstance(
+            field.widget,
+            (forms.CheckboxInput, forms.CheckboxSelectMultiple, forms.RadioSelect),
+        ):
+            field.widget.attrs.setdefault("class", "akd-input")
 
 
 class ClassroomForm(forms.ModelForm):
@@ -14,6 +24,10 @@ class ClassroomForm(forms.ModelForm):
             "capacity": _("Kapasite"),
             "is_active": _("Aktif"),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        _apply_akd_input(self)
 
 
 class CourseForm(forms.ModelForm):
@@ -37,14 +51,35 @@ class CourseForm(forms.ModelForm):
             "description": _("Açıklama"),
             "is_active": _("Aktif"),
         }
-        widgets = {
-            "department": forms.Select(attrs={"class": "form-select"}),
-            "program": forms.Select(attrs={"class": "form-select"}),
-            "code": forms.TextInput(attrs={"class": "form-control"}),
-            "name": forms.TextInput(attrs={"class": "form-control"}),
-            "credits": forms.NumberInput(attrs={"class": "form-control"}),
-            "description": forms.Textarea(attrs={"class": "form-control"}),
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        _apply_akd_input(self)
+
+
+class ElectivePoolForm(forms.ModelForm):
+    class Meta:
+        model = ElectivePool
+        fields = ("program", "name", "description", "required_count", "courses", "is_active")
+        labels = {
+            "program": _("Program"),
+            "name": _("Havuz adı"),
+            "description": _("Açıklama"),
+            "required_count": _("Seçilmesi gereken ders sayısı"),
+            "courses": _("Havuzdaki dersler"),
+            "is_active": _("Aktif"),
         }
+        help_texts = {
+            "required_count": _("Öğrencinin bu havuzdan tamamlaması gereken ders adedi."),
+            "description": _("Öğrencilere gösterilecek kısa açıklama."),
+        }
+        widgets = {
+            "courses": forms.CheckboxSelectMultiple(),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        _apply_akd_input(self)
 
 
 class CourseOfferingForm(forms.ModelForm):
@@ -68,11 +103,7 @@ class CourseOfferingForm(forms.ModelForm):
             "quota": _("Kontenjan"),
             "is_active": _("Aktif"),
         }
-        widgets = {
-            "course": forms.Select(attrs={"class": "form-select"}),
-            "semester": forms.Select(attrs={"class": "form-select"}),
-            "instructor": forms.Select(attrs={"class": "form-select"}),
-            "classroom": forms.Select(attrs={"class": "form-select"}),
-            "section": forms.TextInput(attrs={"class": "form-control"}),
-            "quota": forms.NumberInput(attrs={"class": "form-control"}),
-        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        _apply_akd_input(self)

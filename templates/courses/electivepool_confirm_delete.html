@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Havuzu sil — Akademik 2.0" %}{% endblock %}
+
+{% block content %}
+<header class="akd-page-header">
+    <div class="akd-page-header__intro">
+        <span class="akd-page-header__eyebrow">
+            <i data-lucide="layers" class="h-3 w-3"></i>
+            {% trans "Ders yönetimi" %}
+        </span>
+        <h1 class="akd-page-header__title">{% trans "Havuzu sil" %}</h1>
+    </div>
+</header>
+
+<section class="akd-card max-w-lg">
+    <p class="text-white/80 mb-2">
+        <strong class="text-white">{{ object.name }}</strong>
+        {% trans "havuzunu kalıcı olarak silmek istediğinizden emin misiniz?" %}
+    </p>
+    <p class="text-sm text-white/45 mb-6">{% trans "Bu işlem geri alınamaz." %}</p>
+    <form method="post" class="flex gap-3">
+        {% csrf_token %}
+        <button type="submit" class="akd-btn akd-btn--danger">
+            <i data-lucide="trash-2" class="h-4 w-4"></i>
+            <span>{% trans "Evet, sil" %}</span>
+        </button>
+        <a class="akd-btn akd-btn--ghost" href="{% url 'courses:electivepool_list' %}">{% trans "İptal" %}</a>
+    </form>
+</section>
+{% endblock %}

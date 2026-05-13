@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Devamsızlık durumum — Akademik 2.0" %}{% endblock %}
+
+{% block content %}
+<header class="akd-page-header">
+    <div class="akd-page-header__intro">
+        <span class="akd-page-header__eyebrow">
+            <i data-lucide="clipboard-list" class="h-3 w-3"></i>
+            {% trans "Öğrenci alanı" %}
+        </span>
+        <h1 class="akd-page-header__title">{% trans "Devamsızlık durumum" %}</h1>
+        <p class="akd-page-header__subtitle">{% trans "Derslerinizin yoklama kayıtları ve devamsızlık oranlarınız." %}</p>
+    </div>
+</header>
+
+{% include "includes/breadcrumbs.html" %}
+
+{% if no_profile %}
+    {% include "includes/empty_state.html" with empty_title=_("Öğrenci profiliniz bulunamadı") empty_message=_("Danışmanınızla iletişime geçin.") empty_icon="user-x" %}
+{% elif not enrollment_blocks %}
+    {% include "includes/empty_state.html" with empty_title=_("Aktif dersleriniz yok") empty_message=_("Kayıtlı olduğunuz derslerde yoklama verisi gösterilecek.") empty_icon="clipboard-list" %}
+{% else %}
+
+<div class="space-y-4">
+{% for block in enrollment_blocks %}
+<section class="akd-card p-0 overflow-hidden">
+    {# Ders başlığı + özet #}
+    <div class="flex flex-wrap items-center justify-between gap-3 px-5 py-4 border-b border-white/8">
+        <div class="flex items-center gap-3 min-w-0">
+            <span class="shrink-0 inline-flex items-center justify-center w-9 h-9 rounded-xl
+                {% if block.pct is None %}bg-white/8 text-white/40
+                {% elif block.pct >= 70 %}bg-emerald-500/15 text-emerald-400
+                {% else %}bg-rose-500/15 text-rose-400{% endif %}">
+                <i data-lucide="clipboard-list" class="h-4 w-4"></i>
+            </span>
+            <div class="min-w-0">
+                <p class="text-sm font-semibold text-white truncate">
+                    {{ block.enrollment.section.offering.course.code }} — {{ block.enrollment.section.offering.course.name }}
+                </p>
+                <p class="text-xs text-white/50 mt-0.5">{{ block.enrollment.section.offering.semester.name }}</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-4 shrink-0">
+            {% if block.total > 0 %}
+            {# Mini stat bar #}
+            <div class="hidden sm:flex items-center gap-2">
+                <div class="w-24 h-2 rounded-full bg-white/8 overflow-hidden">
+                    <div class="h-full rounded-full transition-all
+                        {% if block.pct >= 70 %}bg-emerald-500/70{% else %}bg-rose-500/70{% endif %}"
+                        style="width:{{ block.pct }}%"></div>
+                </div>
+                <span class="text-sm font-semibold
+                    {% if block.pct >= 70 %}text-emerald-400{% else %}text-rose-400{% endif %}">
+                    {{ block.pct }}%
+                </span>
+            </div>
+
+            <div class="flex items-center gap-3 text-xs text-white/50">
+                <span class="inline-flex items-center gap-1">
+                    <i data-lucide="check-circle-2" class="h-3.5 w-3.5 text-emerald-500/70"></i>
+                    {{ block.present }}
+                </span>
+                <span class="inline-flex items-center gap-1">
+                    <i data-lucide="x-circle" class="h-3.5 w-3.5 text-rose-500/70"></i>
+                    {{ block.absent }}
+                </span>
+                {% if block.excused %}
+                <span class="inline-flex items-center gap-1">
+                    <i data-lucide="alert-circle" class="h-3.5 w-3.5 text-amber-500/70"></i>
+                    {{ block.excused }}
+                </span>
+                {% endif %}
+                <span class="text-white/30">/ {{ block.total }} {% trans "ders" %}</span>
+            </div>
+            {% else %}
+            <span class="text-xs text-white/30">{% trans "Henüz yoklama alınmadı" %}</span>
+            {% endif %}
+        </div>
+    </div>
+
+    {# Son yoklamalar #}
+    {% if block.recent_rows %}
+    <div class="flex flex-wrap gap-2 px-5 py-3">
+        {% for row in block.recent_rows %}
+        <div class="inline-flex flex-col items-center gap-0.5">
+            <span class="text-xs
+                {% if row.status == 'present' %}text-emerald-400
+                {% elif row.status == 'late' %}text-sky-400
+                {% elif row.status == 'excused' %}text-amber-400
+                {% elif row.status == 'absent' %}text-rose-400
+                {% else %}text-white/25{% endif %}">
+                {% if row.status == 'present' %}<i data-lucide="check" class="h-3.5 w-3.5"></i>
+                {% elif row.status == 'late' %}<i data-lucide="clock" class="h-3.5 w-3.5"></i>
+                {% elif row.status == 'excused' %}<i data-lucide="alert-circle" class="h-3.5 w-3.5"></i>
+                {% elif row.status == 'absent' %}<i data-lucide="x" class="h-3.5 w-3.5"></i>
+                {% else %}<i data-lucide="minus" class="h-3.5 w-3.5"></i>{% endif %}
+            </span>
+            <span class="text-[10px] text-white/30 whitespace-nowrap">{{ row.date|date:"d/m" }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if block.pct is not None and block.pct < 70 %}
+    <div class="px-5 py-2.5 border-t border-rose-400/15 bg-rose-500/8 flex items-center gap-2 text-xs text-rose-300">
+        <i data-lucide="alert-triangle" class="h-3.5 w-3.5 shrink-0"></i>
+        {% trans "Devamsızlık sınırına yaklaşıyor olabilirsiniz. Danışmanınızla görüşün." %}
+    </div>
+    {% endif %}
+</section>
+{% endfor %}
+</div>
+
+<div class="mt-5 flex flex-wrap gap-4 text-xs text-white/40">
+    <span class="inline-flex items-center gap-1.5">
+        <i data-lucide="check-circle-2" class="h-3.5 w-3.5 text-emerald-500/60"></i>{% trans "Geldi" %}
+    </span>
+    <span class="inline-flex items-center gap-1.5">
+        <i data-lucide="clock" class="h-3.5 w-3.5 text-sky-500/60"></i>{% trans "Geç geldi" %}
+    </span>
+    <span class="inline-flex items-center gap-1.5">
+        <i data-lucide="alert-circle" class="h-3.5 w-3.5 text-amber-500/60"></i>{% trans "Mazeretli" %}
+    </span>
+    <span class="inline-flex items-center gap-1.5">
+        <i data-lucide="x-circle" class="h-3.5 w-3.5 text-rose-500/60"></i>{% trans "Gelmedi" %}
+    </span>
+</div>
+
+{% endif %}
+{% endblock %}

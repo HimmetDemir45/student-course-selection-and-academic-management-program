@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Müfredat planı — Akademik 2.0" %}{% endblock %}
+
+{% block content %}
+<header class="akd-page-header">
+    <div class="akd-page-header__intro">
+        <span class="akd-page-header__eyebrow">
+            <i data-lucide="map" class="h-3 w-3"></i>
+            {% trans "Öğrenci alanı" %}
+        </span>
+        <h1 class="akd-page-header__title">{% trans "Müfredat planı" %}</h1>
+        <p class="akd-page-header__subtitle">{% trans "Programınızdaki tüm dersler, yıl ve dönem bazında ilerleme durumunuzla." %}</p>
+    </div>
+</header>
+
+{% include "includes/breadcrumbs.html" %}
+
+{% if no_profile %}
+    {% include "includes/empty_state.html" with empty_title=_("Öğrenci profiliniz bulunamadı") empty_message=_("Danışmanınızla iletişime geçin.") empty_icon="user-x" %}
+{% elif no_program %}
+    {% include "includes/empty_state.html" with empty_title=_("Programa kayıtlı değilsiniz") empty_message=_("Danışmanınızdan program ataması talep edin.") empty_icon="map" %}
+{% elif not year_blocks %}
+    {% include "includes/empty_state.html" with empty_title=_("Müfredat henüz tanımlanmamış") empty_message=_("Programınız için müfredat girişi yapılmamış.") empty_icon="map" %}
+{% else %}
+
+<div class="space-y-8">
+{% for yb in year_blocks %}
+<section>
+    <div class="flex items-center justify-between mb-3">
+        <h2 class="text-base font-semibold text-white flex items-center gap-2">
+            <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-indigo-500/20 border border-indigo-400/30 text-indigo-300 text-xs font-bold">{{ yb.year }}</span>
+            {% blocktrans with year=yb.year %}{{ year }}. Yıl{% endblocktrans %}
+        </h2>
+        <span class="text-xs text-white/40">{{ yb.completed }}/{{ yb.total }} {% trans "ders tamamlandı" %}</span>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    {% for tb in yb.term_blocks %}
+    <div class="akd-card p-0 overflow-hidden">
+        <div class="flex items-center justify-between px-4 py-2.5 border-b border-white/8 bg-white/4">
+            <span class="text-xs font-semibold text-white/70 uppercase tracking-wider">{{ tb.term_label }}</span>
+            <span class="text-xs text-white/40">{{ tb.completed }}/{{ tb.total }}</span>
+        </div>
+        <table class="w-full text-sm">
+            <tbody>
+            {% for row in tb.rows %}
+            <tr class="border-b border-white/5 last:border-0
+                {% if row.status == 'completed' %}bg-emerald-500/5{% elif row.status == 'enrolled' %}bg-amber-500/5{% endif %}">
+                <td class="px-4 py-2.5">
+                    <span class="font-mono text-xs text-white/60">{{ row.item.course.code }}</span>
+                </td>
+                <td class="px-2 py-2.5 text-white/80">{{ row.item.course.name }}</td>
+                <td class="px-2 py-2.5 text-center text-white/40 text-xs whitespace-nowrap">{{ row.item.course.credits }} AKTS</td>
+                <td class="px-4 py-2.5 text-right">
+                    {% if row.status == 'completed' %}
+                        <span class="inline-flex items-center gap-1 text-xs font-medium text-emerald-400">
+                            <i data-lucide="check-circle-2" class="h-3.5 w-3.5"></i>
+                            {% trans "Tamamlandı" %}
+                        </span>
+                    {% elif row.status == 'enrolled' %}
+                        <span class="inline-flex items-center gap-1 text-xs font-medium text-amber-400">
+                            <i data-lucide="clock" class="h-3.5 w-3.5"></i>
+                            {% trans "Kayıtlı" %}
+                        </span>
+                    {% else %}
+                        <span class="inline-flex items-center gap-1 text-xs text-white/30">
+                            <i data-lucide="circle" class="h-3.5 w-3.5"></i>
+                            {% trans "Bekliyor" %}
+                        </span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endfor %}
+    </div>
+</section>
+{% endfor %}
+</div>
+
+<div class="mt-6 flex flex-wrap gap-4 text-xs text-white/40">
+    <span class="inline-flex items-center gap-1.5">
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500/40 border border-emerald-400/40"></span>
+        {% trans "Tamamlandı" %}
+    </span>
+    <span class="inline-flex items-center gap-1.5">
+        <span class="w-2.5 h-2.5 rounded-full bg-amber-500/40 border border-amber-400/40"></span>
+        {% trans "Kayıtlı" %}
+    </span>
+    <span class="inline-flex items-center gap-1.5">
+        <span class="w-2.5 h-2.5 rounded-full bg-white/10 border border-white/20"></span>
+        {% trans "Henüz alınmadı" %}
+    </span>
+</div>
+
+{% endif %}
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Müfredat planı — Akademik 2.0" %}{% endblock %}
+
+{% block content %}
+<header class="akd-page-header">
+    <div class="akd-page-header__intro">
+        <span class="akd-page-header__eyebrow">
+            <i data-lucide="map" class="h-3 w-3"></i>
+            {% trans "Akademik yapı" %}
+        </span>
+        <h1 class="akd-page-header__title">{% trans "Müfredat planı" %}</h1>
+        <p class="akd-page-header__subtitle">{% trans "Programların yıl ve dönem bazında ders planını tanımla." %}</p>
+    </div>
+    <div class="akd-page-header__actions">
+        <a class="akd-btn akd-btn--primary akd-btn--sm" href="{% url 'academic:curriculum_create' %}">
+            <i data-lucide="plus" class="h-3.5 w-3.5"></i>
+            <span>{% trans "Ders ekle" %}</span>
+        </a>
+    </div>
+</header>
+
+<form class="akd-toolbar" method="get">
+    <div class="akd-toolbar__group">
+        <select class="akd-input" name="program" style="min-width:11rem;" onchange="this.form.submit()">
+            <option value="">{% trans "Tüm programlar" %}</option>
+            {% for p in filter_programs %}
+                <option value="{{ p.pk }}" {% if current_filters.program == p.pk|stringformat:"s" %}selected{% endif %}>
+                    {{ p.code }} — {{ p.name }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+</form>
+
+{% if not items %}
+    {% include "includes/empty_state.html" with empty_title=_("Müfredat girdisi yok") empty_message=_("Filtre seçin veya yeni ders ekleyin.") empty_icon="map" %}
+{% else %}
+<div class="akd-table-wrap">
+    <table class="akd-table">
+        <thead>
+            <tr>
+                <th scope="col" style="width:7rem;">{% trans "Program" %}</th>
+                <th scope="col" style="width:5rem;" class="text-center">{% trans "Yıl" %}</th>
+                <th scope="col" style="width:7rem;">{% trans "Dönem" %}</th>
+                <th scope="col" style="width:7rem;">{% trans "Kod" %}</th>
+                <th scope="col">{% trans "Ders adı" %}</th>
+                <th scope="col" style="width:5rem;" class="text-center">{% trans "Kredi" %}</th>
+                <th scope="col" style="width:8rem;" class="text-right"></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for ci in items %}
+            <tr>
+                <td><span class="font-mono text-xs text-indigo-200 px-2 py-0.5 rounded bg-indigo-500/15 border border-indigo-400/20">{{ ci.program.code }}</span></td>
+                <td class="text-center text-white/70 font-semibold">{{ ci.year_level }}</td>
+                <td class="text-white/60 text-sm">
+                    {% if ci.term == "fall" %}{% trans "Güz" %}
+                    {% elif ci.term == "spring" %}{% trans "Bahar" %}
+                    {% else %}{% trans "Yaz" %}{% endif %}
+                </td>
+                <td><span class="font-mono text-xs text-white/70">{{ ci.course.code }}</span></td>
+                <td class="text-white/85">{{ ci.course.name }}</td>
+                <td class="text-center text-white/55 text-sm">{{ ci.course.credits }}</td>
+                <td class="text-right">
+                    <div class="inline-flex gap-1.5">
+                        <a class="akd-btn akd-btn--secondary akd-btn--sm" href="{% url 'academic:curriculum_update' ci.pk %}">
+                            <i data-lucide="pencil" class="h-3.5 w-3.5"></i>
+                        </a>
+                        <a class="akd-btn akd-btn--danger akd-btn--sm" href="{% url 'academic:curriculum_delete' ci.pk %}">
+                            <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
+                        </a>
+                    </div>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{% include "includes/pagination.html" %}
+{% endblock %}

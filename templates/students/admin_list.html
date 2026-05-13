@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Öğrenci yönetimi — Akademik 2.0" %}{% endblock %}
+
+{% block content %}
+<header class="akd-page-header">
+    <div class="akd-page-header__intro">
+        <span class="akd-page-header__eyebrow">
+            <i data-lucide="users" class="h-3 w-3"></i>
+            {% trans "Yönetici" %}
+        </span>
+        <h1 class="akd-page-header__title">{% trans "Öğrenci yönetimi" %}</h1>
+        <p class="akd-page-header__subtitle">{% trans "Öğrencileri bölüm ve programa ata, hesap onayını yönet." %}</p>
+    </div>
+</header>
+
+<form class="akd-toolbar" method="get" role="search" aria-label="{% trans 'Öğrenci filtreleri' %}">
+    <div class="akd-toolbar__search">
+        <i data-lucide="search" aria-hidden="true"></i>
+        <input id="st-q" class="akd-input" type="search" name="q"
+               value="{{ current_filters.q }}"
+               placeholder="{% trans 'Ad, öğrenci no veya kullanıcı adı' %}"
+               aria-label="{% trans 'Arama' %}">
+    </div>
+    <div class="akd-toolbar__group">
+        <select id="st-dept" class="akd-input" name="dept" aria-label="{% trans 'Bölüm' %}" style="min-width: 9rem;">
+            <option value="" {% if not current_filters.dept %}selected{% endif %}>{% trans "Tüm bölümler" %}</option>
+            {% for d in departments %}
+                <option value="{{ d.pk }}" {% if current_filters.dept == d.pk|stringformat:"s" %}selected{% endif %}>{{ d.code }}</option>
+            {% endfor %}
+        </select>
+        <select id="st-approved" class="akd-input" name="approved" aria-label="{% trans 'Onay durumu' %}" style="min-width: 9rem;">
+            <option value="" {% if current_filters.approved == "" %}selected{% endif %}>{% trans "Tüm durumlar" %}</option>
+            <option value="1" {% if current_filters.approved == "1" %}selected{% endif %}>{% trans "Onaylı" %}</option>
+            <option value="0" {% if current_filters.approved == "0" %}selected{% endif %}>{% trans "Onaysız" %}</option>
+        </select>
+        <button type="submit" class="akd-btn akd-btn--primary akd-btn--sm">
+            <i data-lucide="filter" class="h-4 w-4"></i>
+            <span>{% trans "Uygula" %}</span>
+        </button>
+    </div>
+</form>
+
+{% if not students %}
+    {% include "includes/empty_state.html" with empty_title=_("Öğrenci bulunamadı") empty_message=_("Filtre kriterlerini değiştirmeyi dene.") empty_icon="users" %}
+{% else %}
+<div class="akd-table-wrap">
+    <table class="akd-table">
+        <thead>
+            <tr>
+                <th scope="col" style="width: 8rem;">{% trans "Öğrenci no" %}</th>
+                <th scope="col">{% trans "Ad Soyad" %}</th>
+                <th scope="col" style="width: 7rem;">{% trans "Bölüm" %}</th>
+                <th scope="col" style="width: 10rem;">{% trans "Program" %}</th>
+                <th scope="col" style="width: 6rem;">{% trans "Kayıt yılı" %}</th>
+                <th scope="col" style="width: 7rem;">{% trans "Onay" %}</th>
+                <th scope="col" style="width: 6rem;" class="text-right"></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for s in students %}
+            <tr>
+                <td>
+                    <span class="font-mono text-xs text-white/85 px-2 py-1 rounded-md bg-white/5 border border-white/10">{{ s.student_no }}</span>
+                </td>
+                <td class="font-medium text-white">
+                    {{ s.user.get_full_name|default:s.user.username }}
+                    <span class="text-white/40 text-xs ml-1">@{{ s.user.username }}</span>
+                </td>
+                <td class="text-white/70 text-sm">
+                    {% if s.department %}{{ s.department.code }}{% else %}<span class="text-white/30">—</span>{% endif %}
+                </td>
+                <td class="text-white/70 text-xs">
+                    {% if s.program %}{{ s.program.code }}{% else %}<span class="text-white/30">—</span>{% endif %}
+                </td>
+                <td class="text-white/70 text-sm text-center">
+                    {{ s.enrollment_year }}
+                </td>
+                <td>
+                    {% if s.is_approved %}
+                        <span class="akd-badge akd-badge--success">
+                            <i data-lucide="check" class="h-3 w-3"></i>{% trans "Onaylı" %}
+                        </span>
+                    {% else %}
+                        <span class="akd-badge akd-badge--neutral">
+                            <i data-lucide="clock" class="h-3 w-3"></i>{% trans "Bekliyor" %}
+                        </span>
+                    {% endif %}
+                </td>
+                <td class="text-right">
+                    <a class="akd-btn akd-btn--secondary akd-btn--sm"
+                       href="{% url 'students:admin_edit' s.pk %}"
+                       aria-label="{% trans 'Düzenle' %} {{ s.student_no }}">
+                        <i data-lucide="pencil" class="h-3.5 w-3.5"></i>
+                        <span>{% trans "Düzenle" %}</span>
+                    </a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{% include "includes/pagination.html" %}
+{% endblock %}

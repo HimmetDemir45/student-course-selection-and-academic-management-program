@@ -6,6 +6,8 @@ from . import views
 app_name = "accounts"
 
 urlpatterns = [
+    path("profil/", views.profile_view, name="profile"),
+    path("profil/sifre-degistir/", views.password_change_view, name="password_change"),
     path("admin-talebi/", views.admin_request_view, name="admin_request"),
     path("register/", views.register_view, name="register"),
     path("login/", views.login_view, name="login"),

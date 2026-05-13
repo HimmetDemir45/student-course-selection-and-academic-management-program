@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "İstatistikler — Akademik 2.0" %}{% endblock %}
+
+{% block content %}
+<header class="akd-page-header">
+    <div class="akd-page-header__intro">
+        <span class="akd-page-header__eyebrow">
+            <i data-lucide="bar-chart-2" class="h-3 w-3"></i>
+            {% trans "Yönetim" %}
+        </span>
+        <h1 class="akd-page-header__title">{% trans "İstatistikler" %}</h1>
+        <p class="akd-page-header__subtitle">{% trans "Sistem genelinde öğrenci, kayıt ve ders özet istatistikleri." %}</p>
+    </div>
+</header>
+
+{% include "includes/breadcrumbs.html" %}
+
+{# ── Genel Özet ── #}
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <article class="akd-stat">
+        <div class="akd-stat__top">
+            <span class="akd-stat__icon akd-stat__icon--indigo"><i data-lucide="users" class="h-5 w-5"></i></span>
+        </div>
+        <p class="akd-stat__label">{% trans "Toplam öğrenci" %}</p>
+        <p class="akd-stat__value">{{ total_students }}</p>
+        <p class="akd-stat__hint">{{ approved_students }} {% trans "onaylı" %}</p>
+    </article>
+
+    <article class="akd-stat">
+        <div class="akd-stat__top">
+            <span class="akd-stat__icon akd-stat__icon--violet"><i data-lucide="user-cog" class="h-5 w-5"></i></span>
+        </div>
+        <p class="akd-stat__label">{% trans "Akademisyen" %}</p>
+        <p class="akd-stat__value">{{ total_instructors }}</p>
+        <p class="akd-stat__hint">{% trans "onaylı kayıt" %}</p>
+    </article>
+
+    <article class="akd-stat">
+        <div class="akd-stat__top">
+            <span class="akd-stat__icon akd-stat__icon--cyan"><i data-lucide="book-open" class="h-5 w-5"></i></span>
+        </div>
+        <p class="akd-stat__label">{% trans "Aktif ders" %}</p>
+        <p class="akd-stat__value">{{ total_active_courses }}</p>
+        <p class="akd-stat__hint">{% trans "kataloğda" %}</p>
+    </article>
+
+    <article class="akd-stat">
+        <div class="akd-stat__top">
+            <span class="akd-stat__icon akd-stat__icon--amber"><i data-lucide="layers" class="h-5 w-5"></i></span>
+        </div>
+        <p class="akd-stat__label">{% trans "Toplam kayıt" %}</p>
+        <p class="akd-stat__value">{{ total_enrollments }}</p>
+        <p class="akd-stat__hint">{% trans "tüm zamanlar" %}</p>
+    </article>
+</div>
+
+{# ── Pending alerts ── #}
+{% if pending_student_approvals or pending_enrollments %}
+<div class="flex flex-wrap gap-3 mb-6">
+    {% if pending_student_approvals %}
+    <a href="{% url 'dashboard:user_approvals' %}" class="inline-flex items-center gap-2 rounded-xl border border-amber-400/30 bg-amber-500/10 px-4 py-2.5 text-sm text-amber-300 hover:bg-amber-500/20 transition">
+        <i data-lucide="user-x" class="h-4 w-4"></i>
+        {{ pending_student_approvals }} {% trans "öğrenci onay bekliyor" %}
+        <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
+    </a>
+    {% endif %}
+    {% if pending_enrollments %}
+    <a href="{% url 'academic:danishman_advisees' %}" class="inline-flex items-center gap-2 rounded-xl border border-rose-400/30 bg-rose-500/10 px-4 py-2.5 text-sm text-rose-300 hover:bg-rose-500/20 transition">
+        <i data-lucide="clock" class="h-4 w-4"></i>
+        {{ pending_enrollments }} {% trans "kayıt danışman onayı bekliyor" %}
+        <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
+    </a>
+    {% endif %}
+</div>
+{% endif %}
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    {# ── Kayıt Durum Dağılımı ── #}
+    <section class="akd-card">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <p class="akd-stat__label">{% trans "Kayıt durumu" %}</p>
+                <p class="text-base font-semibold text-white mt-1">{% trans "Durum dağılımı" %}</p>
+            </div>
+            <span class="akd-stat__icon akd-stat__icon--indigo"><i data-lucide="pie-chart" class="h-5 w-5"></i></span>
+        </div>
+        <div class="space-y-3">
+        {% for row in enrollment_status_rows %}
+        <div>
+            <div class="flex items-center justify-between text-sm mb-1">
+                <span class="text-white/70">{{ row.label }}</span>
+                <span class="text-white/50 font-mono text-xs">{{ row.count }} <span class="text-white/30">({{ row.pct }}%)</span></span>
+            </div>
+            <div class="h-2 rounded-full bg-white/8 overflow-hidden">
+                <div class="h-full rounded-full transition-all
+                    {% if row.color == 'emerald' %}bg-emerald-500/70
+                    {% elif row.color == 'amber' %}bg-amber-500/70
+                    {% elif row.color == 'indigo' %}bg-indigo-500/70
+                    {% elif row.color == 'rose' %}bg-rose-500/70
+                    {% else %}bg-white/30{% endif %}"
+                    style="width: {{ row.pct }}%"></div>
+            </div>
+        </div>
+        {% endfor %}
+        </div>
+    </section>
+
+    {# ── Bölüm Bazlı Öğrenci ── #}
+    <section class="akd-card p-0 overflow-hidden">
+        <div class="px-5 pt-5 pb-3 flex items-center justify-between">
+            <div>
+                <p class="akd-stat__label">{% trans "Bölümler" %}</p>
+                <p class="text-base font-semibold text-white mt-1">{% trans "Öğrenci dağılımı" %}</p>
+            </div>
+            <span class="akd-stat__icon akd-stat__icon--cyan"><i data-lucide="building-2" class="h-5 w-5"></i></span>
+        </div>
+        {% if students_per_dept %}
+        <div class="akd-table-wrap">
+            <table class="akd-table">
+                <thead>
+                    <tr>
+                        <th scope="col">{% trans "Bölüm" %}</th>
+                        <th scope="col" class="text-right" style="width:6rem;">{% trans "Öğrenci" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for row in students_per_dept %}
+                <tr>
+                    <td>
+                        <span class="font-mono text-xs text-indigo-300 mr-2">{{ row.department__code }}</span>
+                        <span class="text-white/70 text-sm">{{ row.department__name }}</span>
+                    </td>
+                    <td class="text-right font-semibold text-white">{{ row.count }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="px-5 py-4 text-sm text-white/40">{% trans "Veri yok." %}</p>
+        {% endif %}
+    </section>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    {# ── En Çok Tercih Edilen Dersler ── #}
+    <section class="akd-card p-0 overflow-hidden">
+        <div class="px-5 pt-5 pb-3 flex items-center justify-between">
+            <div>
+                <p class="akd-stat__label">{% trans "Dersler" %}</p>
+                <p class="text-base font-semibold text-white mt-1">{% trans "En çok kayıt yapılan" %}</p>
+            </div>
+            <span class="akd-stat__icon akd-stat__icon--violet"><i data-lucide="trending-up" class="h-5 w-5"></i></span>
+        </div>
+        {% if top_courses %}
+        <div class="akd-table-wrap">
+            <table class="akd-table">
+                <thead>
+                    <tr>
+                        <th scope="col" style="width:1.5rem;">#</th>
+                        <th scope="col" style="width:6rem;">{% trans "Kod" %}</th>
+                        <th scope="col">{% trans "Ders" %}</th>
+                        <th scope="col" class="text-right" style="width:5rem;">{% trans "Kayıt" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for row in top_courses %}
+                <tr>
+                    <td class="text-white/30 text-xs">{{ forloop.counter }}</td>
+                    <td><span class="font-mono text-xs text-white/60">{{ row.section__offering__course__code }}</span></td>
+                    <td class="text-white/80 text-sm">{{ row.section__offering__course__name }}</td>
+                    <td class="text-right font-semibold text-white">{{ row.count }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="px-5 py-4 text-sm text-white/40">{% trans "Henüz kayıt yok." %}</p>
+        {% endif %}
+    </section>
+
+    {# ── Program Bazlı Öğrenci ── #}
+    <section class="akd-card p-0 overflow-hidden">
+        <div class="px-5 pt-5 pb-3 flex items-center justify-between">
+            <div>
+                <p class="akd-stat__label">{% trans "Programlar" %}</p>
+                <p class="text-base font-semibold text-white mt-1">{% trans "Öğrenci dağılımı" %}</p>
+            </div>
+            <span class="akd-stat__icon akd-stat__icon--amber"><i data-lucide="graduation-cap" class="h-5 w-5"></i></span>
+        </div>
+        {% if students_per_program %}
+        <div class="akd-table-wrap">
+            <table class="akd-table">
+                <thead>
+                    <tr>
+                        <th scope="col">{% trans "Program" %}</th>
+                        <th scope="col" class="text-right" style="width:6rem;">{% trans "Öğrenci" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for row in students_per_program %}
+                <tr>
+                    <td>
+                        <span class="font-mono text-xs text-indigo-300 mr-2">{{ row.program__code }}</span>
+                        <span class="text-white/70 text-sm">{{ row.program__name }}</span>
+                    </td>
+                    <td class="text-right font-semibold text-white">{{ row.count }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="px-5 py-4 text-sm text-white/40">{% trans "Veri yok." %}</p>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

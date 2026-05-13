@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% if form.instance.pk %}{% trans "Havuz düzenle" %}{% else %}{% trans "Yeni havuz" %}{% endif %} — Akademik 2.0{% endblock %}
+
+{% block content %}
+<header class="akd-page-header">
+    <div class="akd-page-header__intro">
+        <span class="akd-page-header__eyebrow">
+            <i data-lucide="layers" class="h-3 w-3"></i>
+            {% trans "Ders yönetimi" %}
+        </span>
+        <h1 class="akd-page-header__title">
+            {% if form.instance.pk %}{% trans "Havuz düzenle" %}{% else %}{% trans "Yeni seçmeli ders havuzu" %}{% endif %}
+        </h1>
+        <p class="akd-page-header__subtitle">{% trans "Havuza program, ad, açıklama ve dersler atayın." %}</p>
+    </div>
+    <div class="akd-page-header__actions">
+        <a class="akd-btn akd-btn--secondary akd-btn--sm" href="{% url 'courses:electivepool_list' %}">
+            <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i>
+            <span>{% trans "Listeye dön" %}</span>
+        </a>
+    </div>
+</header>
+
+<section class="akd-card max-w-3xl">
+    <form method="post" novalidate class="akd-form">
+        {% csrf_token %}
+        {% include "includes/form_errors.html" with form=form %}
+
+        <div class="grid grid-cols-2 gap-4">
+            <div class="akd-form-group">
+                <label class="akd-label" for="{{ form.program.id_for_label }}">{{ form.program.label }}</label>
+                {{ form.program }}
+                {% for e in form.program.errors %}<p class="akd-form-error">{{ e }}</p>{% endfor %}
+            </div>
+            <div class="akd-form-group">
+                <label class="akd-label" for="{{ form.required_count.id_for_label }}">{{ form.required_count.label }}</label>
+                {{ form.required_count }}
+                {% if form.required_count.help_text %}<p class="akd-form-hint">{{ form.required_count.help_text }}</p>{% endif %}
+                {% for e in form.required_count.errors %}<p class="akd-form-error">{{ e }}</p>{% endfor %}
+            </div>
+        </div>
+
+        <div class="akd-form-group">
+            <label class="akd-label" for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
+            {{ form.name }}
+            {% for e in form.name.errors %}<p class="akd-form-error">{{ e }}</p>{% endfor %}
+        </div>
+
+        <div class="akd-form-group">
+            <label class="akd-label" for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
+            {{ form.description }}
+            {% if form.description.help_text %}<p class="akd-form-hint">{{ form.description.help_text }}</p>{% endif %}
+            {% for e in form.description.errors %}<p class="akd-form-error">{{ e }}</p>{% endfor %}
+        </div>
+
+        <div class="akd-form-group">
+            <p class="akd-label mb-2">{{ form.courses.label }}</p>
+            <div class="max-h-72 overflow-y-auto rounded-xl border border-white/10 bg-white/3 p-3 space-y-1">
+                {% for checkbox in form.courses %}
+                <label class="flex items-center gap-2.5 rounded-lg px-3 py-2 hover:bg-white/5 cursor-pointer text-sm text-white/80">
+                    {{ checkbox.tag }}
+                    <span class="font-mono text-xs text-indigo-300">{{ checkbox.choice_label }}</span>
+                </label>
+                {% endfor %}
+            </div>
+            {% for e in form.courses.errors %}<p class="akd-form-error mt-1">{{ e }}</p>{% endfor %}
+        </div>
+
+        <div class="akd-form-group">
+            <label class="akd-label flex items-center gap-2 cursor-pointer">
+                {{ form.is_active }}
+                <span>{{ form.is_active.label }}</span>
+            </label>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2 mt-6">
+            <button type="submit" class="akd-btn akd-btn--primary">
+                <i data-lucide="save" class="h-4 w-4"></i>
+                <span>{% trans "Kaydet" %}</span>
+            </button>
+            <a class="akd-btn akd-btn--ghost" href="{% url 'courses:electivepool_list' %}">
+                <i data-lucide="x" class="h-4 w-4"></i>
+                <span>{% trans "İptal" %}</span>
+            </a>
+        </div>
+    </form>
+</section>
+{% endblock %}

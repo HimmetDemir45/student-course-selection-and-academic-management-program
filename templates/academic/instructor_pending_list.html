@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Onay bekleyen kayıtlar — Akademik 2.0" %}{% endblock %}
+
+{% block content %}
+<header class="akd-page-header">
+    <div class="akd-page-header__intro">
+        <span class="akd-page-header__eyebrow">
+            <i data-lucide="clock" class="h-3 w-3"></i>
+            {% trans "Akademisyen" %}
+        </span>
+        <h1 class="akd-page-header__title">{% trans "Onay bekleyen ders kayıtları" %}</h1>
+        <p class="akd-page-header__subtitle">{% trans "Öğrencilerin ders seçim taleplerini onayla veya reddet." %}</p>
+    </div>
+    <div class="akd-page-header__actions">
+        <a class="akd-btn akd-btn--secondary akd-btn--sm" href="{% url 'academic:instructor_enrollments' %}">
+            <i data-lucide="clipboard-check" class="h-3.5 w-3.5"></i>
+            <span>{% trans "Kayıtlar ve notlar" %}</span>
+        </a>
+        <a class="akd-btn akd-btn--primary akd-btn--sm" href="{% url 'dashboard:index' %}">
+            <i data-lucide="layout-dashboard" class="h-3.5 w-3.5"></i>
+            <span>{% trans "Pano" %}</span>
+        </a>
+    </div>
+</header>
+
+<form class="akd-toolbar" method="get" role="search" aria-label="{% trans 'Kayıt arama' %}">
+    <div class="akd-toolbar__search">
+        <i data-lucide="search" aria-hidden="true"></i>
+        <input id="pend-q" class="akd-input" type="search" name="q"
+               value="{{ current_filters.q }}"
+               placeholder="{% trans 'Ders kodu, adı veya öğrenci no' %}"
+               aria-label="{% trans 'Arama' %}">
+    </div>
+    <div class="akd-toolbar__group">
+        <button type="submit" class="akd-btn akd-btn--primary akd-btn--sm">
+            <i data-lucide="filter" class="h-4 w-4"></i>
+            <span>{% trans "Uygula" %}</span>
+        </button>
+    </div>
+</form>
+
+{% if not enrollments %}
+    {% include "includes/empty_state.html" with empty_title=_("Onay bekleyen kayıt yok") empty_message=_("Tüm ders seçim talepleri işlendi.") empty_icon="check-circle" %}
+{% else %}
+<div class="akd-table-wrap">
+    <table class="akd-table">
+        <thead>
+            <tr>
+                <th scope="col">{% trans "Öğrenci" %}</th>
+                <th scope="col">{% trans "Ders / şube" %}</th>
+                <th scope="col" style="width: 10rem;">{% trans "Dönem" %}</th>
+                <th scope="col" style="width: 7rem;">{% trans "Kontenjan" %}</th>
+                <th scope="col" style="width: 14rem;" class="text-end">{% trans "İşlem" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for e in enrollments %}
+            <tr>
+                <td class="font-medium text-white">
+                    <div class="flex items-center gap-2.5">
+                        <span class="font-mono text-xs text-amber-200 px-2 py-1 rounded-md bg-amber-500/15 border border-amber-400/25 flex-shrink-0">{{ e.student.student_no }}</span>
+                        <span class="truncate text-white/90">{{ e.student.user.get_full_name|default:e.student.user.username }}</span>
+                    </div>
+                </td>
+                <td class="text-white/85">
+                    <span class="font-mono text-xs">{{ e.section.offering.course.code }}</span>
+                    <span class="text-white/55"> — </span>
+                    <span class="text-white/85">{{ e.section.offering.course.name }}</span>
+                    <span class="text-white/40 text-xs ml-1">/ {{ e.section.offering.section }}</span>
+                </td>
+                <td class="text-xs text-white/60">
+                    {{ e.section.offering.semester.name }}
+                </td>
+                <td class="text-xs text-white/60 text-center">
+                    {% with cap=e.section.offering.quota %}
+                        {{ cap }}
+                    {% endwith %}
+                </td>
+                <td class="text-end">
+                    <div class="inline-flex gap-1.5">
+                        <form method="post" action="{% url 'academic:enrollment_approve' enrollment_id=e.pk %}">
+                            {% csrf_token %}
+                            <button type="submit" class="akd-btn akd-btn--primary akd-btn--sm"
+                                    aria-label="{% trans 'Onayla' %} {{ e.student.student_no }}">
+                                <i data-lucide="check" class="h-3.5 w-3.5"></i>
+                                <span>{% trans "Onayla" %}</span>
+                            </button>
+                        </form>
+                        <form method="post" action="{% url 'academic:enrollment_reject' enrollment_id=e.pk %}">
+                            {% csrf_token %}
+                            <button type="submit" class="akd-btn akd-btn--danger akd-btn--sm"
+                                    aria-label="{% trans 'Reddet' %} {{ e.student.student_no }}">
+                                <i data-lucide="x" class="h-3.5 w-3.5"></i>
+                                <span>{% trans "Reddet" %}</span>
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{% include "includes/pagination.html" %}
+{% endblock %}

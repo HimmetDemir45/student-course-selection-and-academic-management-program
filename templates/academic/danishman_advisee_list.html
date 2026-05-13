@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Danışöğrencilerim — Akademik 2.0" %}{% endblock %}
+
+{% block content %}
+<header class="akd-page-header">
+    <div class="akd-page-header__intro">
+        <span class="akd-page-header__eyebrow">
+            <i data-lucide="users-round" class="h-3 w-3"></i>
+            {% trans "Danışman" %}
+        </span>
+        <h1 class="akd-page-header__title">{% trans "Danışöğrencilerim" %}</h1>
+        <p class="akd-page-header__subtitle">{% trans "Danışöğrencilerinin ders seçimlerini incele ve onayla." %}</p>
+    </div>
+    <div class="akd-page-header__actions">
+        <a class="akd-btn akd-btn--primary akd-btn--sm" href="{% url 'dashboard:index' %}">
+            <i data-lucide="layout-dashboard" class="h-3.5 w-3.5"></i>
+            <span>{% trans "Pano" %}</span>
+        </a>
+    </div>
+</header>
+
+<form class="akd-toolbar" method="get" role="search" aria-label="{% trans 'Öğrenci ara' %}">
+    <div class="akd-toolbar__search">
+        <i data-lucide="search" aria-hidden="true"></i>
+        <input id="adv-q" class="akd-input" type="search" name="q"
+               value="{{ current_filters.q }}"
+               placeholder="{% trans 'Ad veya öğrenci no' %}"
+               aria-label="{% trans 'Arama' %}">
+    </div>
+    <div class="akd-toolbar__group">
+        <label class="flex items-center gap-2 text-sm text-white/60 cursor-pointer select-none">
+            <input type="checkbox" name="only" value="pending"
+                   {% if current_filters.only == "pending" %}checked{% endif %}
+                   class="rounded border-white/20 bg-white/5 text-indigo-500">
+            {% trans "Yalnızca onay bekleyenler" %}
+        </label>
+        <button type="submit" class="akd-btn akd-btn--primary akd-btn--sm">
+            <i data-lucide="filter" class="h-4 w-4"></i>
+            <span>{% trans "Uygula" %}</span>
+        </button>
+    </div>
+</form>
+
+{% if not advisees %}
+    {% include "includes/empty_state.html" with empty_title=_("Danışöğrenci bulunamadı") empty_message=_("Henüz size atanmış danışöğrenci yok veya filtreyle eşleşen öğrenci bulunmuyor.") empty_icon="users" %}
+{% else %}
+<div class="akd-table-wrap">
+    <table class="akd-table">
+        <thead>
+            <tr>
+                <th scope="col" style="width: 8rem;">{% trans "Öğrenci no" %}</th>
+                <th scope="col">{% trans "Ad Soyad" %}</th>
+                <th scope="col" style="width: 8rem;">{% trans "Bölüm" %}</th>
+                <th scope="col" style="width: 10rem;">{% trans "Onay bekleyen" %}</th>
+                <th scope="col" style="width: 8rem;" class="text-end"></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for s in advisees %}
+            <tr class="{% if s.pending_count > 0 %}bg-amber-500/5 border-l-2 border-amber-400/30{% endif %}">
+                <td>
+                    <span class="font-mono text-xs text-white/85 px-2 py-1 rounded-md bg-white/5 border border-white/10">
+                        {{ s.student_no }}
+                    </span>
+                </td>
+                <td class="font-medium text-white">
+                    {{ s.user.get_full_name|default:s.user.username }}
+                </td>
+                <td class="text-white/60 text-sm">
+                    {% if s.department %}{{ s.department.code }}{% else %}—{% endif %}
+                </td>
+                <td>
+                    {% if s.pending_count > 0 %}
+                        <span class="akd-badge akd-badge--warning">
+                            <i data-lucide="clock" class="h-3 w-3"></i>
+                            {{ s.pending_count }} {% trans "ders" %}
+                        </span>
+                    {% else %}
+                        <span class="text-white/30 text-sm">{% trans "—" %}</span>
+                    {% endif %}
+                </td>
+                <td class="text-end">
+                    <a class="akd-btn akd-btn--secondary akd-btn--sm"
+                       href="{% url 'academic:danishman_advisee_detail' s.pk %}">
+                        <i data-lucide="eye" class="h-3.5 w-3.5"></i>
+                        <span>{% trans "İncele" %}</span>
+                    </a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{% include "includes/pagination.html" %}
+{% endblock %}

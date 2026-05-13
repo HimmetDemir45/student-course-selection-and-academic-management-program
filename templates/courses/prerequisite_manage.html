@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Önkoşullar" %} — {{ course.code }} — Akademik 2.0{% endblock %}
+
+{% block content %}
+<header class="akd-page-header">
+    <div class="akd-page-header__intro">
+        <span class="akd-page-header__eyebrow">
+            <i data-lucide="git-merge" class="h-3 w-3"></i>
+            {% trans "Ders kataloğu" %}
+        </span>
+        <h1 class="akd-page-header__title">{% trans "Önkoşul yönetimi" %}</h1>
+        <p class="akd-page-header__subtitle">
+            <span class="font-mono text-indigo-300">{{ course.code }}</span> — {{ course.name }}
+        </p>
+    </div>
+    <div class="akd-page-header__actions">
+        <a class="akd-btn akd-btn--secondary akd-btn--sm" href="{% url 'courses:course_list' %}">
+            <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i>
+            <span>{% trans "Ders listesi" %}</span>
+        </a>
+    </div>
+</header>
+
+{% include "includes/breadcrumbs.html" %}
+
+{% include "includes/messages.html" %}
+
+<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+
+    {# ── Sol panel: mevcut önkoşullar ── #}
+    <div class="lg:col-span-2">
+        <div class="akd-card">
+            <h2 class="text-sm font-semibold text-white/70 uppercase tracking-wider mb-4">
+                <i data-lucide="list-checks" class="h-4 w-4 inline-block mr-1.5 text-indigo-400"></i>
+                {% trans "Tanımlı önkoşullar" %}
+                <span class="ml-2 text-xs font-normal text-white/40">({{ prereqs|length }})</span>
+            </h2>
+
+            {% if not prereqs %}
+            <div class="flex flex-col items-center justify-center py-10 text-center text-white/40">
+                <i data-lucide="git-merge" class="h-10 w-10 mb-3 opacity-30"></i>
+                <p class="text-sm">{% trans "Bu ders için henüz önkoşul tanımlanmamış." %}</p>
+            </div>
+            {% else %}
+            <div class="akd-table-wrap">
+                <table class="akd-table">
+                    <thead>
+                        <tr>
+                            <th scope="col" style="width:8rem;">{% trans "Kod" %}</th>
+                            <th scope="col">{% trans "Ders adı" %}</th>
+                            <th scope="col" style="width:12rem;">{% trans "Bölüm" %}</th>
+                            <th scope="col" style="width:5rem;" class="text-center">{% trans "Kredi" %}</th>
+                            <th scope="col" style="width:5rem;"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for link in prereqs %}
+                        <tr>
+                            <td>
+                                <span class="font-mono text-xs text-white/85 px-2 py-0.5 rounded bg-white/5 border border-white/10">
+                                    {{ link.prerequisite.code }}
+                                </span>
+                            </td>
+                            <td class="font-medium text-white/90">{{ link.prerequisite.name }}</td>
+                            <td class="text-white/55 text-sm">{{ link.prerequisite.department.code }}</td>
+                            <td class="text-center text-white/65 text-sm">{{ link.prerequisite.credits }}</td>
+                            <td class="text-right">
+                                <form method="post" action="{% url 'courses:prerequisite_delete' link.pk %}">
+                                    {% csrf_token %}
+                                    <button type="submit"
+                                            class="akd-btn akd-btn--danger akd-btn--sm"
+                                            title="{% trans 'Önkoşulu kaldır' %}"
+                                            onclick="return confirm('{% trans "Bu önkoşulu kaldırmak istediğinize emin misiniz?" %}')">
+                                        <i data-lucide="x" class="h-3.5 w-3.5"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {# ── Sağ panel: yeni önkoşul ekle ── #}
+    <div>
+        <div class="akd-card">
+            <h2 class="text-sm font-semibold text-white/70 uppercase tracking-wider mb-4">
+                <i data-lucide="plus-circle" class="h-4 w-4 inline-block mr-1.5 text-emerald-400"></i>
+                {% trans "Önkoşul ekle" %}
+            </h2>
+
+            {% if add_error %}
+            <div class="mb-4 flex items-start gap-2 rounded-lg bg-rose-500/15 border border-rose-400/25 px-3 py-2 text-sm text-rose-300">
+                <i data-lucide="alert-circle" class="h-4 w-4 flex-shrink-0 mt-0.5"></i>
+                <span>{{ add_error }}</span>
+            </div>
+            {% endif %}
+
+            {% if not available_courses %}
+            <p class="text-sm text-white/45 text-center py-6">
+                {% trans "Eklenebilecek ders kalmadı." %}
+            </p>
+            {% else %}
+            <form method="post" class="akd-form space-y-4">
+                {% csrf_token %}
+                <div class="akd-form-group">
+                    <label class="akd-label" for="id_prerequisite_id">{% trans "Önkoşul ders" %}</label>
+                    <select name="prerequisite_id" id="id_prerequisite_id" class="akd-input w-full" required>
+                        <option value="">— {% trans "Seçin" %} —</option>
+                        {% for c in available_courses %}
+                        <option value="{{ c.pk }}">{{ c.code }} — {{ c.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <p class="akd-form-hint">{% trans "Yalnızca henüz eklenmemiş aktif dersler listelenmektedir." %}</p>
+                </div>
+                <button type="submit" class="akd-btn akd-btn--primary w-full justify-center">
+                    <i data-lucide="plus" class="h-4 w-4"></i>
+                    <span>{% trans "Ekle" %}</span>
+                </button>
+            </form>
+            {% endif %}
+        </div>
+
+        {# Bilgi kartı #}
+        <div class="akd-card mt-4 bg-indigo-500/10 border-indigo-400/20">
+            <div class="flex gap-3">
+                <i data-lucide="info" class="h-5 w-5 text-indigo-400 flex-shrink-0 mt-0.5"></i>
+                <div class="text-sm text-white/60 space-y-1.5">
+                    <p>{% trans "Önkoşul, öğrencinin kayıt sırasında ilgili dersi daha önce tamamlamış (geçmiş) olmasını zorunlu kılar." %}</p>
+                    <p>{% trans "Birden fazla önkoşul tanımlanabilir; tümünü sağlamak gerekir." %}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

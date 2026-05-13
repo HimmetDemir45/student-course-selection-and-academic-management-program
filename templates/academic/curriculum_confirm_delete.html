@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Müfredat girdisi sil" %} — Akademik 2.0{% endblock %}
+
+{% block content %}
+<header class="akd-page-header">
+    <div class="akd-page-header__intro">
+        <span class="akd-page-header__eyebrow">
+            <i data-lucide="trash-2" class="h-3 w-3"></i>
+            {% trans "Silme onayı" %}
+        </span>
+        <h1 class="akd-page-header__title">{% trans "Müfredat girdisini sil" %}</h1>
+        <p class="akd-page-header__subtitle">{% trans "Bu işlem geri alınamaz. Devam etmek istediğinden emin misin?" %}</p>
+    </div>
+</header>
+
+<section class="akd-card max-w-2xl">
+    <div class="flex items-start gap-4 mb-6">
+        <span class="akd-stat__icon akd-stat__icon--rose flex-shrink-0">
+            <i data-lucide="alert-triangle" class="h-5 w-5"></i>
+        </span>
+        <div class="min-w-0">
+            <p class="text-sm text-white/70">{% trans "Silinecek kayıt" %}:</p>
+            <p class="mt-1 text-base font-semibold text-white">
+                {{ object.program.code }} — {{ object.course.code }} {{ object.course.name }}
+            </p>
+            <p class="text-sm text-white/50 mt-0.5">
+                {% trans "Yıl" %} {{ object.year_level }} /
+                {% if object.term == "fall" %}{% trans "Güz" %}{% elif object.term == "spring" %}{% trans "Bahar" %}{% else %}{% trans "Yaz" %}{% endif %}
+            </p>
+        </div>
+    </div>
+
+    <form method="post" class="flex flex-wrap items-center gap-2">
+        {% csrf_token %}
+        <button type="submit" class="akd-btn akd-btn--danger">
+            <i data-lucide="trash-2" class="h-4 w-4"></i>
+            <span>{% trans "Evet, sil" %}</span>
+        </button>
+        <a class="akd-btn akd-btn--ghost" href="{% url 'academic:curriculum_list' %}">
+            <i data-lucide="x" class="h-4 w-4"></i>
+            <span>{% trans "Vazgeç" %}</span>
+        </a>
+    </form>
+</section>
+{% endblock %}

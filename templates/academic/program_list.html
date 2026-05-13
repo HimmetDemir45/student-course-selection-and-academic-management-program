@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Programlar — Akademik 2.0" %}{% endblock %}
+
+{% block content %}
+<header class="akd-page-header">
+    <div class="akd-page-header__intro">
+        <span class="akd-page-header__eyebrow">
+            <i data-lucide="graduation-cap" class="h-3 w-3"></i>
+            {% trans "Akademik yapı" %}
+        </span>
+        <h1 class="akd-page-header__title">{% trans "Programlar" %}</h1>
+        <p class="akd-page-header__subtitle">{% trans "Bölümlere bağlı lisans ve lisansüstü programları yönet." %}</p>
+    </div>
+    <div class="akd-page-header__actions">
+        <a class="akd-btn akd-btn--primary akd-btn--sm" href="{% url 'academic:program_create' %}">
+            <i data-lucide="plus" class="h-3.5 w-3.5"></i>
+            <span>{% trans "Yeni program" %}</span>
+        </a>
+    </div>
+</header>
+
+{% include "includes/breadcrumbs.html" %}
+
+<form class="akd-toolbar" method="get">
+    <div class="akd-toolbar__group">
+        <input type="text" name="q" value="{{ current_filters.q }}" placeholder="{% trans 'Kod veya ad ara…' %}" class="akd-input" style="min-width:14rem;">
+    </div>
+    <div class="akd-toolbar__group">
+        <select class="akd-input" name="dept" style="min-width:12rem;" onchange="this.form.submit()">
+            <option value="">{% trans "Tüm bölümler" %}</option>
+            {% for d in departments %}
+                <option value="{{ d.pk }}" {% if current_filters.dept == d.pk|stringformat:"s" %}selected{% endif %}>
+                    {{ d.code }} — {{ d.name }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+    <button type="submit" class="akd-btn akd-btn--secondary akd-btn--sm">
+        <i data-lucide="search" class="h-3.5 w-3.5"></i>
+    </button>
+</form>
+
+{% if not programs %}
+    {% include "includes/empty_state.html" with empty_title=_("Program bulunamadı") empty_message=_("Filtre değiştirin veya yeni program ekleyin.") empty_icon="graduation-cap" %}
+{% else %}
+<div class="akd-table-wrap">
+    <table class="akd-table">
+        <thead>
+            <tr>
+                <th scope="col" style="width:7rem;">{% trans "Kod" %}</th>
+                <th scope="col">{% trans "Program adı" %}</th>
+                <th scope="col" style="width:10rem;">{% trans "Bölüm" %}</th>
+                <th scope="col" style="width:7rem;">{% trans "Derece" %}</th>
+                <th scope="col" style="width:6rem;" class="text-center">{% trans "AKTS" %}</th>
+                <th scope="col" style="width:5rem;" class="text-center">{% trans "Durum" %}</th>
+                <th scope="col" style="width:9rem;" class="text-right"></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for program in programs %}
+        <tr class="{% if not program.is_active %}opacity-50{% endif %}">
+            <td>
+                <span class="font-mono text-xs text-indigo-200 px-2 py-0.5 rounded bg-indigo-500/15 border border-indigo-400/20">
+                    {{ program.code }}
+                </span>
+            </td>
+            <td class="font-medium text-white/90">{{ program.name }}</td>
+            <td class="text-white/60 text-sm">{{ program.department.code }}</td>
+            <td class="text-white/60 text-sm">
+                {% if program.degree_level == "undergrad" %}{% trans "Lisans" %}
+                {% else %}{% trans "Lisansüstü" %}{% endif %}
+            </td>
+            <td class="text-center text-white/55 text-sm">{{ program.credits_required }}</td>
+            <td class="text-center">
+                {% if program.is_active %}
+                    <span class="akd-badge akd-badge--success">{% trans "Aktif" %}</span>
+                {% else %}
+                    <span class="akd-badge akd-badge--danger">{% trans "Pasif" %}</span>
+                {% endif %}
+            </td>
+            <td class="text-right">
+                <div class="inline-flex gap-1.5">
+                    <a class="akd-btn akd-btn--secondary akd-btn--sm" href="{% url 'academic:program_update' program.pk %}">
+                        <i data-lucide="pencil" class="h-3.5 w-3.5"></i>
+                    </a>
+                    <form method="post" action="{% url 'academic:program_toggle_active' program.pk %}" class="contents">
+                        {% csrf_token %}
+                        <button type="submit" class="akd-btn akd-btn--secondary akd-btn--sm" title="{% if program.is_active %}{% trans 'Pasife al' %}{% else %}{% trans 'Aktife al' %}{% endif %}">
+                            {% if program.is_active %}
+                                <i data-lucide="eye-off" class="h-3.5 w-3.5"></i>
+                            {% else %}
+                                <i data-lucide="eye" class="h-3.5 w-3.5"></i>
+                            {% endif %}
+                        </button>
+                    </form>
+                    <a class="akd-btn akd-btn--danger akd-btn--sm" href="{% url 'academic:program_delete' program.pk %}">
+                        <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
+                    </a>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{% include "includes/pagination.html" %}
+{% endblock %}
