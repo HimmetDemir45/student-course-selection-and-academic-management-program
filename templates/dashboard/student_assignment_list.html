@@ -58,34 +58,34 @@
         <tbody>
         {% for student in students %}
             <tr>
-                <td class="font-medium text-white">{{ student.user.get_full_name }}</td>
-                <td class="text-white/70 font-mono text-sm">{{ student.student_no }}</td>
-                <td class="text-white/70 text-sm">
+                <td class="font-medium" style="color: var(--akd-text)">{{ student.user.get_full_name }}</td>
+                <td class="font-mono text-sm" style="color: var(--akd-text-muted)">{{ student.student_no }}</td>
+                <td class="text-sm" style="color: var(--akd-text-muted)">
                     {% if student.department %}
                         {{ student.department.code }}
                     {% else %}
-                        <span class="text-white/40">-</span>
+                        <span style="color: var(--akd-text-faint)">-</span>
                     {% endif %}
                 </td>
-                <td class="text-white/70 text-sm">
+                <td class="text-sm" style="color: var(--akd-text-muted)">
                     {% if student.program %}
                         {{ student.program.code }}
                     {% else %}
-                        <span class="text-white/40">-</span>
+                        <span style="color: var(--akd-text-faint)">-</span>
                     {% endif %}
                 </td>
-                <td class="text-white/70 text-sm">
+                <td class="text-sm" style="color: var(--akd-text-muted)">
                     {% if student.enrollment_year %}
                         {{ student.enrollment_year }}. Yıl
                     {% else %}
-                        <span class="text-white/40">-</span>
+                        <span style="color: var(--akd-text-faint)">-</span>
                     {% endif %}
                 </td>
-                <td class="text-white/70 text-sm">
+                <td class="text-sm" style="color: var(--akd-text-muted)">
                     {% if student.advisor %}
                         {{ student.advisor.user.get_full_name }}
                     {% else %}
-                        <span class="text-white/40">-</span>
+                        <span style="color: var(--akd-text-faint)">-</span>
                     {% endif %}
                 </td>
                 <td class="text-end">
