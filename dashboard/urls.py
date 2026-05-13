@@ -25,4 +25,6 @@ urlpatterns = [
     path("donemler/yeni/", views.SemesterCreateView.as_view(), name="semester_create"),
     path("donemler/<int:pk>/duzenle/", views.SemesterEditView.as_view(), name="semester_edit"),
     path("donemler/<int:pk>/ac-kapat/", views.toggle_semester_active, name="semester_toggle_active"),
+    path("ogrenciler/atama/", views.StudentAssignmentListView.as_view(), name="student_assignment_list"),
+    path("ogrenciler/<int:pk>/atama/", views.StudentAssignmentEditView.as_view(), name="student_assignment_edit"),
 ]
