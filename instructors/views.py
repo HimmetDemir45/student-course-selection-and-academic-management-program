@@ -120,3 +120,110 @@ class InstructorAdminEditView(AdminRequiredMixin, UpdateView):
             {"label": _("Düzenle"), "url": None},
         )
         return ctx
+
+
+class InstructorEnrollmentReviewView(InstructorRequiredMixin, View):
+    """
+    Eğitim görevlisinin kendisinin öğrettiği derslere kayıtlı öğrencileri görmesi.
+    """
+    template_name = "instructors/enrollment_review.html"
+
+    def get(self, request):
+        from courses.models import CourseOffering
+        from enrollments.models import Enrollment
+        from django.utils import timezone
+
+        try:
+            profile = request.user.instructor_profile
+        except ObjectDoesNotExist:
+            return render(request, self.template_name, {"error": _("Akademisyen profili bulunamadı.")})
+
+        # Aktif dönemdeki kendi dersleri
+        today = timezone.localdate()
+        from academic.models import Semester
+        active_semester = Semester.objects.filter(
+            is_active=True,
+            start_date__lte=today,
+            end_date__gte=today
+        ).first()
+
+        offerings = CourseOffering.objects.filter(
+            instructor=profile,
+            is_active=True
+        )
+
+        if active_semester:
+            offerings = offerings.filter(semester=active_semester)
+
+        # Her ders için enrollmentları topla
+        courses_with_enrollments = []
+        for offering in offerings:
+            section = offering.section_detail
+            enrollments = Enrollment.objects.filter(
+                section=section
+            ).select_related("student__user")
+
+            courses_with_enrollments.append({
+                "offering": offering,
+                "enrollments": enrollments,
+                "total": enrollments.count(),
+                "pending_review": enrollments.filter(instructor_approved=False).count(),
+            })
+
+        ctx = {
+            "courses_with_enrollments": courses_with_enrollments,
+            "active_semester": active_semester,
+            "breadcrumb_items": items(
+                home(),
+                {"label": _("Ders İncelemesi"), "url": None},
+            ),
+        }
+        return render(request, self.template_name, ctx)
+
+
+class InstructorApproveEnrollmentView(InstructorRequiredMixin, View):
+    """
+    Eğitim görevlisinin bir öğrencinin ders seçimini onaylaması.
+    """
+
+    def post(self, request, enrollment_id):
+        from enrollments.models import Enrollment
+        from django.http import JsonResponse
+        from django.shortcuts import get_object_or_404
+        from audit_logs.services import log_event
+
+        try:
+            profile = request.user.instructor_profile
+        except ObjectDoesNotExist:
+            return JsonResponse({"error": _("Akademisyen profili bulunamadı.")}, status=403)
+
+        enrollment = get_object_or_404(Enrollment, pk=enrollment_id)
+
+        # Yetki kontrolü: Bu öğrencinin dersi benim dersim mi?
+        if enrollment.section.offering.instructor != profile:
+            return JsonResponse({"error": _("Yetkiniz yok.")}, status=403)
+
+        # Onay yap
+        enrollment.instructor_approved = True
+        enrollment.instructor_approved_by = profile
+        enrollment.instructor_approved_at = timezone.localtime()
+        enrollment.save()
+
+        log_event(
+            event_type="enrollment.instructor_approved",
+            actor=request.user,
+            target_type="enrollments.Enrollment",
+            target_id=str(enrollment.pk),
+            metadata={
+                "student": str(enrollment.student),
+                "course": str(enrollment.section.offering.course),
+            },
+            request=request,
+        )
+
+        messages.success(request, _("Enrollment approved successfully."))
+        return JsonResponse({"success": True})
+
+
+# İmport timezone
+from django.utils import timezone
