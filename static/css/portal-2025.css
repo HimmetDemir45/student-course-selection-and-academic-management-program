@@ -2104,6 +2104,33 @@ html:not(.dark) [class*="bg-violet-6"] [data-lucide] {
   color: rgba(255, 255, 255, 0.9) !important;
 }
 
+/* ----------------------------------------------------------------
+   PRINT
+   ---------------------------------------------------------------- */
+@media print {
+  .phase15-no-print,
+  .akd-no-print {
+    display: none !important;
+  }
+
+  .akd-shell-sidebar,
+  .akd-shell-header,
+  [data-mobile-sidebar] {
+    display: none !important;
+  }
+
+  .akd-card,
+  .card {
+    box-shadow: none !important;
+    border: 1px solid #e2e8f0 !important;
+  }
+
+  body {
+    background: #fff !important;
+    color: #0f172a !important;
+  }
+}
+
 /* Sidebar aktif bağlantı — border-white/20 class, "bg-white/10 text-white" ile birlikte
    geldiğinde aktif durumu yeterince spesifik işaret eder. */
 html:not(.dark) .akd-shell-sidebar a[class*="border-white/20"] {
@@ -2111,4 +2138,212 @@ html:not(.dark) .akd-shell-sidebar a[class*="border-white/20"] {
   border-color: var(--akd-border-strong) !important;
   color: var(--akd-text-strong) !important;
   box-shadow: inset 0 0 0 1px var(--akd-border-strong) !important;
+}
+
+/* ============================================================
+   22. LIGHT THEME — FOCUS RING OFFSET
+   Tailwind'in focus-visible:ring-offset-[#050816] koyu renk
+   sabit değeri, light temada koyu mavi kutu oluşturur.
+   Aşağıdaki kural bu rengi sayfanın arka planıyla uyumlu hale getirir.
+   ============================================================ */
+
+html:not(.dark) [class*="ring-offset-\[#050816\]"]:focus-visible {
+  --tw-ring-offset-color: var(--akd-bg) !important;
+}
+
+/* Auth sayfaları: split-screen sol panel ve form bölümü
+   Sabit bg-[#050816] divider zeminlerini light arkaplanla uyumlu yap
+   (portal-2025.css zaten .bg-\[\#050816\] override ediyor — bu kural
+    auth section içindeki span'lara ek güvence sağlar). */
+html:not(.dark) section [class*="bg-\[#050816\]"],
+html:not(.dark) div[class*="bg-\[#050816\]"]:not([class*="from-"]):not([class*="via-"]) {
+  background-color: var(--akd-bg) !important;
+}
+
+/* ============================================================
+   21. LIGHT THEME — STATUS COLORS
+   Dark tema için tasarlanmış pastel renk değerleri (#fca5a5,
+   #6ee7b7, #fcd34d, #fecaca vb.) beyaz zeminde okunmuyor.
+   Aşağıdaki blok bu renkleri yeterli kontrastlı koyu tonlarla
+   değiştirir.
+   ============================================================ */
+
+/* Form doğrulama hataları */
+html:not(.dark) .akd-form-error,
+html:not(.dark) .invalid-feedback {
+  color: #dc2626;
+}
+
+/* text-danger / text-success utility'leri */
+html:not(.dark) .text-danger { color: #dc2626 !important; }
+html:not(.dark) .text-success { color: #059669 !important; }
+
+/* Alert metinleri */
+html:not(.dark) .akd-alert--danger,
+html:not(.dark) .alert.alert-danger {
+  color: #991b1b;
+  background: rgba(239, 68, 68, 0.07);
+  border-color: rgba(239, 68, 68, 0.25);
+}
+
+html:not(.dark) .akd-alert--success,
+html:not(.dark) .alert.alert-success {
+  color: #065f46;
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.25);
+}
+
+html:not(.dark) .akd-alert--warning,
+html:not(.dark) .alert.alert-warning {
+  color: #92400e;
+  background: rgba(245, 158, 11, 0.08);
+  border-color: rgba(245, 158, 11, 0.25);
+}
+
+html:not(.dark) .akd-alert--info,
+html:not(.dark) .alert.alert-info {
+  color: #1e40af;
+  background: rgba(59, 130, 246, 0.08);
+  border-color: rgba(59, 130, 246, 0.25);
+}
+
+/* Butonlar — danger / success / warning */
+html:not(.dark) .akd-btn--danger,
+html:not(.dark) .btn-danger,
+html:not(.dark) .btn-outline-danger {
+  color: #991b1b;
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.28);
+}
+html:not(.dark) .akd-btn--danger:hover,
+html:not(.dark) .btn-danger:hover,
+html:not(.dark) .btn-outline-danger:hover {
+  color: #7f1d1d;
+  background: rgba(239, 68, 68, 0.14);
+}
+
+html:not(.dark) .akd-btn--success,
+html:not(.dark) .btn-success,
+html:not(.dark) .btn-outline-success {
+  color: #065f46;
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.28);
+}
+html:not(.dark) .akd-btn--success:hover,
+html:not(.dark) .btn-success:hover,
+html:not(.dark) .btn-outline-success:hover {
+  color: #064e3b;
+  background: rgba(16, 185, 129, 0.14);
+}
+
+html:not(.dark) .akd-btn--warning,
+html:not(.dark) .btn-warning,
+html:not(.dark) .btn-outline-warning {
+  color: #92400e;
+  background: rgba(245, 158, 11, 0.08);
+  border-color: rgba(245, 158, 11, 0.28);
+}
+html:not(.dark) .akd-btn--warning:hover,
+html:not(.dark) .btn-warning:hover,
+html:not(.dark) .btn-outline-warning:hover {
+  color: #78350f;
+  background: rgba(245, 158, 11, 0.14);
+}
+
+/* Badge'ler */
+html:not(.dark) .akd-badge--brand,
+html:not(.dark) .badge.bg-primary {
+  color: #3730a3;
+  background: rgba(99, 102, 241, 0.12);
+  border-color: rgba(99, 102, 241, 0.28);
+}
+
+html:not(.dark) .akd-badge--success,
+html:not(.dark) .badge.bg-success {
+  color: #065f46;
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.28);
+}
+
+html:not(.dark) .akd-badge--warning,
+html:not(.dark) .badge.bg-warning {
+  color: #92400e;
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.28);
+}
+
+html:not(.dark) .akd-badge--danger,
+html:not(.dark) .badge.bg-danger {
+  color: #991b1b;
+  background: rgba(239, 68, 68, 0.10);
+  border-color: rgba(239, 68, 68, 0.28);
+}
+
+html:not(.dark) .akd-badge--info,
+html:not(.dark) .badge.bg-info {
+  color: #1e40af;
+  background: rgba(59, 130, 246, 0.10);
+  border-color: rgba(59, 130, 246, 0.28);
+}
+
+/* Stat delta (+/-) göstergeleri */
+html:not(.dark) .akd-stat__delta--up {
+  color: #065f46;
+  border-color: rgba(16, 185, 129, 0.28);
+}
+
+html:not(.dark) .akd-stat__delta--down {
+  color: #991b1b;
+  border-color: rgba(239, 68, 68, 0.28);
+}
+
+html:not(.dark) .akd-stat__delta--flat {
+  color: var(--akd-text-muted);
+}
+
+/* Breadcrumb hover — dark'ta #fff, light'ta brand rengi */
+html:not(.dark) .akd-breadcrumb a:hover,
+html:not(.dark) .breadcrumb a:hover,
+html:not(.dark) .breadcrumb-item a:hover {
+  color: var(--akd-indigo) !important;
+}
+
+/* ============================================================
+   23. LIGHT THEME — PASTEL TAILWIND TEXT COLORS
+   text-indigo-200/300, text-emerald-300, text-rose-300 vb.
+   koyu temada okunabilir pastel tonlar; beyaz zeminde kontrast
+   yetersiz. Aşağıdaki kurallar bu renkleri koyu eşdeğerleriyle
+   değiştirir.
+   İstisna: doygun koyu arkaplan (bg-indigo-6xx, bg-rose-5xx vb.)
+   içindeki öğeler — onlarda zaten section XX kuralı beyaz korur.
+   ============================================================ */
+
+html:not(.dark) .text-indigo-200 { color: #4338ca !important; }
+html:not(.dark) .text-indigo-300 { color: #4f46e5 !important; }
+html:not(.dark) .text-indigo-400 { color: #6366f1 !important; }
+html:not(.dark) .text-violet-300 { color: #7c3aed !important; }
+html:not(.dark) .text-violet-400 { color: #8b5cf6 !important; }
+html:not(.dark) .text-cyan-300   { color: #0891b2 !important; }
+html:not(.dark) .text-cyan-400   { color: #06b6d4 !important; }
+html:not(.dark) .text-emerald-300 { color: #059669 !important; }
+html:not(.dark) .text-emerald-400 { color: #10b981 !important; }
+html:not(.dark) .text-rose-300   { color: #e11d48 !important; }
+html:not(.dark) .text-rose-400   { color: #f43f5e !important; }
+html:not(.dark) .text-amber-300  { color: #d97706 !important; }
+html:not(.dark) .text-amber-400  { color: #f59e0b !important; }
+html:not(.dark) .text-sky-300    { color: #0284c7 !important; }
+html:not(.dark) .text-sky-400    { color: #38bdf8 !important; }
+
+/* Doygun koyu bg içindeki pastel metinleri geri al (contrast zaten sağlanmış) */
+html:not(.dark) [class*="bg-indigo-5"] .text-indigo-200,
+html:not(.dark) [class*="bg-indigo-5"] .text-indigo-300,
+html:not(.dark) [class*="bg-indigo-6"] .text-indigo-200,
+html:not(.dark) [class*="bg-indigo-6"] .text-indigo-300,
+html:not(.dark) [class*="bg-violet-5"] .text-violet-300,
+html:not(.dark) [class*="bg-violet-6"] .text-violet-300,
+html:not(.dark) [class*="bg-rose-5"]   .text-rose-300,
+html:not(.dark) [class*="bg-rose-6"]   .text-rose-300,
+html:not(.dark) [class*="bg-emerald-5"] .text-emerald-300,
+html:not(.dark) [class*="bg-emerald-6"] .text-emerald-300 {
+  color: rgba(255, 255, 255, 0.92) !important;
 }

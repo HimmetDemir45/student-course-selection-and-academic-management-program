@@ -3,7 +3,7 @@
 [![codecov](https://codecov.io/gh/HimmetDemir45/student-course-selection-and-academic-management-program/graph/badge.svg)](https://codecov.io/gh/HimmetDemir45/student-course-selection-and-academic-management-program)
 [![CI](https://github.com/HimmetDemir45/student-course-selection-and-academic-management-program/actions/workflows/ci.yml/badge.svg)](https://github.com/HimmetDemir45/student-course-selection-and-academic-management-program/actions/workflows/ci.yml)
 
-Üniversite dersi kapsamında geliştirilen, **rol tabanlı yetkilendirme**, **kayıt (enrollment) iş kuralları**, **GPA / transkript** ve **denetim günlükleri** içeren modern bir web uygulamasıdır. Depo Flask’tan Django’ya geçişi tamamlar nitelikte tutulmuş; yeni özellikler Django üzerinden ilerler (`migration_notes.md`, `AGENTS.md`).
+Üniversite dersi kapsamında geliştirilen, **rol tabanlı yetkilendirme**, **kayıt (enrollment) iş kuralları**, **GPA / transkript** ve **denetim günlükleri** içeren modern bir web uygulamasıdır. Proje Flask’tan Django’ya geçişini tamamlamıştır; tüm yeni özellikler Django üzerinden ilerler (`AGENTS.md`).
 
 ---
 
@@ -40,12 +40,12 @@
 | `config` | Ayarlar (`settings/*`), kök URL, WSGI/ASGI |
 | `accounts` | Kullanıcı modeli, formlar, giriş/kayıt, admin talebi |
 | `core` | Ana sayfa, sağlık, hata işleyicileri, ortak middleware/servisler, önbellekli istatistik |
-| `students` | Öğrenci profilleri ve öğrenci odaklı rotalar |
-| `instructors` | Öğretim üyesi rotaları |
-| `courses` | Ders ve ilgili listeler |
+| `students` | Öğrenci profilleri, transkript, müfredat planı, devamsızlık, seçmeli dersler |
+| `instructors` | Öğretim üyesi rotaları, danışman ekranları |
+| `courses` | Ders, şube, derslik ve seçmeli havuz yönetimi |
 | `enrollments` | Bölüm kayıt akışları, kapasite yarışında atomik servis |
-| `academic` | Not, transkript, akademik içerik |
-| `dashboard` | Yönetim özeti, kurucu kuyruğu |
+| `academic` | Not, transkript, duyuru, dönem (Semester), müfredat (Curriculum), devamsızlık, zaman dilimleri (TimeSlot), haftalık program |
+| `dashboard` | Yönetim özeti, kurucu kuyruğu, kullanıcı onay akışı |
 | `audit_logs` | Denetim kayıtları listesi |
 
 Şablonlar `templates/` altında ortak düzen: `templates/base.html`.
@@ -252,7 +252,7 @@ Django 5 proje omurgası; `config/` paketi, kök URL, şablon kökü, `core` isk
 
 ### Yapılan Çalışmalar
 
-`manage.py`, `config/settings/base.py`, `config/urls.py`, paylaşımlı `templates/base.html`, Flask’tan miras kararların `migration_notes.md` ile belgelenmesi.
+`manage.py`, `config/settings/base.py`, `config/urls.py`, paylaşımlı `templates/base.html`; modüler URL include ve MTV iskeletinin oturtulması.
 
 ### Teknik Kazanımlar
 
@@ -264,7 +264,7 @@ Geliştiriciler için tek `runserver` ve ayar modülü sözleşmesi.
 
 ### Notlar
 
-Eski Flask dosyaları referans için tutulabilir; yeni kod Django’da yazılır.
+Tüm yeni özellikler Django MTV kalıbında yazılır.
 
 ## Phase 2
 
@@ -572,8 +572,7 @@ Docker ile: `docker compose up --build` (MySQL dahil).
 
 | Belge | Konu |
 |-------|------|
-| `AGENTS.md` | Ajan/geliştirici kuralları ve komut özeti |
-| `migration_notes.md` | Flask → Django eşlemesi |
+| `AGENTS.md` | Geliştirici kuralları, mimari sözleşmeler ve komut özeti |
 | `docs/deployment/production-automation.md` | Üretim otomasyonu |
 | `docs/runbooks/deployment-runbook.md` | Dağıtım ayrıntısı |
 | `docs/runbooks/rollback-runbook.md` | Geri alma ayrıntısı |
