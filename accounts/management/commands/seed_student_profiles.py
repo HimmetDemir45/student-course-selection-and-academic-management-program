@@ -21,6 +21,9 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils import timezone
 
+# Öğrenci parolası (değiştirebilirsiniz)
+STUDENT_PASSWORD = "OgrenciPass2026!"
+
 from accounts.models import User
 from academic.models import (
     CurriculumItem,
@@ -120,7 +123,7 @@ def create_or_update_student(first_name: str, last_name: str, username: str,
     """Öğrenci profili oluştur veya güncelle."""
 
     # Kullanıcı oluştur
-    user, _ = User.objects.get_or_create(
+    user, created = User.objects.get_or_create(
         username=username,
         defaults={
             "first_name": first_name,
@@ -130,6 +133,11 @@ def create_or_update_student(first_name: str, last_name: str, username: str,
             "is_active": True,
         }
     )
+
+    # Parola ayarla
+    if created or not user.has_usable_password():
+        user.set_password(STUDENT_PASSWORD)
+        user.save()
 
     # Departman ve program bul
     try:
@@ -273,3 +281,13 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS("\n[OK] Tamamlandi!\n"))
         self.stdout.write(self.style.SUCCESS(f"Toplam {len(STUDENTS_DATA)} ogrenci profili hazirlanmis.\n"))
+
+        # Giriş bilgilerini göster
+        self.stdout.write(self.style.WARNING("\n[!] Ogrenci Giris Bilgileri:\n"))
+        for first, last, username, dept, prog, year, gpa, student_no in STUDENTS_DATA:
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f"  Kullanici: {username:20} | Parola: {STUDENT_PASSWORD:15} | {first} {last}"
+                )
+            )
+        self.stdout.write("")
