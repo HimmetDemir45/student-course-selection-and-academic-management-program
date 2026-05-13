@@ -34,11 +34,6 @@ urlpatterns = [
         name="instructor_enrollments",
     ),
     path(
-        "instructor/pending/",
-        views.InstructorPendingListView.as_view(),
-        name="instructor_pending",
-    ),
-    path(
         "danishman/",
         views.DanismanAdviseeListView.as_view(),
         name="danishman_advisees",
@@ -52,16 +47,6 @@ urlpatterns = [
         "danishman/<int:student_pk>/approve-all/",
         views.danishman_approve_all,
         name="danishman_approve_all",
-    ),
-    path(
-        "instructor/enrollments/<int:enrollment_id>/approve/",
-        views.enrollment_approve,
-        name="enrollment_approve",
-    ),
-    path(
-        "instructor/enrollments/<int:enrollment_id>/reject/",
-        views.enrollment_reject,
-        name="enrollment_reject",
     ),
     path(
         "instructor/grades/<int:enrollment_id>/",

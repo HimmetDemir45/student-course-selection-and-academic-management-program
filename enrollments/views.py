@@ -279,6 +279,92 @@ class MyEnrollmentsView(StudentRequiredMixin, View):
         )
 
 
+class StudentMyCourseSelectionsView(StudentRequiredMixin, View):
+    """
+    Öğrencinin aktif dönemdeki ders seçimlerini gösterir.
+    PENDING (danışman onayı beklemekte), ENROLLED (onaylanmış) ve DROPPED (bırakılmış) dersleri gösterir.
+    """
+    template_name = "enrollments/my_course_selections.html"
+
+    def get(self, request):
+        from django.shortcuts import render as dj_render
+        from django.utils import timezone as tz
+
+        try:
+            profile = request.user.student_profile
+        except ObjectDoesNotExist:
+            return redirect("students:index")
+
+        # Find current active semester
+        active_semesters = list(
+            Semester.objects.filter(is_active=True).order_by("-academic_year", "term")
+        )
+        today = tz.localdate()
+        current_semester = next(
+            (s for s in active_semesters if s.start_date <= today <= s.end_date),
+            active_semesters[0] if active_semesters else None,
+        )
+
+        if not current_semester:
+            ctx = {
+                "profile": profile,
+                "current_semester": None,
+                "pending_enrollments": [],
+                "enrolled_enrollments": [],
+                "dropped_enrollments": [],
+                "total_credits": 0,
+                "within_window": False,
+                "breadcrumb_items": items(
+                    home(),
+                    {"label": _("Öğrenci alanı"), "url": reverse("students:index")},
+                    {"label": _("Ders Seçimlerim"), "url": None},
+                ),
+            }
+            return dj_render(request, self.template_name, ctx)
+
+        # Get all enrollments for current semester
+        enrollments = list(
+            Enrollment.objects.filter(
+                student=profile,
+                section__offering__semester=current_semester,
+            )
+            .select_related(
+                "section__offering__course",
+                "section__offering__instructor__user",
+                "section__offering__classroom",
+            )
+            .prefetch_related("section__time_slots")
+            .order_by("section__offering__course__code")
+        )
+
+        # Separate by status
+        pending_enrollments = [e for e in enrollments if e.status == Enrollment.Status.PENDING]
+        enrolled_enrollments = [e for e in enrollments if e.status == Enrollment.Status.ENROLLED]
+        dropped_enrollments = [e for e in enrollments if e.status == Enrollment.Status.DROPPED]
+
+        # Calculate total credits
+        total_credits = sum(e.section.offering.course.credits or 0 for e in enrollments if e.status in (Enrollment.Status.PENDING, Enrollment.Status.ENROLLED))
+
+        # Check if within add/drop window
+        within_window = is_within_add_drop(current_semester)
+
+        ctx = {
+            "profile": profile,
+            "current_semester": current_semester,
+            "pending_enrollments": pending_enrollments,
+            "enrolled_enrollments": enrolled_enrollments,
+            "dropped_enrollments": dropped_enrollments,
+            "total_credits": total_credits,
+            "within_window": within_window,
+            "breadcrumb_items": items(
+                home(),
+                {"label": _("Öğrenci alanı"), "url": reverse("students:index")},
+                {"label": _("Ders Seçimlerim"), "url": None},
+            ),
+        }
+        return dj_render(request, self.template_name, ctx)
+
+
 def _validation_message(exc: ValidationError) -> str:
     if hasattr(exc, "message_dict"):
         parts = []

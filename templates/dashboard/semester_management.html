@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Dönem Yönetimi — Akademik 2.0" %}{% endblock %}
+
+{% block content %}
+<header class="akd-page-header">
+    <div class="akd-page-header__intro">
+        <span class="akd-page-header__eyebrow">
+            <i data-lucide="calendar" class="h-3 w-3"></i>
+            {% trans "Yönetim" %}
+        </span>
+        <h1 class="akd-page-header__title">{% trans "Dönem Yönetimi" %}</h1>
+        <p class="akd-page-header__subtitle">
+            {% trans "Aktif dönemleri ayarlayın ve ders ekleme/bırakma pencerelerini tanımlayın." %}
+        </p>
+    </div>
+    <div class="akd-page-header__actions">
+        <a class="akd-btn akd-btn--secondary akd-btn--sm" href="{% url 'dashboard:index' %}">
+            <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i>
+            <span>{% trans "Geri" %}</span>
+        </a>
+    </div>
+</header>
+
+{% if not semesters %}
+    {% include "includes/empty_state.html" with empty_title=_("Dönem yok") empty_message=_("Henüz dönem oluşturulmamıştır.") empty_icon="calendar" %}
+{% else %}
+
+<div class="akd-table-wrap">
+    <table class="akd-table">
+        <thead>
+            <tr>
+                <th>{% trans "Dönem Adı" %}</th>
+                <th style="width: 8rem;">{% trans "Terim" %}</th>
+                <th style="width: 10rem;">{% trans "Başlama Tarihi" %}</th>
+                <th style="width: 10rem;">{% trans "Bitme Tarihi" %}</th>
+                <th style="width: 9rem;">{% trans "Durum" %}</th>
+                <th style="width: 10rem;">{% trans "Ekleme/Bırakma" %}</th>
+                <th style="width: 15rem;" class="text-end"></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for semester in semesters %}
+            <tr {% if semester.is_active %}class="bg-emerald-500/5 border-l-2 border-emerald-400/30"{% endif %}>
+                <td class="font-medium text-white">{{ semester.name }}</td>
+                <td class="text-white/70">
+                    {% if semester.term == "fall" %}
+                        {% trans "Güz" %}
+                    {% elif semester.term == "spring" %}
+                        {% trans "Bahar" %}
+                    {% else %}
+                        {% trans "Yaz" %}
+                    {% endif %}
+                </td>
+                <td class="text-white/70 text-sm">{{ semester.start_date|date:"d.m.Y" }}</td>
+                <td class="text-white/70 text-sm">{{ semester.end_date|date:"d.m.Y" }}</td>
+                <td>
+                    {% if semester.is_active %}
+                        <span class="akd-badge akd-badge--success">
+                            <i data-lucide="check-circle-2" class="h-3 w-3"></i>
+                            {% trans "Aktif" %}
+                        </span>
+                    {% else %}
+                        <span class="akd-badge akd-badge--neutral">
+                            <i data-lucide="circle" class="h-3 w-3"></i>
+                            {% trans "Pasif" %}
+                        </span>
+                    {% endif %}
+                </td>
+                <td class="text-white/70 text-sm">
+                    {% if semester.add_drop_start and semester.add_drop_end %}
+                        <span class="text-xs">
+                            {{ semester.add_drop_start|date:"d.m" }} — {{ semester.add_drop_end|date:"d.m" }}
+                        </span>
+                    {% else %}
+                        <span class="text-white/40 text-xs">{% trans "Tanımsız" %}</span>
+                    {% endif %}
+                </td>
+                <td class="text-end">
+                    <div class="inline-flex gap-1.5 items-center">
+                        <a class="akd-btn akd-btn--secondary akd-btn--sm"
+                           href="{% url 'dashboard:semester_edit' semester.pk %}"
+                           title="{% trans 'Pencere tarihleri düzenle' %}">
+                            <i data-lucide="pencil" class="h-3.5 w-3.5"></i>
+                            <span>{% trans "Düzenle" %}</span>
+                        </a>
+                        <form method="post" action="{% url 'dashboard:semester_toggle_active' semester.pk %}" class="inline-flex">
+                            {% csrf_token %}
+                            <button type="submit"
+                                    class="akd-btn {% if semester.is_active %}akd-btn--danger{% else %}akd-btn--success{% endif %} akd-btn--sm"
+                                    title="{% trans 'Durumu değiştir' %}">
+                                <i data-lucide="{% if semester.is_active %}power-off{% else %}power{% endif %}" class="h-3.5 w-3.5"></i>
+                                <span>{% if semester.is_active %}{% trans "Kapat" %}{% else %}{% trans "Aç" %}{% endif %}</span>
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endif %}
+
+{% endblock %}
