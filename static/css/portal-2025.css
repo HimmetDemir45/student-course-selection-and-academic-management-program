@@ -2104,6 +2104,33 @@ html:not(.dark) [class*="bg-violet-6"] [data-lucide] {
   color: rgba(255, 255, 255, 0.9) !important;
 }
 
+/* ----------------------------------------------------------------
+   PRINT
+   ---------------------------------------------------------------- */
+@media print {
+  .phase15-no-print,
+  .akd-no-print {
+    display: none !important;
+  }
+
+  .akd-shell-sidebar,
+  .akd-shell-header,
+  [data-mobile-sidebar] {
+    display: none !important;
+  }
+
+  .akd-card,
+  .card {
+    box-shadow: none !important;
+    border: 1px solid #e2e8f0 !important;
+  }
+
+  body {
+    background: #fff !important;
+    color: #0f172a !important;
+  }
+}
+
 /* Sidebar aktif bağlantı — border-white/20 class, "bg-white/10 text-white" ile birlikte
    geldiğinde aktif durumu yeterince spesifik işaret eder. */
 html:not(.dark) .akd-shell-sidebar a[class*="border-white/20"] {
@@ -2111,4 +2138,152 @@ html:not(.dark) .akd-shell-sidebar a[class*="border-white/20"] {
   border-color: var(--akd-border-strong) !important;
   color: var(--akd-text-strong) !important;
   box-shadow: inset 0 0 0 1px var(--akd-border-strong) !important;
+}
+
+/* ============================================================
+   21. LIGHT THEME — STATUS COLORS
+   Dark tema için tasarlanmış pastel renk değerleri (#fca5a5,
+   #6ee7b7, #fcd34d, #fecaca vb.) beyaz zeminde okunmuyor.
+   Aşağıdaki blok bu renkleri yeterli kontrastlı koyu tonlarla
+   değiştirir.
+   ============================================================ */
+
+/* Form doğrulama hataları */
+html:not(.dark) .akd-form-error,
+html:not(.dark) .invalid-feedback {
+  color: #dc2626;
+}
+
+/* text-danger / text-success utility'leri */
+html:not(.dark) .text-danger { color: #dc2626 !important; }
+html:not(.dark) .text-success { color: #059669 !important; }
+
+/* Alert metinleri */
+html:not(.dark) .akd-alert--danger,
+html:not(.dark) .alert.alert-danger {
+  color: #991b1b;
+  background: rgba(239, 68, 68, 0.07);
+  border-color: rgba(239, 68, 68, 0.25);
+}
+
+html:not(.dark) .akd-alert--success,
+html:not(.dark) .alert.alert-success {
+  color: #065f46;
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.25);
+}
+
+html:not(.dark) .akd-alert--warning,
+html:not(.dark) .alert.alert-warning {
+  color: #92400e;
+  background: rgba(245, 158, 11, 0.08);
+  border-color: rgba(245, 158, 11, 0.25);
+}
+
+html:not(.dark) .akd-alert--info,
+html:not(.dark) .alert.alert-info {
+  color: #1e40af;
+  background: rgba(59, 130, 246, 0.08);
+  border-color: rgba(59, 130, 246, 0.25);
+}
+
+/* Butonlar — danger / success / warning */
+html:not(.dark) .akd-btn--danger,
+html:not(.dark) .btn-danger,
+html:not(.dark) .btn-outline-danger {
+  color: #991b1b;
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.28);
+}
+html:not(.dark) .akd-btn--danger:hover,
+html:not(.dark) .btn-danger:hover,
+html:not(.dark) .btn-outline-danger:hover {
+  color: #7f1d1d;
+  background: rgba(239, 68, 68, 0.14);
+}
+
+html:not(.dark) .akd-btn--success,
+html:not(.dark) .btn-success,
+html:not(.dark) .btn-outline-success {
+  color: #065f46;
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.28);
+}
+html:not(.dark) .akd-btn--success:hover,
+html:not(.dark) .btn-success:hover,
+html:not(.dark) .btn-outline-success:hover {
+  color: #064e3b;
+  background: rgba(16, 185, 129, 0.14);
+}
+
+html:not(.dark) .akd-btn--warning,
+html:not(.dark) .btn-warning,
+html:not(.dark) .btn-outline-warning {
+  color: #92400e;
+  background: rgba(245, 158, 11, 0.08);
+  border-color: rgba(245, 158, 11, 0.28);
+}
+html:not(.dark) .akd-btn--warning:hover,
+html:not(.dark) .btn-warning:hover,
+html:not(.dark) .btn-outline-warning:hover {
+  color: #78350f;
+  background: rgba(245, 158, 11, 0.14);
+}
+
+/* Badge'ler */
+html:not(.dark) .akd-badge--brand,
+html:not(.dark) .badge.bg-primary {
+  color: #3730a3;
+  background: rgba(99, 102, 241, 0.12);
+  border-color: rgba(99, 102, 241, 0.28);
+}
+
+html:not(.dark) .akd-badge--success,
+html:not(.dark) .badge.bg-success {
+  color: #065f46;
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.28);
+}
+
+html:not(.dark) .akd-badge--warning,
+html:not(.dark) .badge.bg-warning {
+  color: #92400e;
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.28);
+}
+
+html:not(.dark) .akd-badge--danger,
+html:not(.dark) .badge.bg-danger {
+  color: #991b1b;
+  background: rgba(239, 68, 68, 0.10);
+  border-color: rgba(239, 68, 68, 0.28);
+}
+
+html:not(.dark) .akd-badge--info,
+html:not(.dark) .badge.bg-info {
+  color: #1e40af;
+  background: rgba(59, 130, 246, 0.10);
+  border-color: rgba(59, 130, 246, 0.28);
+}
+
+/* Stat delta (+/-) göstergeleri */
+html:not(.dark) .akd-stat__delta--up {
+  color: #065f46;
+  border-color: rgba(16, 185, 129, 0.28);
+}
+
+html:not(.dark) .akd-stat__delta--down {
+  color: #991b1b;
+  border-color: rgba(239, 68, 68, 0.28);
+}
+
+html:not(.dark) .akd-stat__delta--flat {
+  color: var(--akd-text-muted);
+}
+
+/* Breadcrumb hover — dark'ta #fff, light'ta brand rengi */
+html:not(.dark) .akd-breadcrumb a:hover,
+html:not(.dark) .breadcrumb a:hover,
+html:not(.dark) .breadcrumb-item a:hover {
+  color: var(--akd-indigo) !important;
 }
