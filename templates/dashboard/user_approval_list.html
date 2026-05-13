@@ -23,7 +23,7 @@
                 <th>{% trans "Ad Soyad" %}</th>
                 <th>{% trans "Kullanıcı adı" %}</th>
                 <th>{% trans "Öğrenci No" %}</th>
-                <th>{% trans "Bölüm" %}</th>
+                <th>{% trans "Bölüm / Program" %}</th>
                 <th>{% trans "Kayıt tarihi" %}</th>
                 <th class="text-right"></th>
             </tr></thead>
@@ -33,23 +33,38 @@
                 <td class="font-medium text-white">{{ sp.user.get_full_name|default:sp.user.username }}</td>
                 <td class="text-white/70">{{ sp.user.username }}</td>
                 <td class="font-mono text-sm text-indigo-200">{{ sp.student_no }}</td>
-                <td class="text-white/70">{{ sp.department|default:"—" }}</td>
+                <td class="text-sm">
+                    {% if sp.department %}
+                        <span class="text-white/80">{{ sp.department.code }}</span>
+                        {% if sp.program %}<span class="text-white/40 text-xs ml-1">/ {{ sp.program.code }}</span>{% endif %}
+                    {% else %}
+                        <span class="text-amber-400/80 text-xs">{% trans "Atanmamış" %}</span>
+                    {% endif %}
+                </td>
                 <td class="text-white/55 text-xs">{{ sp.created_at|date:"d.m.Y H:i" }}</td>
                 <td class="text-right">
-                    <form method="post" action="{% url 'dashboard:approve_student' sp.pk %}" class="inline-flex gap-1.5">
-                        {% csrf_token %}
-                        <button name="action" value="approve" type="submit"
-                                class="akd-btn akd-btn--success akd-btn--sm">
-                            <i data-lucide="check" class="h-3.5 w-3.5"></i>
-                            <span>{% trans "Onayla" %}</span>
-                        </button>
-                        <button name="action" value="reject" type="submit"
-                                class="akd-btn akd-btn--danger akd-btn--sm"
-                                onclick="return confirm('Bu öğrenciyi reddetmek istiyor musunuz?')">
-                            <i data-lucide="x" class="h-3.5 w-3.5"></i>
-                            <span>{% trans "Reddet" %}</span>
-                        </button>
-                    </form>
+                    <div class="inline-flex gap-1.5 items-center">
+                        <a class="akd-btn akd-btn--secondary akd-btn--sm"
+                           href="{% url 'students:admin_edit' sp.pk %}"
+                           title="{% trans 'Bölüm/program ata ve onayla' %}">
+                            <i data-lucide="pencil" class="h-3.5 w-3.5"></i>
+                            <span>{% trans "Düzenle" %}</span>
+                        </a>
+                        <form method="post" action="{% url 'dashboard:approve_student' sp.pk %}" class="inline-flex gap-1">
+                            {% csrf_token %}
+                            <button name="action" value="approve" type="submit"
+                                    class="akd-btn akd-btn--success akd-btn--sm">
+                                <i data-lucide="check" class="h-3.5 w-3.5"></i>
+                                <span>{% trans "Onayla" %}</span>
+                            </button>
+                            <button name="action" value="reject" type="submit"
+                                    class="akd-btn akd-btn--danger akd-btn--sm"
+                                    onclick="return confirm('Bu öğrenciyi reddetmek istiyor musunuz?')">
+                                <i data-lucide="x" class="h-3.5 w-3.5"></i>
+                                <span>{% trans "Reddet" %}</span>
+                            </button>
+                        </form>
+                    </div>
                 </td>
             </tr>
             {% endfor %}
@@ -76,8 +91,7 @@
                 <th>{% trans "Ad Soyad" %}</th>
                 <th>{% trans "Kullanıcı adı" %}</th>
                 <th>{% trans "Sicil No" %}</th>
-                <th>{% trans "Unvan" %}</th>
-                <th>{% trans "Bölüm" %}</th>
+                <th>{% trans "Unvan / Bölüm" %}</th>
                 <th class="text-right"></th>
             </tr></thead>
             <tbody>
@@ -86,23 +100,39 @@
                 <td class="font-medium text-white">{{ ip.user.get_full_name|default:ip.user.username }}</td>
                 <td class="text-white/70">{{ ip.user.username }}</td>
                 <td class="font-mono text-sm text-indigo-200">{{ ip.employee_no }}</td>
-                <td class="text-white/70">{{ ip.title|default:"—" }}</td>
-                <td class="text-white/70">{{ ip.department|default:"—" }}</td>
+                <td class="text-sm">
+                    {% if ip.title %}
+                        <span class="text-white/80">{{ ip.title }}</span>
+                    {% endif %}
+                    {% if ip.department %}
+                        <span class="text-white/40 text-xs {% if ip.title %}ml-1{% endif %}">{{ ip.department.code }}</span>
+                    {% elif not ip.title %}
+                        <span class="text-amber-400/80 text-xs">{% trans "Atanmamış" %}</span>
+                    {% endif %}
+                </td>
                 <td class="text-right">
-                    <form method="post" action="{% url 'dashboard:approve_instructor' ip.pk %}" class="inline-flex gap-1.5">
-                        {% csrf_token %}
-                        <button name="action" value="approve" type="submit"
-                                class="akd-btn akd-btn--success akd-btn--sm">
-                            <i data-lucide="check" class="h-3.5 w-3.5"></i>
-                            <span>{% trans "Onayla" %}</span>
-                        </button>
-                        <button name="action" value="reject" type="submit"
-                                class="akd-btn akd-btn--danger akd-btn--sm"
-                                onclick="return confirm('Bu akademisyeni reddetmek istiyor musunuz?')">
-                            <i data-lucide="x" class="h-3.5 w-3.5"></i>
-                            <span>{% trans "Reddet" %}</span>
-                        </button>
-                    </form>
+                    <div class="inline-flex gap-1.5 items-center">
+                        <a class="akd-btn akd-btn--secondary akd-btn--sm"
+                           href="{% url 'instructors:admin_edit' ip.pk %}"
+                           title="{% trans 'Bölüm/unvan ata ve onayla' %}">
+                            <i data-lucide="pencil" class="h-3.5 w-3.5"></i>
+                            <span>{% trans "Düzenle" %}</span>
+                        </a>
+                        <form method="post" action="{% url 'dashboard:approve_instructor' ip.pk %}" class="inline-flex gap-1">
+                            {% csrf_token %}
+                            <button name="action" value="approve" type="submit"
+                                    class="akd-btn akd-btn--success akd-btn--sm">
+                                <i data-lucide="check" class="h-3.5 w-3.5"></i>
+                                <span>{% trans "Onayla" %}</span>
+                            </button>
+                            <button name="action" value="reject" type="submit"
+                                    class="akd-btn akd-btn--danger akd-btn--sm"
+                                    onclick="return confirm('Bu akademisyeni reddetmek istiyor musunuz?')">
+                                <i data-lucide="x" class="h-3.5 w-3.5"></i>
+                                <span>{% trans "Reddet" %}</span>
+                            </button>
+                        </form>
+                    </div>
                 </td>
             </tr>
             {% endfor %}
