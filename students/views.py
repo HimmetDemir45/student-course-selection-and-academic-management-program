@@ -8,14 +8,11 @@ from django.shortcuts import render
 from django.urls import reverse, reverse_lazy
 from django.utils.translation import gettext as _
 from django.views import View
-from django.shortcuts import render
-from django.views import View
 from django.views.generic import ListView, TemplateView, UpdateView
 
 from core.breadcrumbs import home, items
 from core.permissions import AdminRequiredMixin, StudentRequiredMixin
 from core.services.gpa import gpa_from_completed_enrollments
-from core.services.graduation import calculate_graduation_progress
 from core.services.graduation import calculate_graduation_progress
 
 from enrollments.models import Enrollment
