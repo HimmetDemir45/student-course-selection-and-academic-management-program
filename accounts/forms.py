@@ -1,5 +1,6 @@
 from django import forms
 from django.contrib.auth import authenticate
+from django.contrib.auth.forms import PasswordChangeForm as _DjangoPasswordChangeForm
 from django.contrib.auth.password_validation import validate_password
 from django.utils.translation import gettext_lazy as _
 
@@ -136,9 +137,49 @@ class LoginForm(forms.Form):
         return self.user_cache
 
 
+class ProfileForm(forms.ModelForm):
+    """Kullanıcının kendi adını, soyadını ve e-postasını düzenlemesi için form."""
+
+    class Meta:
+        model = User
+        fields = ("first_name", "last_name", "email")
+        labels = {
+            "first_name": _("Ad"),
+            "last_name": _("Soyad"),
+            "email": _("E-posta"),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            if not isinstance(field.widget, (forms.CheckboxInput, forms.CheckboxSelectMultiple)):
+                field.widget.attrs.setdefault("class", "akd-input")
+
+    def clean_email(self):
+        email = self.cleaned_data["email"].lower().strip()
+        qs = User.objects.filter(email=email)
+        if self.instance and self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise forms.ValidationError(_("Bu e-posta adresi başka bir hesap tarafından kullanılıyor."))
+        return email
+
+
+class AkdPasswordChangeForm(_DjangoPasswordChangeForm):
+    """Django'nun PasswordChangeForm'u; etiketler Türkçeleştirilmiş."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["old_password"].label = _("Mevcut şifre")
+        self.fields["new_password1"].label = _("Yeni şifre")
+        self.fields["new_password2"].label = _("Yeni şifre (tekrar)")
+        for field in self.fields.values():
+            field.widget.attrs.setdefault("class", "akd-input")
+
+
 class AdminRequestForm(forms.Form):
     reason = forms.CharField(
         label=_("Gerekçe"),
         required=False,
-        widget=forms.Textarea(attrs={"rows": 4, "class": "form-control"}),
+        widget=forms.Textarea(attrs={"rows": 4, "class": "akd-input"}),
     )

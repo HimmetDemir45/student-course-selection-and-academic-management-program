@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Seçmeli dersler — Akademik 2.0" %}{% endblock %}
+
+{% block content %}
+<header class="akd-page-header">
+    <div class="akd-page-header__intro">
+        <span class="akd-page-header__eyebrow">
+            <i data-lucide="layers" class="h-3 w-3"></i>
+            {% trans "Öğrenci" %}
+        </span>
+        <h1 class="akd-page-header__title">{% trans "Seçmeli dersler" %}</h1>
+        <p class="akd-page-header__subtitle">{% trans "Programınızdaki seçmeli havuzları, her havuzun içeriğini ve ilerlemenizi görün." %}</p>
+    </div>
+    <div class="akd-page-header__actions">
+        <a class="akd-btn akd-btn--secondary akd-btn--sm" href="{% url 'students:index' %}">
+            <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i>
+            <span>{% trans "Geri" %}</span>
+        </a>
+    </div>
+</header>
+
+{% if no_profile %}
+    {% include "includes/empty_state.html" with empty_title=_("Profil bulunamadı") empty_message=_("Yönetici hesabınızı henüz onaylamamış olabilir.") empty_icon="user-x" %}
+{% elif not pools %}
+    {% include "includes/empty_state.html" with empty_title=_("Seçmeli havuz tanımlanmamış") empty_message=_("Programınız için henüz seçmeli ders havuzu oluşturulmamış. Danışmanınızla iletişime geçin.") empty_icon="layers" %}
+{% else %}
+
+{% for item in pools %}
+<div class="mb-8">
+    {# ── Havuz başlığı ── #}
+    <div class="flex flex-wrap items-start justify-between gap-3 mb-4">
+        <div>
+            <div class="flex items-center gap-2 mb-1">
+                <h2 class="text-base font-semibold text-white">{{ item.pool.name }}</h2>
+                {% if item.done %}
+                    <span class="akd-badge akd-badge--success">
+                        <i data-lucide="check-circle-2" class="h-3 w-3"></i>
+                        {% trans "Tamamlandı" %}
+                    </span>
+                {% else %}
+                    <span class="akd-badge akd-badge--warning">
+                        <i data-lucide="clock" class="h-3 w-3"></i>
+                        {{ item.completed_count }}/{{ item.pool.required_count }} {% trans "tamamlandı" %}
+                    </span>
+                {% endif %}
+            </div>
+            {% if item.pool.description %}
+                <p class="text-sm text-white/55">{{ item.pool.description }}</p>
+            {% endif %}
+            <p class="text-xs text-white/40 mt-1">
+                {% blocktrans with n=item.pool.required_count %}Bu havuzdan {{ n }} ders seçmeniz gerekmektedir.{% endblocktrans %}
+            </p>
+        </div>
+        {# İlerleme çubuğu #}
+        <div class="flex items-center gap-2 min-w-[140px]">
+            <div class="flex-1 h-2 rounded-full bg-white/10 overflow-hidden">
+                {% with pct=item.completed_count|floatformat:0 %}
+                <div class="h-full rounded-full {% if item.done %}bg-emerald-500{% else %}bg-amber-500{% endif %}"
+                     style="width: {% if item.pool.required_count %}{% widthratio item.completed_count item.pool.required_count 100 %}{% else %}0{% endif %}%;"></div>
+                {% endwith %}
+            </div>
+            <span class="text-xs text-white/50 whitespace-nowrap">
+                {{ item.completed_count }}/{{ item.pool.required_count }}
+            </span>
+        </div>
+    </div>
+
+    {# ── Ders kartları ── #}
+    {% if not item.courses %}
+        <p class="text-sm text-white/35 pl-1">{% trans "Bu havuzda henüz ders yok." %}</p>
+    {% else %}
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+        {% for ci in item.courses %}
+        <div class="rounded-xl border px-4 py-3.5
+            {% if ci.status == 'completed' %}border-emerald-400/25 bg-emerald-500/8
+            {% elif ci.status == 'enrolled' %}border-amber-400/25 bg-amber-500/8
+            {% else %}border-white/10 bg-white/3{% endif %}">
+
+            {# Ders kodu + kredi #}
+            <div class="flex items-center justify-between gap-2 mb-2">
+                <span class="font-mono text-xs px-2 py-1 rounded-md border
+                    {% if ci.status == 'completed' %}text-emerald-200 bg-emerald-500/15 border-emerald-400/25
+                    {% elif ci.status == 'enrolled' %}text-amber-200 bg-amber-500/15 border-amber-400/25
+                    {% else %}text-indigo-200 bg-indigo-500/15 border-indigo-400/25{% endif %}">
+                    {{ ci.course.code }}
+                </span>
+                <div class="flex items-center gap-1.5">
+                    {% if ci.course.credits %}
+                        <span class="text-xs text-white/40">{{ ci.course.credits }} {% trans "kredi" %}</span>
+                    {% endif %}
+                    {% if ci.status == 'completed' %}
+                        <span class="akd-badge akd-badge--success">
+                            <i data-lucide="check" class="h-3 w-3"></i>{% trans "Tamamlandı" %}
+                        </span>
+                    {% elif ci.status == 'enrolled' %}
+                        <span class="akd-badge akd-badge--warning">
+                            <i data-lucide="clock" class="h-3 w-3"></i>{% trans "Kayıtlı" %}
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# Ders adı #}
+            <p class="text-sm font-medium {% if ci.status == 'completed' %}text-white/55{% else %}text-white/85{% endif %} mb-1.5">
+                {{ ci.course.name }}
+            </p>
+
+            {# Ders açıklaması #}
+            {% if ci.course.description %}
+                <p class="text-xs text-white/40 leading-relaxed line-clamp-3">
+                    {{ ci.course.description }}
+                </p>
+            {% else %}
+                <p class="text-xs text-white/25 italic">{% trans "Açıklama girilmemiş." %}</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endfor %}
+
+{% endif %}
+{% endblock %}

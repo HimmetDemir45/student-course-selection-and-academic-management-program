@@ -11,37 +11,94 @@
             {% trans "Akademisyen" %}
         </span>
         <h1 class="akd-page-header__title">{% trans "Akademisyen alanı" %}</h1>
+        {% if profile %}
+        <p class="akd-page-header__subtitle">
+            {% if profile.title %}<span class="text-white/60">{{ profile.title }}</span> · {% endif %}
+            {% if profile.department %}<span class="text-white/60">{{ profile.department.name }}</span> · {% endif %}
+            <span class="font-mono text-white/50 text-xs">{{ profile.employee_no }}</span>
+        </p>
+        {% else %}
         <p class="akd-page-header__subtitle">{% trans "Verdiğin dersler, öğrenci listesi ve not girişi için kısayollar." %}</p>
+        {% endif %}
     </div>
 </header>
 
-<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+{# ── İstatistik satırı ── #}
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
     <article class="akd-stat">
         <div class="akd-stat__top">
             <span class="akd-stat__icon akd-stat__icon--indigo"><i data-lucide="book" class="h-5 w-5"></i></span>
         </div>
-        <p class="akd-stat__label">{% trans "Ders tekliflerim" %}</p>
-        <p class="text-base font-semibold text-white mt-1">{% trans "Şube ve kontenjan" %}</p>
-        <p class="akd-stat__hint">{% trans "Bu dönem verdiğin tüm şubeler tek listede." %}</p>
+        <p class="akd-stat__label">{% trans "Aktif ders teklifi" %}</p>
+        <p class="akd-stat__value">{{ offering_count }}</p>
+        <p class="akd-stat__hint">{% trans "Bu dönem verdiğin şubeler." %}</p>
+    </article>
+
+    <article class="akd-stat">
+        <div class="akd-stat__top">
+            <span class="akd-stat__icon akd-stat__icon--amber"><i data-lucide="edit-3" class="h-5 w-5"></i></span>
+            {% if pending_grades > 0 %}
+            <span class="akd-stat__delta akd-stat__delta--down">{{ pending_grades }} {% trans "bekliyor" %}</span>
+            {% endif %}
+        </div>
+        <p class="akd-stat__label">{% trans "Notu girilmemiş" %}</p>
+        <p class="akd-stat__value">{{ pending_grades }}</p>
+        <p class="akd-stat__hint">{% trans "Kayıtlı olup henüz notu olmayan öğrenci." %}</p>
+    </article>
+
+    <article class="akd-stat">
+        <div class="akd-stat__top">
+            <span class="akd-stat__icon akd-stat__icon--rose"><i data-lucide="clock" class="h-5 w-5"></i></span>
+            {% if pending_advisees > 0 %}
+            <span class="akd-stat__delta akd-stat__delta--down">{{ pending_advisees }} {% trans "bekliyor" %}</span>
+            {% endif %}
+        </div>
+        <p class="akd-stat__label">{% trans "Danış. onay bekleyen" %}</p>
+        <p class="akd-stat__value">{{ pending_advisees }}</p>
+        <p class="akd-stat__hint">{% trans "Danışöğrencilerinin onay bekleyen kayıtları." %}</p>
+    </article>
+</div>
+
+{# ── Hızlı erişim kartları ── #}
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <article class="akd-stat">
+        <div class="akd-stat__top">
+            <span class="akd-stat__icon akd-stat__icon--indigo"><i data-lucide="clock" class="h-5 w-5"></i></span>
+        </div>
+        <p class="akd-stat__label">{% trans "Bekleyen kayıtlar" %}</p>
+        <p class="text-sm text-white/60 mt-1">{% trans "Onay bekleyen öğrenci ders kayıtları." %}</p>
         <div class="mt-4">
-            <a class="akd-btn akd-btn--primary akd-btn--sm" href="{% url 'courses:offering_list' %}">
+            <a class="akd-btn akd-btn--primary akd-btn--sm" href="{% url 'academic:instructor_pending' %}">
                 <i data-lucide="arrow-right" class="h-4 w-4"></i>
-                <span>{% trans "Listeye git" %}</span>
+                <span>{% trans "Görüntüle" %}</span>
             </a>
         </div>
     </article>
 
     <article class="akd-stat">
         <div class="akd-stat__top">
-            <span class="akd-stat__icon akd-stat__icon--amber"><i data-lucide="clipboard-check" class="h-5 w-5"></i></span>
+            <span class="akd-stat__icon akd-stat__icon--cyan"><i data-lucide="clipboard-list" class="h-5 w-5"></i></span>
         </div>
-        <p class="akd-stat__label">{% trans "Öğrenciler ve notlar" %}</p>
-        <p class="text-base font-semibold text-white mt-1">{% trans "Hızlı not girişi" %}</p>
-        <p class="akd-stat__hint">{% trans "Tablodan harf notunu doğrudan kaydet." %}</p>
+        <p class="akd-stat__label">{% trans "Devamsızlık" %}</p>
+        <p class="text-sm text-white/60 mt-1">{% trans "Yoklama gir, geçmiş kayıtları gör." %}</p>
         <div class="mt-4">
-            <a class="akd-btn akd-btn--primary akd-btn--sm" href="{% url 'academic:instructor_enrollments' %}">
-                <i data-lucide="arrow-right" class="h-4 w-4"></i>
-                <span>{% trans "Kayıtlara git" %}</span>
+            <a class="akd-btn akd-btn--secondary akd-btn--sm" href="{% url 'academic:attendance_sections' %}">
+                <i data-lucide="external-link" class="h-4 w-4"></i>
+                <span>{% trans "Yoklamaya git" %}</span>
+            </a>
+        </div>
+    </article>
+
+    <article class="akd-stat">
+        <div class="akd-stat__top">
+            <span class="akd-stat__icon akd-stat__icon--violet"><i data-lucide="calendar-days" class="h-5 w-5"></i></span>
+        </div>
+        <p class="akd-stat__label">{% trans "Haftalık program" %}</p>
+        <p class="text-sm text-white/60 mt-1">{% trans "Günlük ve haftalık ders takvimine bak." %}</p>
+        <div class="mt-4">
+            <a class="akd-btn akd-btn--secondary akd-btn--sm" href="{% url 'academic:weekly_schedule' %}">
+                <i data-lucide="external-link" class="h-4 w-4"></i>
+                <span>{% trans "Programa git" %}</span>
             </a>
         </div>
     </article>
@@ -51,8 +108,7 @@
             <span class="akd-stat__icon akd-stat__icon--cyan"><i data-lucide="bell" class="h-5 w-5"></i></span>
         </div>
         <p class="akd-stat__label">{% trans "Duyurular" %}</p>
-        <p class="text-base font-semibold text-white mt-1">{% trans "Sistem geneli" %}</p>
-        <p class="akd-stat__hint">{% trans "Bilgilendirme ve resmi duyurular." %}</p>
+        <p class="text-sm text-white/60 mt-1">{% trans "Bilgilendirme ve resmi duyurular." %}</p>
         <div class="mt-4">
             <a class="akd-btn akd-btn--secondary akd-btn--sm" href="{% url 'academic:announcement_list' %}">
                 <i data-lucide="external-link" class="h-4 w-4"></i>

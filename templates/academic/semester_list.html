@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Dönemler — Akademik 2.0" %}{% endblock %}
+
+{% block content %}
+{% trans "Dönemler" as sem_title %}
+{% include "includes/page_header.html" with header_title=sem_title header_eyebrow=_("Akademik yapı") header_subtitle=_("Dönemleri ve ders ekleme/bırakma tarihlerini yönet.") header_actions_template="includes/page_header_actions/semester_list.html" %}
+
+<form class="akd-toolbar" method="get" role="search" aria-label="{% trans 'Dönem filtreleri' %}">
+    <div class="akd-toolbar__search">
+        <i data-lucide="search" aria-hidden="true"></i>
+        <input id="sem-q"
+               class="akd-input"
+               type="search"
+               name="q"
+               value="{{ current_filters.q }}"
+               placeholder="{% trans 'Ad veya yıl ara...' %}"
+               aria-label="{% trans 'Arama' %}">
+    </div>
+    <div class="akd-toolbar__group">
+        <select id="sem-term" class="akd-input" name="term" aria-label="{% trans 'Yarıyıl' %}" style="min-width: 9rem;">
+            <option value="" {% if not current_filters.term %}selected{% endif %}>{% trans "Tüm yarıyıllar" %}</option>
+            <option value="fall" {% if current_filters.term == "fall" %}selected{% endif %}>{% trans "Güz" %}</option>
+            <option value="spring" {% if current_filters.term == "spring" %}selected{% endif %}>{% trans "Bahar" %}</option>
+            <option value="summer" {% if current_filters.term == "summer" %}selected{% endif %}>{% trans "Yaz" %}</option>
+        </select>
+        <button type="submit" class="akd-btn akd-btn--primary akd-btn--sm">
+            <i data-lucide="filter" class="h-4 w-4"></i>
+            <span>{% trans "Uygula" %}</span>
+        </button>
+    </div>
+</form>
+
+{% if not semesters %}
+    {% include "includes/empty_state.html" with empty_title=_("Dönem bulunamadı") empty_message=_("Filtre kriterlerini değiştirmeyi dene veya yeni bir dönem ekle.") empty_icon="calendar" %}
+{% else %}
+<div class="akd-table-wrap">
+    <table class="akd-table">
+        <thead>
+            <tr>
+                <th scope="col">{% trans "Ad" %}</th>
+                <th scope="col" style="width: 8rem;">{% trans "Yarıyıl" %}</th>
+                <th scope="col" style="width: 10rem;">{% trans "Dönem tarihleri" %}</th>
+                <th scope="col" style="width: 14rem;">{% trans "Ders ekleme/bırakma" %}</th>
+                <th scope="col" style="width: 7rem;">{% trans "Aktif" %}</th>
+                <th scope="col" style="width: 10rem;" class="text-right"></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for obj in semesters %}
+            <tr>
+                <td class="font-medium text-white">
+                    {{ obj.name }}
+                    <span class="ml-1 font-mono text-xs text-white/50">{{ obj.academic_year }}</span>
+                </td>
+                <td>
+                    {% if obj.term == "fall" %}
+                        <span class="akd-badge akd-badge--neutral">{% trans "Güz" %}</span>
+                    {% elif obj.term == "spring" %}
+                        <span class="akd-badge akd-badge--success">{% trans "Bahar" %}</span>
+                    {% else %}
+                        <span class="akd-badge akd-badge--neutral">{% trans "Yaz" %}</span>
+                    {% endif %}
+                </td>
+                <td class="text-xs text-white/70">
+                    {{ obj.start_date|date:"d.m.Y" }} – {{ obj.end_date|date:"d.m.Y" }}
+                </td>
+                <td class="text-xs text-white/70">
+                    {% if obj.add_drop_start %}
+                        {{ obj.add_drop_start|date:"d.m.Y" }} – {{ obj.add_drop_end|date:"d.m.Y"|default:"—" }}
+                    {% else %}
+                        <span class="text-white/40">{% trans "Belirsiz (kontrol gevşetilmiş)" %}</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <form method="post" action="{% url 'academic:semester_toggle_active' obj.pk %}" class="akd-toggle-form">
+                        {% csrf_token %}
+                        <button type="submit"
+                                class="akd-toggle {% if obj.is_active %}is-on{% endif %}"
+                                aria-pressed="{{ obj.is_active|yesno:'true,false' }}"
+                                aria-label="{% if obj.is_active %}{% trans 'Pasifleştir' %}{% else %}{% trans 'Aktifleştir' %}{% endif %}"
+                                title="{% if obj.is_active %}{% trans 'Pasifleştir' %}{% else %}{% trans 'Aktifleştir' %}{% endif %}">
+                            <span class="akd-toggle__thumb" aria-hidden="true"></span>
+                        </button>
+                    </form>
+                </td>
+                <td class="text-right">
+                    <a class="akd-btn akd-btn--secondary akd-btn--sm" href="{% url 'academic:semester_update' obj.pk %}" aria-label="{% trans 'Düzenle' %}">
+                        <i data-lucide="pencil" class="h-3.5 w-3.5"></i>
+                        <span>{% trans "Düzenle" %}</span>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{% include "includes/pagination.html" %}
+{% endblock %}

@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Yoklama al — Akademik 2.0" %}{% endblock %}
+
+{% block content %}
+<header class="akd-page-header">
+    <div class="akd-page-header__intro">
+        <span class="akd-page-header__eyebrow">
+            <i data-lucide="clipboard-pen" class="h-3 w-3"></i>
+            {% trans "Devamsızlık" %}
+        </span>
+        <h1 class="akd-page-header__title">
+            {{ section.offering.course.code }} — {{ section.offering.course.name }}
+        </h1>
+        <p class="akd-page-header__subtitle">
+            {{ section.offering.semester.name }} / {% trans "Şube" %} {{ section.offering.section }}
+        </p>
+    </div>
+    <div class="akd-page-header__actions">
+        <a class="akd-btn akd-btn--secondary akd-btn--sm" href="{% url 'academic:attendance_sections' %}">
+            <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i>
+            <span>{% trans "Şubelere dön" %}</span>
+        </a>
+    </div>
+</header>
+
+{% include "includes/breadcrumbs.html" %}
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    {# ── Ana Form ── #}
+    <section class="lg:col-span-2">
+        <form method="post" novalidate>
+            {% csrf_token %}
+
+            {# Tarih seçici #}
+            <div class="akd-card mb-4 flex flex-wrap items-center gap-3">
+                <label class="akd-label mb-0 shrink-0" for="id_date">{% trans "Yoklama tarihi" %}</label>
+                <input
+                    type="date"
+                    id="id_date"
+                    name="date"
+                    class="akd-input"
+                    style="max-width:12rem;"
+                    value="{{ sel_date|date:'Y-m-d' }}"
+                    min="{{ sem_start|date:'Y-m-d' }}"
+                    max="{{ sem_end|date:'Y-m-d' }}"
+                    onchange="this.form.submit()"
+                >
+                {% if record %}
+                <span class="inline-flex items-center gap-1 text-xs text-emerald-400">
+                    <i data-lucide="check-circle-2" class="h-3.5 w-3.5"></i>
+                    {% trans "Kayıtlı yoklama var" %}
+                </span>
+                {% else %}
+                <span class="inline-flex items-center gap-1 text-xs text-white/40">
+                    <i data-lucide="circle-dashed" class="h-3.5 w-3.5"></i>
+                    {% trans "Yeni yoklama" %}
+                </span>
+                {% endif %}
+            </div>
+
+            {% if student_rows %}
+            <div class="akd-card p-0 overflow-hidden mb-4">
+                {# Toplu işlem toolbar #}
+                <div class="flex items-center gap-2 px-4 py-2.5 border-b border-white/8 bg-white/3">
+                    <span class="text-xs text-white/50 mr-1">{% trans "Tümünü:" %}</span>
+                    <button type="button" onclick="setAll('present')" class="akd-btn akd-btn--secondary akd-btn--sm">
+                        <i data-lucide="check" class="h-3 w-3"></i> {% trans "Geldi" %}
+                    </button>
+                    <button type="button" onclick="setAll('absent')" class="akd-btn akd-btn--sm" style="--btn-bg:theme('colors.rose.500/15');--btn-border:theme('colors.rose.400/25');--btn-text:theme('colors.rose.300');">
+                        <i data-lucide="x" class="h-3 w-3"></i> {% trans "Gelmedi" %}
+                    </button>
+                </div>
+                <table class="akd-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">{% trans "Öğrenci" %}</th>
+                            <th scope="col" style="width:16rem;">{% trans "Durum" %}</th>
+                            <th scope="col">{% trans "Not" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for row in student_rows %}
+                    <tr class="attendance-row">
+                        <td>
+                            <span class="font-mono text-xs text-white/60 mr-1.5">{{ row.student.student_no }}</span>
+                            <span class="text-white/85 text-sm">{{ row.student.user.get_full_name|default:row.student.user.username }}</span>
+                        </td>
+                        <td>
+                            <div class="flex gap-1 flex-wrap">
+                            {% for val, label in status_choices %}
+                            <label class="inline-flex items-center gap-1 cursor-pointer px-2.5 py-1 rounded-lg border text-xs font-medium transition-all select-none
+                                {% if val == 'present' %}status-present border-emerald-400/20 text-emerald-400/70 hover:bg-emerald-500/15
+                                {% elif val == 'absent' %}status-absent border-rose-400/20 text-rose-400/70 hover:bg-rose-500/15
+                                {% elif val == 'excused' %}status-excused border-amber-400/20 text-amber-400/70 hover:bg-amber-500/15
+                                {% elif val == 'late' %}status-late border-sky-400/20 text-sky-400/70 hover:bg-sky-500/15
+                                {% endif %}
+                                has-[:checked]:bg-opacity-20
+                                {% if val == 'present' %}has-[:checked]:bg-emerald-500/20 has-[:checked]:border-emerald-400/60 has-[:checked]:text-emerald-300
+                                {% elif val == 'absent' %}has-[:checked]:bg-rose-500/20 has-[:checked]:border-rose-400/60 has-[:checked]:text-rose-300
+                                {% elif val == 'excused' %}has-[:checked]:bg-amber-500/20 has-[:checked]:border-amber-400/60 has-[:checked]:text-amber-300
+                                {% elif val == 'late' %}has-[:checked]:bg-sky-500/20 has-[:checked]:border-sky-400/60 has-[:checked]:text-sky-300
+                                {% endif %}">
+                                <input type="radio" name="status_{{ row.student.pk }}" value="{{ val }}"
+                                    {% if row.status == val %}checked{% endif %}
+                                    class="sr-only status-radio" data-status="{{ val }}">
+                                {{ label }}
+                            </label>
+                            {% endfor %}
+                            </div>
+                        </td>
+                        <td>
+                            <input type="text" name="note_{{ row.student.pk }}" value="{{ row.note }}"
+                                placeholder="{% trans 'İsteğe bağlı...' %}"
+                                class="akd-input text-xs py-1" style="min-width:8rem;">
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <button type="submit" class="akd-btn akd-btn--primary">
+                <i data-lucide="save" class="h-4 w-4"></i>
+                <span>{% trans "Yoklamayı kaydet" %}</span>
+            </button>
+            {% else %}
+            <div class="akd-empty">
+                <div class="akd-empty__icon"><i data-lucide="users" class="h-5 w-5"></i></div>
+                <p class="akd-empty__title">{% trans "Kayıtlı öğrenci yok" %}</p>
+                <p class="akd-empty__desc">{% trans "Bu şubede aktif kayıtlı öğrenci bulunamadı." %}</p>
+            </div>
+            {% endif %}
+        </form>
+    </section>
+
+    {# ── Geçmiş Kayıtlar ── #}
+    <aside>
+        <div class="akd-card p-0 overflow-hidden">
+            <div class="px-4 py-3 border-b border-white/8">
+                <p class="text-xs font-semibold text-white/60 uppercase tracking-wider">{% trans "Geçmiş yoklamalar" %}</p>
+            </div>
+            {% if past_records %}
+            <ul class="divide-y divide-white/5">
+            {% for rec in past_records %}
+            <li>
+                <a href="?date={{ rec.date|date:'Y-m-d' }}"
+                   class="flex items-center justify-between px-4 py-2.5 hover:bg-white/5 transition
+                   {% if rec.date == sel_date %}bg-indigo-500/10{% endif %}">
+                    <span class="text-sm {% if rec.date == sel_date %}text-indigo-300 font-medium{% else %}text-white/70{% endif %}">
+                        {{ rec.date|date:"d M Y" }}
+                    </span>
+                    <span class="text-xs text-white/40">
+                        {% if rec.total_count %}{{ rec.present_count }}/{{ rec.total_count }}{% endif %}
+                    </span>
+                </a>
+            </li>
+            {% endfor %}
+            </ul>
+            {% else %}
+            <p class="px-4 py-3 text-sm text-white/40">{% trans "Henüz yoklama alınmadı." %}</p>
+            {% endif %}
+        </div>
+    </aside>
+
+</div>
+
+<script>
+function setAll(status) {
+    document.querySelectorAll('.status-radio[data-status="' + status + '"]').forEach(r => {
+        r.checked = true;
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Seçmeli ders havuzları — Akademik 2.0" %}{% endblock %}
+
+{% block content %}
+<header class="akd-page-header">
+    <div class="akd-page-header__intro">
+        <span class="akd-page-header__eyebrow">
+            <i data-lucide="layers" class="h-3 w-3"></i>
+            {% trans "Ders yönetimi" %}
+        </span>
+        <h1 class="akd-page-header__title">{% trans "Seçmeli ders havuzları" %}</h1>
+        <p class="akd-page-header__subtitle">{% trans "Program bazlı seçmeli havuzları tanımla ve derslerini ata." %}</p>
+    </div>
+    <div class="akd-page-header__actions">
+        <a class="akd-btn akd-btn--primary akd-btn--sm" href="{% url 'courses:electivepool_create' %}">
+            <i data-lucide="plus" class="h-3.5 w-3.5"></i>
+            <span>{% trans "Yeni havuz" %}</span>
+        </a>
+    </div>
+</header>
+
+<form class="akd-toolbar" method="get" role="search">
+    <div class="akd-toolbar__search">
+        <i data-lucide="search" aria-hidden="true"></i>
+        <input class="akd-input" type="search" name="q"
+               value="{{ current_filters.q }}"
+               placeholder="{% trans 'Havuz adı veya program kodu' %}">
+    </div>
+    <div class="akd-toolbar__group">
+        <select class="akd-input" name="program" style="min-width:10rem;">
+            <option value="">{% trans "Tüm programlar" %}</option>
+            {% for p in filter_programs %}
+                <option value="{{ p.pk }}" {% if current_filters.program == p.pk|stringformat:"s" %}selected{% endif %}>
+                    {{ p.code }}
+                </option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="akd-btn akd-btn--primary akd-btn--sm">
+            <i data-lucide="filter" class="h-4 w-4"></i>
+            <span>{% trans "Uygula" %}</span>
+        </button>
+    </div>
+</form>
+
+{% if not pools %}
+    {% include "includes/empty_state.html" with empty_title=_("Havuz bulunamadı") empty_message=_("Henüz seçmeli ders havuzu oluşturulmamış.") empty_icon="layers" %}
+{% else %}
+<div class="akd-table-wrap">
+    <table class="akd-table">
+        <thead>
+            <tr>
+                <th scope="col">{% trans "Havuz adı" %}</th>
+                <th scope="col" style="width:8rem;">{% trans "Program" %}</th>
+                <th scope="col" style="width:9rem;" class="text-center">{% trans "Gerekli ders" %}</th>
+                <th scope="col" style="width:8rem;" class="text-center">{% trans "Ders sayısı" %}</th>
+                <th scope="col" style="width:7rem;">{% trans "Aktif" %}</th>
+                <th scope="col" style="width:10rem;" class="text-right"></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for pool in pools %}
+            <tr>
+                <td>
+                    <p class="font-medium text-white">{{ pool.name }}</p>
+                    {% if pool.description %}
+                        <p class="text-xs text-white/45 mt-0.5 truncate max-w-xs">{{ pool.description }}</p>
+                    {% endif %}
+                </td>
+                <td>
+                    <span class="font-mono text-xs text-indigo-200 px-2 py-1 rounded-md bg-indigo-500/15 border border-indigo-400/25">
+                        {{ pool.program.code }}
+                    </span>
+                </td>
+                <td class="text-center text-white/75 font-semibold">{{ pool.required_count }}</td>
+                <td class="text-center text-white/55 text-sm">{{ pool.courses.count }}</td>
+                <td>
+                    {% if pool.is_active %}
+                        <span class="akd-badge akd-badge--success"><i data-lucide="check" class="h-3 w-3"></i>{% trans "Aktif" %}</span>
+                    {% else %}
+                        <span class="akd-badge akd-badge--neutral"><i data-lucide="x" class="h-3 w-3"></i>{% trans "Pasif" %}</span>
+                    {% endif %}
+                </td>
+                <td class="text-right">
+                    <div class="inline-flex gap-1.5">
+                        <a class="akd-btn akd-btn--secondary akd-btn--sm" href="{% url 'courses:electivepool_update' pool.pk %}">
+                            <i data-lucide="pencil" class="h-3.5 w-3.5"></i>
+                            <span>{% trans "Düzenle" %}</span>
+                        </a>
+                        <a class="akd-btn akd-btn--danger akd-btn--sm" href="{% url 'courses:electivepool_delete' pool.pk %}">
+                            <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
+                        </a>
+                    </div>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{% include "includes/pagination.html" %}
+{% endblock %}

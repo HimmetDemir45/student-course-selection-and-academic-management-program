@@ -5,6 +5,10 @@ from . import views
 app_name = "courses"
 
 urlpatterns = [
+    path("elective-pools/", views.ElectivePoolListView.as_view(), name="electivepool_list"),
+    path("elective-pools/create/", views.ElectivePoolCreateView.as_view(), name="electivepool_create"),
+    path("elective-pools/<int:pk>/edit/", views.ElectivePoolUpdateView.as_view(), name="electivepool_update"),
+    path("elective-pools/<int:pk>/delete/", views.ElectivePoolDeleteView.as_view(), name="electivepool_delete"),
     path("derslikler/", views.ClassroomListView.as_view(), name="classroom_list"),
     path("derslikler/ekle/", views.ClassroomCreateView.as_view(), name="classroom_create"),
     path("derslikler/<int:pk>/duzenle/", views.ClassroomUpdateView.as_view(), name="classroom_update"),
@@ -19,4 +23,9 @@ urlpatterns = [
     path("offerings/<int:pk>/edit/", views.CourseOfferingUpdateView.as_view(), name="offering_update"),
     path("offerings/<int:pk>/delete/", views.CourseOfferingDeleteView.as_view(), name="offering_delete"),
     path("offerings/<int:pk>/toggle/", views.offering_toggle_active, name="offering_toggle_active"),
+    # Önkoşul yönetimi
+    path("<int:pk>/prerequisites/", views.CoursePrerequisiteView.as_view(), name="course_prerequisites"),
+    path("prerequisites/<int:link_pk>/delete/", views.prerequisite_delete, name="prerequisite_delete"),
+    # Ders detay
+    path("<int:pk>/", views.CourseDetailView.as_view(), name="course_detail"),
 ]

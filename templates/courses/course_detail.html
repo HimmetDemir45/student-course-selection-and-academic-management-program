@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ course.code }} — {{ course.name }} — Akademik 2.0{% endblock %}
+
+{% block content %}
+<header class="akd-page-header">
+    <div class="akd-page-header__intro">
+        <span class="akd-page-header__eyebrow">
+            <i data-lucide="book-open" class="h-3 w-3"></i>
+            {% trans "Ders kataloğu" %}
+        </span>
+        <h1 class="akd-page-header__title">{{ course.code }} — {{ course.name }}</h1>
+        <p class="akd-page-header__subtitle">
+            {{ course.department.name }}
+            {% if course.program %}&nbsp;·&nbsp; {{ course.program.code }}{% endif %}
+        </p>
+    </div>
+    <div class="akd-page-header__actions">
+        {% if user.role == "admin" %}
+        <a class="akd-btn akd-btn--secondary akd-btn--sm" href="{% url 'courses:course_update' course.pk %}">
+            <i data-lucide="pencil" class="h-3.5 w-3.5"></i>
+            <span>{% trans "Düzenle" %}</span>
+        </a>
+        <a class="akd-btn akd-btn--secondary akd-btn--sm" href="{% url 'courses:course_prerequisites' course.pk %}">
+            <i data-lucide="git-merge" class="h-3.5 w-3.5"></i>
+            <span>{% trans "Önkoşullar" %}</span>
+        </a>
+        {% endif %}
+        <a class="akd-btn akd-btn--ghost akd-btn--sm" href="{% url 'courses:course_list' %}">
+            <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i>
+            <span>{% trans "Katalog" %}</span>
+        </a>
+    </div>
+</header>
+
+{% include "includes/breadcrumbs.html" %}
+
+<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+
+    {# ── Sol: bilgi kartı ── #}
+    <div class="lg:col-span-1 space-y-4">
+
+        <div class="akd-card">
+            <h2 class="text-xs font-semibold text-white/50 uppercase tracking-wider mb-4">{% trans "Genel bilgiler" %}</h2>
+            <dl class="space-y-2.5">
+                <div class="flex items-start justify-between gap-4">
+                    <dt class="text-xs text-white/45 flex-shrink-0">{% trans "Kod" %}</dt>
+                    <dd><span class="font-mono text-xs text-indigo-200 px-2 py-0.5 rounded bg-indigo-500/15 border border-indigo-400/20">{{ course.code }}</span></dd>
+                </div>
+                <div class="flex items-start justify-between gap-4">
+                    <dt class="text-xs text-white/45">{% trans "Kredi" %}</dt>
+                    <dd class="text-sm font-semibold text-white/90">{{ course.credits }}</dd>
+                </div>
+                <div class="flex items-start justify-between gap-4">
+                    <dt class="text-xs text-white/45">{% trans "Tür" %}</dt>
+                    <dd>
+                        {% if course.course_type == "mandatory" %}
+                            <span class="akd-badge akd-badge--info">{% trans "Zorunlu" %}</span>
+                        {% elif course.course_type == "elective" %}
+                            <span class="akd-badge akd-badge--warning">{% trans "Seçmeli" %}</span>
+                        {% else %}
+                            <span class="akd-badge akd-badge--neutral">{% trans "Serbest seçmeli" %}</span>
+                        {% endif %}
+                    </dd>
+                </div>
+                <div class="flex items-start justify-between gap-4">
+                    <dt class="text-xs text-white/45">{% trans "Bölüm" %}</dt>
+                    <dd class="text-sm text-white/80 text-right">{{ course.department.code }}</dd>
+                </div>
+                {% if course.program %}
+                <div class="flex items-start justify-between gap-4">
+                    <dt class="text-xs text-white/45">{% trans "Program" %}</dt>
+                    <dd class="text-sm text-white/80 text-right">{{ course.program.code }}</dd>
+                </div>
+                {% endif %}
+                <div class="flex items-start justify-between gap-4">
+                    <dt class="text-xs text-white/45">{% trans "Durum" %}</dt>
+                    <dd>
+                        {% if course.is_active %}
+                            <span class="akd-badge akd-badge--success">{% trans "Aktif" %}</span>
+                        {% else %}
+                            <span class="akd-badge akd-badge--danger">{% trans "Pasif" %}</span>
+                        {% endif %}
+                    </dd>
+                </div>
+            </dl>
+        </div>
+
+        {% if course.description %}
+        <div class="akd-card">
+            <h2 class="text-xs font-semibold text-white/50 uppercase tracking-wider mb-3">{% trans "Açıklama" %}</h2>
+            <p class="text-sm text-white/75 leading-relaxed">{{ course.description }}</p>
+        </div>
+        {% endif %}
+
+        {# Seçmeli havuzlar #}
+        {% if elective_pools %}
+        <div class="akd-card">
+            <h2 class="text-xs font-semibold text-white/50 uppercase tracking-wider mb-3">
+                <i data-lucide="layers" class="h-3.5 w-3.5 inline-block mr-1 text-violet-400"></i>
+                {% trans "Seçmeli havuzlar" %}
+            </h2>
+            <ul class="space-y-2">
+                {% for pool in elective_pools %}
+                <li class="text-sm">
+                    <span class="font-mono text-[11px] text-violet-300 mr-1">{{ pool.program.code }}</span>
+                    <span class="text-white/70">{{ pool.name }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        {# Müfredattaki yeri #}
+        {% if curriculum_items %}
+        <div class="akd-card">
+            <h2 class="text-xs font-semibold text-white/50 uppercase tracking-wider mb-3">
+                <i data-lucide="map" class="h-3.5 w-3.5 inline-block mr-1 text-cyan-400"></i>
+                {% trans "Müfredattaki yeri" %}
+            </h2>
+            <ul class="space-y-2">
+                {% for ci in curriculum_items %}
+                <li class="flex items-center justify-between gap-2 text-sm">
+                    <span class="font-mono text-[11px] text-cyan-300">{{ ci.program.code }}</span>
+                    <span class="text-white/55 text-xs">
+                        {{ ci.year_level }}. {% trans "yıl" %} /
+                        {% if ci.term == "fall" %}{% trans "Güz" %}{% elif ci.term == "spring" %}{% trans "Bahar" %}{% else %}{% trans "Yaz" %}{% endif %}
+                    </span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+    </div>
+
+    {# ── Sağ: önkoşullar + şubeler ── #}
+    <div class="lg:col-span-2 space-y-6">
+
+        {# Önkoşullar #}
+        <div class="akd-card">
+            <h2 class="text-sm font-semibold text-white/70 uppercase tracking-wider mb-4">
+                <i data-lucide="git-merge" class="h-4 w-4 inline-block mr-1.5 text-indigo-400"></i>
+                {% trans "Önkoşullar" %}
+                <span class="ml-2 text-xs font-normal text-white/35">({{ prerequisites|length }})</span>
+            </h2>
+            {% if not prerequisites %}
+            <p class="text-sm text-white/40 py-4 text-center">{% trans "Bu ders için önkoşul tanımlanmamış." %}</p>
+            {% else %}
+            <div class="flex flex-wrap gap-2">
+                {% for link in prerequisites %}
+                <a href="{% url 'courses:course_detail' link.prerequisite.pk %}"
+                   class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-500/15 border border-indigo-400/25 text-sm font-medium text-indigo-200 hover:bg-indigo-500/25 transition">
+                    <i data-lucide="book" class="h-3.5 w-3.5"></i>
+                    {{ link.prerequisite.code }}
+                    <span class="text-indigo-300/70 text-xs">{{ link.prerequisite.name|truncatechars:30 }}</span>
+                </a>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if required_for %}
+            <div class="mt-4 pt-4 border-t border-white/[0.07]">
+                <p class="text-xs text-white/40 mb-2">{% trans "Bu dersi önkoşul olarak gerektiren dersler:" %}</p>
+                <div class="flex flex-wrap gap-2">
+                    {% for link in required_for %}
+                    <a href="{% url 'courses:course_detail' link.course.pk %}"
+                       class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-xs font-medium text-white/60 hover:bg-white/10 hover:text-white/90 transition">
+                        {{ link.course.code }}
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        {# Aktif şubeler #}
+        <div class="akd-card">
+            <h2 class="text-sm font-semibold text-white/70 uppercase tracking-wider mb-4">
+                <i data-lucide="calendar-check" class="h-4 w-4 inline-block mr-1.5 text-emerald-400"></i>
+                {% trans "Aktif şubeler" %}
+                <span class="ml-2 text-xs font-normal text-white/35">({{ offerings_with_slots|length }})</span>
+            </h2>
+
+            {% if not offerings_with_slots %}
+            <p class="text-sm text-white/40 py-4 text-center">{% trans "Bu dönem için açık şube bulunmuyor." %}</p>
+            {% else %}
+            <div class="space-y-3">
+                {% for row in offerings_with_slots %}
+                <div class="rounded-xl bg-white/[0.03] border border-white/[0.07] px-4 py-3">
+                    <div class="flex flex-wrap items-start justify-between gap-2">
+                        <div>
+                            <span class="text-xs font-semibold text-white/85">
+                                {% trans "Şube" %} {{ row.offering.section }}
+                            </span>
+                            <span class="ml-2 text-xs text-white/45">{{ row.offering.semester }}</span>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2 text-xs text-white/55">
+                            {% if row.offering.instructor %}
+                            <span class="flex items-center gap-1">
+                                <i data-lucide="user" class="h-3 w-3"></i>
+                                {{ row.offering.instructor.user.get_full_name|default:row.offering.instructor.user.username }}
+                            </span>
+                            {% endif %}
+                            {% if row.offering.classroom %}
+                            <span class="flex items-center gap-1">
+                                <i data-lucide="door-open" class="h-3 w-3"></i>
+                                {{ row.offering.classroom }}
+                            </span>
+                            {% endif %}
+                            <span class="flex items-center gap-1">
+                                <i data-lucide="users" class="h-3 w-3"></i>
+                                {% trans "Kont." %} {{ row.offering.quota }}
+                            </span>
+                        </div>
+                    </div>
+                    {# Zaman dilimleri #}
+                    {% if row.slots %}
+                    <div class="mt-2 flex flex-wrap gap-1.5">
+                        {% for slot in row.slots %}
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-indigo-500/15 border border-indigo-400/20 text-[11px] text-indigo-200">
+                            <i data-lucide="clock" class="h-3 w-3"></i>
+                            {% if slot.weekday == 0 %}Pzt{% elif slot.weekday == 1 %}Sal{% elif slot.weekday == 2 %}Çrş{% elif slot.weekday == 3 %}Per{% elif slot.weekday == 4 %}Cum{% elif slot.weekday == 5 %}Cmt{% else %}Paz{% endif %}
+                            {{ slot.start_time|time:"H:i" }}–{{ slot.end_time|time:"H:i" }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="mt-1.5 text-[11px] text-white/30">{% trans "Zaman dilimi tanımlanmamış." %}</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+{% endblock %}

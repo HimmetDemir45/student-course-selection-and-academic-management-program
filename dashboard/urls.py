@@ -20,4 +20,5 @@ urlpatterns = [
     path("kullanici-onaylari/", views.UserApprovalQueueView.as_view(), name="user_approvals"),
     path("kullanici-onaylari/ogrenci/<int:pk>/", views.ApproveStudentView.as_view(), name="approve_student"),
     path("kullanici-onaylari/akademisyen/<int:pk>/", views.ApproveInstructorView.as_view(), name="approve_instructor"),
+    path("istatistik/", views.StatisticsView.as_view(), name="statistics"),
 ]

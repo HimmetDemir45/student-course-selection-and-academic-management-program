@@ -33,6 +33,10 @@ class Program(TimeStampedActiveModel):
         choices=DegreeLevel.choices,
         default=DegreeLevel.UNDERGRAD,
     )
+    credits_required = models.PositiveSmallIntegerField(
+        default=240,
+        help_text="Mezuniyet için gereken toplam AKTS kredisi.",
+    )
 
     class Meta:
         ordering = ("name",)
@@ -76,6 +80,48 @@ class Semester(TimeStampedActiveModel):
 
     def __str__(self):
         return f"{self.academic_year} {self.term}"
+
+
+class CurriculumItem(TimeStampedModel):
+    """
+    Bir programın hangi yıl ve yarıyılında hangi dersin alınması gerektiğini tanımlar.
+    Örn. YZM-LIS, 1. yıl, güz, YZM1005.
+    """
+    class Term(models.TextChoices):
+        FALL = "fall", "Güz"
+        SPRING = "spring", "Bahar"
+        SUMMER = "summer", "Yaz"
+
+    program = models.ForeignKey(
+        "academic.Program",
+        on_delete=models.CASCADE,
+        related_name="curriculum_items",
+    )
+    course = models.ForeignKey(
+        "courses.Course",
+        on_delete=models.CASCADE,
+        related_name="curriculum_items",
+    )
+    year_level = models.PositiveSmallIntegerField(
+        help_text="Kaçıncı yılda alınmalı (1–4).",
+    )
+    term = models.CharField(max_length=10, choices=Term.choices)
+    order = models.PositiveSmallIntegerField(
+        default=0,
+        help_text="Aynı dönem içindeki görüntüleme sırası.",
+    )
+
+    class Meta:
+        ordering = ("year_level", "term", "order", "course__code")
+        constraints = [
+            models.UniqueConstraint(
+                fields=("program", "course"),
+                name="uniq_curriculum_program_course",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.program.code} / Y{self.year_level} {self.term} / {self.course.code}"
 
 
 class CourseSection(TimeStampedActiveModel):
@@ -244,3 +290,71 @@ class Announcement(TimeStampedActiveModel):
 
     def __str__(self):
         return self.title
+
+
+class AttendanceRecord(TimeStampedModel):
+    """Bir şubenin belirli bir günündeki devamsızlık yoklaması."""
+    section = models.ForeignKey(
+        "academic.CourseSection",
+        on_delete=models.CASCADE,
+        related_name="attendance_records",
+    )
+    date = models.DateField(db_index=True)
+    taken_by = models.ForeignKey(
+        "instructors.InstructorProfile",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="attendance_records",
+    )
+
+    class Meta:
+        ordering = ("-date",)
+        constraints = [
+            models.UniqueConstraint(
+                fields=("section", "date"),
+                name="uniq_attendance_section_date",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.section} / {self.date}"
+
+
+class AttendanceEntry(TimeStampedModel):
+    """Bir yoklamadaki tek öğrenci kaydı."""
+    class Status(models.TextChoices):
+        PRESENT = "present", "Geldi"
+        ABSENT = "absent", "Gelmedi"
+        EXCUSED = "excused", "Mazeretli"
+        LATE = "late", "Geç geldi"
+
+    record = models.ForeignKey(
+        AttendanceRecord,
+        on_delete=models.CASCADE,
+        related_name="entries",
+    )
+    student = models.ForeignKey(
+        "students.StudentProfile",
+        on_delete=models.CASCADE,
+        related_name="attendance_entries",
+    )
+    status = models.CharField(
+        max_length=10,
+        choices=Status.choices,
+        default=Status.PRESENT,
+        db_index=True,
+    )
+    note = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ("student__student_no",)
+        constraints = [
+            models.UniqueConstraint(
+                fields=("record", "student"),
+                name="uniq_attendance_entry",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.record} / {self.student.student_no} / {self.status}"

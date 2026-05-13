@@ -19,14 +19,23 @@
     <article class="akd-stat">
         <div class="akd-stat__top">
             <span class="akd-stat__icon akd-stat__icon--indigo"><i data-lucide="graduation-cap" class="h-5 w-5"></i></span>
+            {% if enrollment_count %}
+            <span class="akd-stat__delta akd-stat__delta--up">
+                <i data-lucide="layers" class="h-3 w-3"></i>{% trans "Aktif" %}
+            </span>
+            {% endif %}
         </div>
         <p class="akd-stat__label">{% trans "Ders kaydı" %}</p>
-        <p class="text-base font-semibold text-white mt-1">{% trans "Açılan şubelerden seç" %}</p>
-        <p class="akd-stat__hint">{% trans "Önkoşul, çakışma ve kontenjan kontrolüyle birlikte." %}</p>
-        <div class="mt-4">
+        <p class="akd-stat__value">{% if enrollment_count is not None %}{{ enrollment_count }}{% else %}—{% endif %}</p>
+        <p class="akd-stat__hint">{% trans "Aktif ve bekleyen ders kayıtların." %}</p>
+        <div class="mt-4 flex flex-wrap gap-2">
             <a class="akd-btn akd-btn--primary akd-btn--sm" href="{% url 'enrollments:browse' %}">
-                <i data-lucide="arrow-right" class="h-4 w-4"></i>
-                <span>{% trans "Ders kaydına git" %}</span>
+                <i data-lucide="plus" class="h-4 w-4"></i>
+                <span>{% trans "Ders ekle" %}</span>
+            </a>
+            <a class="akd-btn akd-btn--secondary akd-btn--sm" href="{% url 'enrollments:my_enrollments' %}">
+                <i data-lucide="list-checks" class="h-4 w-4"></i>
+                <span>{% trans "Seçimlerim" %}</span>
             </a>
         </div>
     </article>
@@ -36,8 +45,8 @@
             <span class="akd-stat__icon akd-stat__icon--violet"><i data-lucide="file-text" class="h-5 w-5"></i></span>
         </div>
         <p class="akd-stat__label">{% trans "Transkript" %}</p>
-        <p class="text-base font-semibold text-white mt-1">{% trans "Notlar ve GPA" %}</p>
-        <p class="akd-stat__hint">{% trans "Dönem bazında detaylı görünüm ve kümülatif GPA." %}</p>
+        <p class="akd-stat__value">{% if gpa is not None %}{{ gpa|floatformat:2 }}{% else %}—{% endif %}</p>
+        <p class="akd-stat__hint">{% trans "Kümülatif GPA · " %}{{ gpa_credits }} {% trans "kredi" %}</p>
         <div class="mt-4">
             <a class="akd-btn akd-btn--secondary akd-btn--sm" href="{% url 'students:transcript' %}">
                 <i data-lucide="external-link" class="h-4 w-4"></i>
@@ -57,6 +66,66 @@
             <a class="akd-btn akd-btn--secondary akd-btn--sm" href="{% url 'courses:course_list' %}">
                 <i data-lucide="search" class="h-4 w-4"></i>
                 <span>{% trans "Kataloğu aç" %}</span>
+            </a>
+        </div>
+    </article>
+
+    <article class="akd-stat">
+        <div class="akd-stat__top">
+            <span class="akd-stat__icon akd-stat__icon--cyan"><i data-lucide="layers" class="h-5 w-5"></i></span>
+        </div>
+        <p class="akd-stat__label">{% trans "Seçmeli dersler" %}</p>
+        <p class="text-base font-semibold text-white mt-1">{% trans "Havuzlar ve ders bilgileri" %}</p>
+        <p class="akd-stat__hint">{% trans "Programınızdaki seçmeli havuzları, derslerin açıklamalarını ve ilerlemenizi görün." %}</p>
+        <div class="mt-4">
+            <a class="akd-btn akd-btn--secondary akd-btn--sm" href="{% url 'students:elective_pools' %}">
+                <i data-lucide="layers" class="h-4 w-4"></i>
+                <span>{% trans "Seçmeli havuzlar" %}</span>
+            </a>
+        </div>
+    </article>
+
+    <article class="akd-stat">
+        <div class="akd-stat__top">
+            <span class="akd-stat__icon akd-stat__icon--violet"><i data-lucide="trophy" class="h-5 w-5"></i></span>
+        </div>
+        <p class="akd-stat__label">{% trans "Mezuniyet takibi" %}</p>
+        <p class="text-base font-semibold text-white mt-1">{% trans "İlerleme ve eksik dersler" %}</p>
+        <p class="akd-stat__hint">{% trans "Zorunlu dersler, kredi doluluk oranı ve programa göre durum." %}</p>
+        <div class="mt-4">
+            <a class="akd-btn akd-btn--secondary akd-btn--sm" href="{% url 'students:graduation' %}">
+                <i data-lucide="trending-up" class="h-4 w-4"></i>
+                <span>{% trans "Takibe git" %}</span>
+            </a>
+        </div>
+    </article>
+
+    <article class="akd-stat">
+        <div class="akd-stat__top">
+            <span class="akd-stat__icon akd-stat__icon--indigo"><i data-lucide="map" class="h-5 w-5"></i></span>
+        </div>
+        <p class="akd-stat__label">{% trans "Müfredat planı" %}</p>
+        <p class="text-base font-semibold text-white mt-1">{% trans "Yıl ve dönem bazında ders planı" %}</p>
+        <p class="akd-stat__hint">{% trans "Programınızdaki tüm dersleri, tamamladıklarınızı ve alması gerekenleri görün." %}</p>
+        <div class="mt-4">
+            <a class="akd-btn akd-btn--secondary akd-btn--sm" href="{% url 'students:curriculum' %}">
+                <i data-lucide="map" class="h-4 w-4"></i>
+                <span>{% trans "Plana git" %}</span>
+            </a>
+        </div>
+    </article>
+
+    <article class="akd-stat">
+        <div class="akd-stat__top">
+            <span class="akd-stat__icon akd-stat__icon--rose"><i data-lucide="clipboard-list" class="h-5 w-5"></i></span>
+        </div>
+        <p class="akd-stat__label">{% trans "Devamsızlık" %}</p>
+        <p class="text-base font-semibold text-white mt-1">{% trans "Yoklama durumum" %}</p>
+        <p class="akd-stat__hint">{% trans "Derslerinizin devamsızlık oranları ve tarihsel yoklama kayıtları." %}</p>
+        <div class="mt-4">
+            <a class="akd-btn akd-btn--secondary akd-btn--sm" href="{% url 'students:attendance' %}">
+                <i data-lucide="clipboard-list" class="h-4 w-4"></i>
+                <span>{% trans "Devamsızlığım" %}</span>
             </a>
         </div>
     </article>

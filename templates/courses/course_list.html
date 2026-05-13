@@ -26,16 +26,18 @@
                 <th scope="col" style="width: 14rem;">{% trans "Bölüm" %}</th>
                 <th scope="col" style="width: 5rem;">{% trans "Kredi" %}</th>
                 <th scope="col" style="width: 7rem;">{% trans "Aktif" %}</th>
-                {% if user.role == "admin" %}<th scope="col" style="width: 11rem;" class="text-end"></th>{% endif %}
+                {% if user.role == "admin" %}<th scope="col" style="width: 13rem;" class="text-end"></th>{% endif %}
             </tr>
         </thead>
         <tbody>
             {% for obj in courses %}
             <tr>
                 <td>
-                    <span class="font-mono text-xs text-white/85 px-2 py-1 rounded-md bg-white/5 border border-white/10">{{ obj.code }}</span>
+                    <a href="{% url 'courses:course_detail' obj.pk %}" class="font-mono text-xs text-indigo-200 px-2 py-1 rounded-md bg-indigo-500/15 border border-indigo-400/20 hover:bg-indigo-500/25 transition">{{ obj.code }}</a>
                 </td>
-                <td class="font-medium text-white">{{ obj.name }}</td>
+                <td>
+                    <a href="{% url 'courses:course_detail' obj.pk %}" class="font-medium text-white hover:text-indigo-200 transition">{{ obj.name }}</a>
+                </td>
                 <td class="text-white/75">{{ obj.department }}</td>
                 <td class="text-white/85 font-semibold">{{ obj.credits }}</td>
                 <td>
@@ -65,6 +67,10 @@
                 {% if user.role == "admin" %}
                 <td class="text-end">
                     <div class="inline-flex gap-1.5">
+                        <a class="akd-btn akd-btn--secondary akd-btn--sm" href="{% url 'courses:course_prerequisites' obj.pk %}"
+                           title="{% trans 'Önkoşulları yönet' %}">
+                            <i data-lucide="git-merge" class="h-3.5 w-3.5"></i>
+                        </a>
                         <a class="akd-btn akd-btn--secondary akd-btn--sm" href="{% url 'courses:course_update' obj.pk %}">
                             <i data-lucide="pencil" class="h-3.5 w-3.5"></i>
                             <span>{% trans "Düzenle" %}</span>

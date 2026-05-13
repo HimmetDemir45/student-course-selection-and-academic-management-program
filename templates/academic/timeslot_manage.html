@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Zaman dilimleri" %} — {{ offering }} — Akademik 2.0{% endblock %}
+
+{% block content %}
+<header class="akd-page-header">
+    <div class="akd-page-header__intro">
+        <span class="akd-page-header__eyebrow">
+            <i data-lucide="clock" class="h-3 w-3"></i>
+            {% trans "Ders teklifleri" %}
+        </span>
+        <h1 class="akd-page-header__title">{% trans "Zaman dilimi yönetimi" %}</h1>
+        <p class="akd-page-header__subtitle">
+            <span class="font-mono text-indigo-300">{{ offering.course.code }}</span>
+            — {{ offering.course.name }}
+            &nbsp;/&nbsp; {% trans "Şube" %} {{ offering.section }}
+            &nbsp;/&nbsp; {{ offering.semester }}
+        </p>
+    </div>
+    <div class="akd-page-header__actions">
+        <a class="akd-btn akd-btn--secondary akd-btn--sm" href="{% url 'courses:offering_list' %}">
+            <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i>
+            <span>{% trans "Teklifler" %}</span>
+        </a>
+        <a class="akd-btn akd-btn--secondary akd-btn--sm" href="{% url 'academic:weekly_schedule' %}">
+            <i data-lucide="calendar-days" class="h-3.5 w-3.5"></i>
+            <span>{% trans "Haftalık program" %}</span>
+        </a>
+    </div>
+</header>
+
+{% include "includes/breadcrumbs.html" %}
+{% include "includes/messages.html" %}
+
+<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+
+    {# ── Sol panel: mevcut zaman dilimleri ── #}
+    <div class="lg:col-span-2">
+        <div class="akd-card">
+            <h2 class="text-sm font-semibold text-white/70 uppercase tracking-wider mb-4">
+                <i data-lucide="list" class="h-4 w-4 inline-block mr-1.5 text-indigo-400"></i>
+                {% trans "Tanımlı zaman dilimleri" %}
+                <span class="ml-2 text-xs font-normal text-white/40">({{ slots_enriched|length }})</span>
+            </h2>
+
+            {% if not slots_enriched %}
+            <div class="flex flex-col items-center justify-center py-10 text-center text-white/40">
+                <i data-lucide="clock" class="h-10 w-10 mb-3 opacity-30"></i>
+                <p class="text-sm">{% trans "Bu şube için henüz zaman dilimi tanımlanmamış." %}</p>
+            </div>
+            {% else %}
+            <div class="akd-table-wrap">
+                <table class="akd-table">
+                    <thead>
+                        <tr>
+                            <th scope="col" style="width:10rem;">{% trans "Gün" %}</th>
+                            <th scope="col" style="width:8rem;">{% trans "Başlangıç" %}</th>
+                            <th scope="col" style="width:8rem;">{% trans "Bitiş" %}</th>
+                            <th scope="col" style="width:7rem;" class="text-center">{% trans "Süre" %}</th>
+                            <th scope="col" style="width:4rem;"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in slots_enriched %}
+                        <tr>
+                            <td class="font-medium text-white/90">{{ item.weekday_name }}</td>
+                            <td class="font-mono text-sm text-white/75">{{ item.slot.start_time|time:"H:i" }}</td>
+                            <td class="font-mono text-sm text-white/75">{{ item.slot.end_time|time:"H:i" }}</td>
+                            <td class="text-center text-white/55 text-sm">{{ item.duration_min }}{% trans " dk" %}</td>
+                            <td class="text-right">
+                                <form method="post" action="{% url 'academic:timeslot_delete' item.slot.pk %}">
+                                    {% csrf_token %}
+                                    <button type="submit"
+                                            class="akd-btn akd-btn--danger akd-btn--sm"
+                                            title="{% trans 'Kaldır' %}"
+                                            onclick="return confirm('{% trans "Bu zaman dilimini kaldırmak istediğinize emin misiniz?" %}')">
+                                        <i data-lucide="x" class="h-3.5 w-3.5"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {# ── Sağ panel: yeni zaman dilimi ekle ── #}
+    <div>
+        <div class="akd-card">
+            <h2 class="text-sm font-semibold text-white/70 uppercase tracking-wider mb-4">
+                <i data-lucide="plus-circle" class="h-4 w-4 inline-block mr-1.5 text-emerald-400"></i>
+                {% trans "Yeni zaman dilimi" %}
+            </h2>
+
+            <form method="post" class="akd-form space-y-4">
+                {% csrf_token %}
+                {% include "includes/form_errors.html" with form=form %}
+
+                {% for field in form %}
+                <div class="akd-form-group">
+                    <label class="akd-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                        {% for e in field.errors %}
+                        <p class="akd-form-error">{{ e }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                {% endfor %}
+
+                <button type="submit" class="akd-btn akd-btn--primary w-full justify-center">
+                    <i data-lucide="plus" class="h-4 w-4"></i>
+                    <span>{% trans "Ekle" %}</span>
+                </button>
+            </form>
+        </div>
+
+        <div class="akd-card mt-4 bg-indigo-500/10 border-indigo-400/20">
+            <div class="flex gap-3">
+                <i data-lucide="info" class="h-5 w-5 text-indigo-400 flex-shrink-0 mt-0.5"></i>
+                <p class="text-sm text-white/60">
+                    {% trans "Aynı şubeye birden fazla zaman dilimi eklenebilir (örn. Salı + Perşembe). Bitiş saati başlangıçtan sonra olmalıdır." %}
+                </p>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

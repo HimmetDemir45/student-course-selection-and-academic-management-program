@@ -20,7 +20,7 @@ from core.services.enrollment_atomic import (
     enroll_student_integrity_message,
     enroll_student_in_section_atomic,
 )
-from core.services.enrollment_rules import collect_enrollment_preview_messages
+from core.services.enrollment_rules import collect_enrollment_preview_messages, is_within_add_drop
 from core.services.enrollment_workflow import transition_enrollment_status
 
 from .models import Enrollment
@@ -205,6 +205,78 @@ class StudentDropEnrollmentView(StudentRequiredMixin, View):
         else:
             messages.success(request, _("Ders bırakıldı."))
         return redirect("enrollments:browse")
+
+
+class MyEnrollmentsView(StudentRequiredMixin, View):
+    template_name = "enrollments/my_enrollments.html"
+
+    def get(self, request):
+        from itertools import groupby as itr_groupby
+        from django.shortcuts import render as dj_render
+        from django.utils import timezone as tz
+
+        try:
+            profile = request.user.student_profile
+        except ObjectDoesNotExist:
+            return redirect("students:index")
+
+        active_semesters = list(
+            Semester.objects.filter(is_active=True).order_by("-academic_year", "term")
+        )
+        today = tz.localdate()
+        current_semester = next(
+            (s for s in active_semesters if s.start_date <= today <= s.end_date),
+            active_semesters[0] if active_semesters else None,
+        )
+
+        all_enr = list(
+            Enrollment.objects.filter(
+                student=profile,
+                status__in=(Enrollment.Status.PENDING, Enrollment.Status.ENROLLED),
+            )
+            .select_related(
+                "section__offering__course",
+                "section__offering__semester",
+                "section__offering__instructor__user",
+                "section__offering__classroom",
+            )
+            .prefetch_related("section__time_slots")
+            .order_by(
+                "-section__offering__semester__academic_year",
+                "section__offering__course__code",
+            )
+        )
+
+        sem_blocks = []
+        for _sid, group_iter in itr_groupby(all_enr, key=lambda e: e.section.offering.semester_id):
+            rows = list(group_iter)
+            sem = rows[0].section.offering.semester
+            within_window = is_within_add_drop(sem)
+            pending_rows = [e for e in rows if e.status == Enrollment.Status.PENDING]
+            enrolled_rows = [e for e in rows if e.status == Enrollment.Status.ENROLLED]
+            total_credits = sum(e.section.offering.course.credits or 0 for e in rows)
+            sem_blocks.append({
+                "semester": sem,
+                "within_window": within_window,
+                "pending_rows": pending_rows,
+                "enrolled_rows": enrolled_rows,
+                "total_credits": total_credits,
+            })
+
+        return dj_render(
+            request,
+            self.template_name,
+            {
+                "profile": profile,
+                "sem_blocks": sem_blocks,
+                "current_semester": current_semester,
+                "breadcrumb_items": items(
+                    home(),
+                    {"label": _("Öğrenci alanı"), "url": reverse("students:index")},
+                    {"label": _("Ders seçimlerim"), "url": None},
+                ),
+            },
+        )
 
 
 def _validation_message(exc: ValidationError) -> str:

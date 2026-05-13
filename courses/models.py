@@ -5,6 +5,11 @@ from core.models import TimeStampedActiveModel, TimeStampedModel
 
 
 class Course(TimeStampedActiveModel):
+    class CourseType(models.TextChoices):
+        MANDATORY = "mandatory", "Zorunlu"
+        ELECTIVE = "elective", "Seçmeli"
+        FREE_ELECTIVE = "free_elective", "Serbest Seçmeli"
+
     department = models.ForeignKey(
         "academic.Department",
         on_delete=models.PROTECT,
@@ -20,6 +25,12 @@ class Course(TimeStampedActiveModel):
     code = models.CharField(max_length=20, unique=True, db_index=True)
     name = models.CharField(max_length=200, db_index=True)
     credits = models.PositiveSmallIntegerField(default=3)
+    course_type = models.CharField(
+        max_length=20,
+        choices=CourseType.choices,
+        default=CourseType.MANDATORY,
+        db_index=True,
+    )
     description = models.TextField(blank=True)
 
     class Meta:
@@ -27,6 +38,44 @@ class Course(TimeStampedActiveModel):
 
     def __str__(self):
         return f"{self.code} - {self.name}"
+
+
+class ElectivePool(TimeStampedActiveModel):
+    """
+    Seçmeli ders havuzu: programın öğrencilerin belirli sayıda ders seçmesi
+    gereken tematik ders grubu. Örn. "Teknik Seçmeli I — 2 ders seçiniz".
+    """
+    program = models.ForeignKey(
+        "academic.Program",
+        on_delete=models.CASCADE,
+        related_name="elective_pools",
+    )
+    name = models.CharField(max_length=150, db_index=True)
+    description = models.TextField(
+        blank=True,
+        help_text="Öğrencilere gösterilecek açıklama.",
+    )
+    required_count = models.PositiveSmallIntegerField(
+        default=1,
+        help_text="Öğrencinin bu havuzdan seçmesi gereken ders sayısı.",
+    )
+    courses = models.ManyToManyField(
+        "courses.Course",
+        blank=True,
+        related_name="elective_pools",
+    )
+
+    class Meta:
+        ordering = ("program__code", "name")
+        constraints = [
+            models.UniqueConstraint(
+                fields=("program", "name"),
+                name="uniq_elective_pool_program_name",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.program.code} — {self.name}"
 
 
 class CoursePrerequisite(TimeStampedModel):

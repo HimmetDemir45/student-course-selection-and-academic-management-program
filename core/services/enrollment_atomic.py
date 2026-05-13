@@ -51,14 +51,14 @@ def enroll_student_in_section_atomic(student_profile: StudentProfile, section_id
             status=Enrollment.Status.DROPPED,
         ).first()
         if existing:
-            existing.status = Enrollment.Status.ENROLLED
+            existing.status = Enrollment.Status.PENDING
             existing.full_clean()
             existing.save(update_fields=["status", "updated_at"])
             return existing
         enr = Enrollment(
             student=student_profile,
             section=section,
-            status=Enrollment.Status.ENROLLED,
+            status=Enrollment.Status.PENDING,
         )
         enr.save()
         return enr

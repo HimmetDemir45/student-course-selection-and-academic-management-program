@@ -1,0 +1,4 @@
+{% load i18n %}
+{% if user.role == "admin" %}
+<a class="akd-btn akd-btn--primary akd-btn--sm text-white" href="{% url 'academic:semester_create' %}">{% trans "Yeni dönem" %}</a>
+{% endif %}

@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Mezuniyet takibi — Akademik 2.0" %}{% endblock %}
+
+{% block content %}
+<header class="akd-page-header">
+    <div class="akd-page-header__intro">
+        <span class="akd-page-header__eyebrow">
+            <i data-lucide="graduation-cap" class="h-3 w-3"></i>
+            {% trans "Öğrenci" %}
+        </span>
+        <h1 class="akd-page-header__title">{% trans "Mezuniyet takibi" %}</h1>
+        <p class="akd-page-header__subtitle">{% trans "Programınızdaki tamamlanan ve eksik derslerinizi görün." %}</p>
+    </div>
+    <div class="akd-page-header__actions">
+        <a class="akd-btn akd-btn--secondary akd-btn--sm" href="{% url 'students:index' %}">
+            <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i>
+            <span>{% trans "Geri" %}</span>
+        </a>
+    </div>
+</header>
+
+{% if no_profile %}
+    {% include "includes/empty_state.html" with empty_title=_("Öğrenci profili bulunamadı") empty_message=_("Yönetici hesabınızı henüz onaylamamış olabilir.") empty_icon="user-x" %}
+{% elif not progress %}
+    {% include "includes/empty_state.html" with empty_title=_("Program atanmamış") empty_message=_("Danışmanınızla veya öğrenci işleriyle iletişime geçin.") empty_icon="alert-circle" %}
+{% else %}
+
+{# ─── Üst özet kartlar ─── #}
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+    <div class="akd-card px-5 py-4 !mb-0">
+        <p class="text-xs text-white/50 uppercase tracking-wide mb-1">{% trans "Tamamlanan kredi" %}</p>
+        <p class="text-3xl font-bold text-white">{{ progress.credits_completed }}</p>
+        <p class="text-xs text-white/40 mt-0.5">/ {{ progress.credits_required }} {% trans "AKTS" %}</p>
+    </div>
+    <div class="akd-card px-5 py-4 !mb-0">
+        <p class="text-xs text-white/50 uppercase tracking-wide mb-1">{% trans "Zorunlu dersler" %}</p>
+        <p class="text-3xl font-bold
+            {% if progress.mandatory_missing %}text-amber-300{% else %}text-emerald-300{% endif %}">
+            {{ progress.mandatory_completed }}/{{ progress.mandatory_total }}
+        </p>
+        <p class="text-xs text-white/40 mt-0.5">{% trans "tamamlandı" %}</p>
+    </div>
+    <div class="akd-card px-5 py-4 !mb-0">
+        <p class="text-xs text-white/50 uppercase tracking-wide mb-1">{% trans "Seçmeli dersler" %}</p>
+        <p class="text-3xl font-bold text-white">{{ progress.elective_completed }}/{{ progress.elective_total }}</p>
+        <p class="text-xs text-white/40 mt-0.5">{% trans "tamamlandı" %}</p>
+    </div>
+    <div class="akd-card px-5 py-4 !mb-0">
+        <p class="text-xs text-white/50 uppercase tracking-wide mb-1">{% trans "Mezuniyete ilerleme" %}</p>
+        <p class="text-3xl font-bold
+            {% if progress.credits_pct >= 100 %}text-emerald-300
+            {% elif progress.credits_pct >= 75 %}text-indigo-300
+            {% else %}text-white{% endif %}">
+            {{ progress.credits_pct }}%
+        </p>
+        <p class="text-xs text-white/40 mt-0.5">{% trans "kredi tamamlandı" %}</p>
+    </div>
+</div>
+
+{# ─── Kredi ilerleme çubuğu ─── #}
+<div class="akd-card mb-6">
+    <div class="flex items-center justify-between mb-2">
+        <p class="text-sm font-medium text-white/80">{{ progress.program_name }}</p>
+        <p class="text-xs text-white/50">{{ progress.credits_completed }} / {{ progress.credits_required }} {% trans "AKTS" %}</p>
+    </div>
+    <div class="h-3 w-full rounded-full bg-white/10 overflow-hidden">
+        <div class="h-full rounded-full transition-all
+            {% if progress.credits_pct >= 100 %}bg-gradient-to-r from-emerald-500 to-emerald-400
+            {% elif progress.credits_pct >= 75 %}bg-gradient-to-r from-indigo-500 to-indigo-400
+            {% elif progress.credits_pct >= 50 %}bg-gradient-to-r from-amber-500 to-amber-400
+            {% else %}bg-gradient-to-r from-rose-500 to-rose-400{% endif %}"
+            style="width: {{ progress.credits_pct }}%;"></div>
+    </div>
+    {% if progress.credits_pct >= 100 %}
+    <p class="text-xs text-emerald-400 mt-2 flex items-center gap-1">
+        <i data-lucide="check-circle-2" class="h-3.5 w-3.5"></i>
+        {% trans "Kredi şartını karşıladınız!" %}
+    </p>
+    {% else %}
+    <p class="text-xs text-white/40 mt-2">
+        {% blocktrans with rem=progress.credits_required|add:"-"|add:progress.credits_completed %}
+        Mezuniyet için {{ rem }} AKTS daha gerekiyor.
+        {% endblocktrans %}
+    </p>
+    {% endif %}
+</div>
+
+{# ─── Eksik zorunlu dersler ─── #}
+{% if progress.mandatory_missing %}
+<div class="mb-8">
+    <p class="text-xs font-semibold text-rose-300/80 uppercase tracking-widest mb-3">
+        <i data-lucide="alert-circle" class="inline h-3 w-3 mr-1"></i>
+        {% trans "Eksik zorunlu dersler" %}
+        <span class="ml-1 font-normal normal-case text-white/40">({{ progress.mandatory_missing|length }})</span>
+    </p>
+    <div class="akd-table-wrap">
+        <table class="akd-table">
+            <thead>
+                <tr>
+                    <th scope="col" style="width: 8rem;">{% trans "Kod" %}</th>
+                    <th scope="col">{% trans "Ders adı" %}</th>
+                    <th scope="col" style="width: 6rem;" class="text-center">{% trans "Kredi" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for c in progress.mandatory_missing %}
+                <tr class="bg-rose-500/5 border-l-2 border-rose-400/30">
+                    <td>
+                        <span class="font-mono text-xs text-rose-200 px-2 py-1 rounded-md bg-rose-500/15 border border-rose-400/25">
+                            {{ c.code }}
+                        </span>
+                    </td>
+                    <td class="text-white/80">{{ c.name }}</td>
+                    <td class="text-center text-white/60 text-sm">{{ c.credits }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{# ─── Tüm program dersleri ─── #}
+<div class="mb-8">
+    <p class="text-xs font-semibold text-white/50 uppercase tracking-widest mb-3">
+        <i data-lucide="list" class="inline h-3 w-3 mr-1"></i>
+        {% trans "Program dersleri" %}
+        <span class="ml-1 font-normal normal-case text-white/40">({{ progress.all_program_courses|length }})</span>
+    </p>
+    <div class="akd-table-wrap">
+        <table class="akd-table">
+            <thead>
+                <tr>
+                    <th scope="col" style="width: 8rem;">{% trans "Kod" %}</th>
+                    <th scope="col">{% trans "Ders adı" %}</th>
+                    <th scope="col" style="width: 7rem;">{% trans "Tür" %}</th>
+                    <th scope="col" style="width: 6rem;" class="text-center">{% trans "Kredi" %}</th>
+                    <th scope="col" style="width: 8rem;" class="text-center">{% trans "Durum" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for c in progress.all_program_courses %}
+                <tr class="{% if c.completed %}opacity-60{% endif %}">
+                    <td>
+                        <span class="font-mono text-xs px-2 py-1 rounded-md border
+                            {% if c.completed %}text-emerald-200 bg-emerald-500/15 border-emerald-400/25
+                            {% else %}text-indigo-200 bg-indigo-500/15 border-indigo-400/25{% endif %}">
+                            {{ c.code }}
+                        </span>
+                    </td>
+                    <td class="{% if c.completed %}text-white/50{% else %}text-white/85{% endif %}">
+                        {{ c.name }}
+                    </td>
+                    <td>
+                        {% if c.course_type == "mandatory" %}
+                            <span class="akd-badge akd-badge--neutral">{% trans "Zorunlu" %}</span>
+                        {% elif c.course_type == "elective" %}
+                            <span class="akd-badge akd-badge--success">{% trans "Seçmeli" %}</span>
+                        {% else %}
+                            <span class="akd-badge akd-badge--neutral">{% trans "Serbest" %}</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center text-white/60 text-sm">{{ c.credits }}</td>
+                    <td class="text-center">
+                        {% if c.completed %}
+                            <span class="akd-badge akd-badge--success">
+                                <i data-lucide="check" class="h-3 w-3"></i>
+                                {% trans "Tamamlandı" %}
+                            </span>
+                        {% else %}
+                            <span class="akd-badge akd-badge--neutral">
+                                <i data-lucide="minus" class="h-3 w-3"></i>
+                                {% trans "Alınmadı" %}
+                            </span>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{# ─── Ekstra tamamlanan dersler (GENEL / diğer) ─── #}
+{% if progress.extra_completed %}
+<div>
+    <p class="text-xs font-semibold text-white/40 uppercase tracking-widest mb-3">
+        <i data-lucide="plus-circle" class="inline h-3 w-3 mr-1"></i>
+        {% trans "Ortak / ek dersler" %}
+        <span class="ml-1 font-normal normal-case">({{ progress.extra_completed|length }})</span>
+    </p>
+    <div class="akd-table-wrap">
+        <table class="akd-table">
+            <thead>
+                <tr>
+                    <th scope="col" style="width: 8rem;">{% trans "Kod" %}</th>
+                    <th scope="col">{% trans "Ders adı" %}</th>
+                    <th scope="col" style="width: 6rem;" class="text-center">{% trans "Kredi" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for c in progress.extra_completed %}
+                <tr class="opacity-60">
+                    <td>
+                        <span class="font-mono text-xs text-white/60 px-2 py-1 rounded-md bg-white/5 border border-white/10">
+                            {{ c.code }}
+                        </span>
+                    </td>
+                    <td class="text-white/55">{{ c.name }}</td>
+                    <td class="text-center text-white/50 text-sm">{{ c.credits }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% endif %}
+{% endblock %}

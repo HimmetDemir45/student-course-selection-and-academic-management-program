@@ -112,13 +112,14 @@
                             {% endif %}
                         </div>
                         {% if s.effective_quota %}
-                        <div class="h-1 w-full rounded-full bg-white/10 overflow-hidden" aria-hidden="true">
-                            <div class="h-full transition-all
+                        <div class="h-1.5 w-full rounded-full bg-white/10 overflow-hidden" aria-hidden="true" title="{{ s.capacity_pct }}% dolu">
+                            <div class="h-full rounded-full transition-all duration-300
                                 {% if s.capacity_pct >= 100 %}bg-gradient-to-r from-rose-500 to-rose-400
                                 {% elif s.capacity_pct >= 85 %}bg-gradient-to-r from-amber-500 to-amber-400
                                 {% else %}bg-gradient-to-r from-emerald-500 to-emerald-400{% endif %}"
                                 style="width:{% if s.capacity_pct > 100 %}100{% else %}{{ s.capacity_pct }}{% endif %}%;"></div>
                         </div>
+                        <p class="text-[10px] text-white/30 mt-0.5">{{ s.capacity_pct }}% {% trans "dolu" %}</p>
                         {% endif %}
                     </div>
                 </td>

@@ -1,14 +1,16 @@
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import login, logout
+from django.contrib.auth import login, logout, update_session_auth_hash
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.utils.translation import gettext as _
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods, require_POST
 
 from audit_logs.services import log_auth_event, log_event
+from core.breadcrumbs import home, items
 
-from .forms import AdminRequestForm, LoginForm, RegisterForm
+from .forms import AdminRequestForm, AkdPasswordChangeForm, LoginForm, ProfileForm, RegisterForm
 from .models import AdminRequest, User
 from .services.login_throttle import clear_login_throttle, login_throttle, register_login_failure
 
@@ -80,6 +82,136 @@ def logout_view(request):
     )
     messages.info(request, "Cikis yapildi.")
     return redirect("core:home")
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def profile_view(request):
+    """Kullanıcının kendi ad / soyad / e-postasını düzenleyebileceği profil sayfası."""
+    user = request.user
+
+    if request.method == "POST":
+        form = ProfileForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            log_event(
+                event_type="user.profile_update",
+                actor=user,
+                target_type="accounts.User",
+                target_id=str(user.pk),
+                metadata={
+                    "email": user.email,
+                    "first_name": user.first_name,
+                    "last_name": user.last_name,
+                },
+                request=request,
+            )
+            messages.success(request, _("Profil bilgileri güncellendi."))
+            return redirect("accounts:profile")
+    else:
+        form = ProfileForm(instance=user)
+
+    # Extra read-only profile info depending on role
+    profile_info = []
+    if user.role == "student":
+        try:
+            sp = user.student_profile
+            profile_info = [
+                (_("Öğrenci no"), sp.student_no),
+                (_("Bölüm"), str(sp.department) if sp.department else "—"),
+                (_("Program"), str(sp.program) if sp.program else "—"),
+                (_("Kayıt yılı"), str(sp.enrollment_year)),
+                (_("Durum"), _("Onaylı") if sp.is_approved else _("Onay bekliyor")),
+            ]
+        except Exception:
+            pass
+    elif user.role == "instructor":
+        try:
+            ip = user.instructor_profile
+            profile_info = [
+                (_("Sicil no"), ip.employee_no),
+                (_("Bölüm"), str(ip.department) if ip.department else "—"),
+                (_("Unvan"), ip.title or "—"),
+                (_("Durum"), _("Onaylı") if ip.is_approved else _("Onay bekliyor")),
+            ]
+        except Exception:
+            pass
+
+    ctx = {
+        "form": form,
+        "profile_info": profile_info,
+        "pw_form": AkdPasswordChangeForm(user=user),
+        "breadcrumb_items": items(
+            home(),
+            {"label": _("Profilim"), "url": None},
+        ),
+        "nav_namespace": "accounts",
+        "nav_url_name": "profile",
+    }
+    return render(request, "accounts/profile.html", ctx)
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def password_change_view(request):
+    """Şifre değiştirme; POST başarılıysa oturum korunur (update_session_auth_hash)."""
+    if request.method == "POST":
+        form = AkdPasswordChangeForm(user=request.user, data=request.POST)
+        if form.is_valid():
+            form.save()
+            update_session_auth_hash(request, form.user)
+            log_event(
+                event_type="user.password_change",
+                actor=request.user,
+                target_type="accounts.User",
+                target_id=str(request.user.pk),
+                metadata={},
+                request=request,
+            )
+            messages.success(request, _("Şifreniz başarıyla değiştirildi."))
+            return redirect("accounts:profile")
+        # Re-render profile page with the pw_form errors
+        profile_form = ProfileForm(instance=request.user)
+        profile_info = []
+        u = request.user
+        if u.role == "student":
+            try:
+                sp = u.student_profile
+                profile_info = [
+                    (_("Öğrenci no"), sp.student_no),
+                    (_("Bölüm"), str(sp.department) if sp.department else "—"),
+                    (_("Program"), str(sp.program) if sp.program else "—"),
+                    (_("Kayıt yılı"), str(sp.enrollment_year)),
+                    (_("Durum"), _("Onaylı") if sp.is_approved else _("Onay bekliyor")),
+                ]
+            except Exception:
+                pass
+        elif u.role == "instructor":
+            try:
+                ip = u.instructor_profile
+                profile_info = [
+                    (_("Sicil no"), ip.employee_no),
+                    (_("Bölüm"), str(ip.department) if ip.department else "—"),
+                    (_("Unvan"), ip.title or "—"),
+                    (_("Durum"), _("Onaylı") if ip.is_approved else _("Onay bekliyor")),
+                ]
+            except Exception:
+                pass
+        ctx = {
+            "form": profile_form,
+            "profile_info": profile_info,
+            "pw_form": form,
+            "pw_error": True,
+            "breadcrumb_items": items(
+                home(),
+                {"label": _("Profilim"), "url": None},
+            ),
+            "nav_namespace": "accounts",
+            "nav_url_name": "profile",
+        }
+        return render(request, "accounts/profile.html", ctx)
+
+    return redirect("accounts:profile")
 
 
 @require_http_methods(["GET", "POST"])

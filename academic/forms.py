@@ -1,7 +1,57 @@
 from django import forms
+from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
-from .models import Announcement, Department, Grade
+from .models import Announcement, CurriculumItem, Department, Grade, Program, Semester, SectionTimeSlot
+
+
+def _apply_akd_input(form):
+    """Apply akd-input class to all non-checkbox / non-multi-checkbox widgets."""
+    for _name, field in form.fields.items():
+        if not isinstance(
+            field.widget,
+            (forms.CheckboxInput, forms.CheckboxSelectMultiple, forms.RadioSelect),
+        ):
+            field.widget.attrs.setdefault("class", "akd-input")
+
+
+class SemesterForm(forms.ModelForm):
+    class Meta:
+        model = Semester
+        fields = (
+            "name",
+            "academic_year",
+            "term",
+            "start_date",
+            "end_date",
+            "add_drop_start",
+            "add_drop_end",
+            "is_active",
+        )
+        labels = {
+            "name": _("Dönem adı"),
+            "academic_year": _("Akademik yıl"),
+            "term": _("Yarıyıl"),
+            "start_date": _("Başlangıç tarihi"),
+            "end_date": _("Bitiş tarihi"),
+            "add_drop_start": _("Ders ekleme/bırakma başlangıcı"),
+            "add_drop_end": _("Ders ekleme/bırakma bitişi"),
+            "is_active": _("Aktif"),
+        }
+        help_texts = {
+            "academic_year": _("Örn: 2025-2026"),
+            "add_drop_start": _("Boş bırakılırsa ekleme/bırakma tarihi kontrolü devre dışı kalır."),
+        }
+        widgets = {
+            "start_date": forms.DateInput(attrs={"type": "date", "class": "akd-input"}),
+            "end_date": forms.DateInput(attrs={"type": "date", "class": "akd-input"}),
+            "add_drop_start": forms.DateInput(attrs={"type": "date", "class": "akd-input"}),
+            "add_drop_end": forms.DateInput(attrs={"type": "date", "class": "akd-input"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        _apply_akd_input(self)
 
 
 class DepartmentForm(forms.ModelForm):
@@ -14,6 +64,31 @@ class DepartmentForm(forms.ModelForm):
             "description": _("Açıklama"),
             "is_active": _("Aktif"),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        _apply_akd_input(self)
+
+
+class ProgramForm(forms.ModelForm):
+    class Meta:
+        model = Program
+        fields = ("department", "code", "name", "degree_level", "credits_required", "is_active")
+        labels = {
+            "department": _("Bölüm"),
+            "code": _("Program kodu"),
+            "name": _("Program adı"),
+            "degree_level": _("Derece"),
+            "credits_required": _("Gerekli AKTS"),
+            "is_active": _("Aktif"),
+        }
+        help_texts = {
+            "credits_required": _("Mezuniyet için gereken toplam AKTS kredisi (varsayılan: 240)."),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        _apply_akd_input(self)
 
 
 class AnnouncementForm(forms.ModelForm):
@@ -28,13 +103,54 @@ class AnnouncementForm(forms.ModelForm):
             "target_role": _("Hedef kitle"),
             "is_active": _("Aktif"),
         }
-        widgets = {
-            "title": forms.TextInput(attrs={"class": "form-control"}),
-            "body": forms.Textarea(attrs={"class": "form-control"}),
-            "semester": forms.Select(attrs={"class": "form-select"}),
-            "department": forms.Select(attrs={"class": "form-select"}),
-            "target_role": forms.Select(attrs={"class": "form-select"}),
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        _apply_akd_input(self)
+
+
+class CurriculumItemForm(forms.ModelForm):
+    class Meta:
+        model = CurriculumItem
+        fields = ("program", "course", "year_level", "term", "order")
+        labels = {
+            "program": _("Program"),
+            "course": _("Ders"),
+            "year_level": _("Yıl"),
+            "term": _("Yarıyıl"),
+            "order": _("Sıra"),
         }
+        help_texts = {
+            "year_level": _("1–4 arası bir değer girin."),
+            "order": _("Aynı dönem içinde görüntüleme sırası (küçük = önce)."),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        _apply_akd_input(self)
+
+
+class SectionTimeSlotForm(forms.ModelForm):
+    class Meta:
+        model = SectionTimeSlot
+        fields = ("weekday", "start_time", "end_time")
+        labels = {
+            "weekday": _("Gün"),
+            "start_time": _("Başlangıç saati"),
+            "end_time": _("Bitiş saati"),
+        }
+        widgets = {
+            "start_time": forms.TimeInput(attrs={"type": "time", "class": "akd-input"}),
+            "end_time": forms.TimeInput(attrs={"type": "time", "class": "akd-input"}),
+        }
+
+    def clean(self):
+        cleaned = super().clean()
+        start = cleaned.get("start_time")
+        end = cleaned.get("end_time")
+        if start and end and end <= start:
+            raise ValidationError(_("Bitiş saati başlangıç saatinden sonra olmalıdır."))
+        return cleaned
 
 
 class GradeForm(forms.ModelForm):
@@ -51,7 +167,7 @@ class GradeForm(forms.ModelForm):
         }
         widgets = {
             "letter_grade": forms.TextInput(
-                attrs={"class": "form-control", "maxlength": "2", "autocomplete": "off"}
+                attrs={"class": "akd-input", "maxlength": "2", "autocomplete": "off"}
             ),
-            "numeric_grade": forms.NumberInput(attrs={"class": "form-control", "step": "0.01"}),
+            "numeric_grade": forms.NumberInput(attrs={"class": "akd-input", "step": "0.01"}),
         }
