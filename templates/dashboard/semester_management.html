@@ -31,6 +31,13 @@
     {% include "includes/empty_state.html" with empty_title=_("Dönem yok") empty_message=_("Henüz dönem oluşturulmamıştır.") empty_icon="calendar" %}
 {% else %}
 
+<div class="mb-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+    <p class="text-sm text-blue-200">
+        <i data-lucide="info" class="inline h-4 w-4 mr-2"></i>
+        {% trans "Şu anda sadece bir dönem aktif olabilir. Yeni bir dönem aktifleştirmek öncekini otomatik olarak kapatacaktır." %}
+    </p>
+</div>
+
 <div class="akd-table-wrap">
     <table class="akd-table">
         <thead>
