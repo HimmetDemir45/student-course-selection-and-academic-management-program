@@ -282,7 +282,7 @@ class InstructorEnrollmentListView(InstructorRequiredMixin, ListView):
                 Enrollment.Status.PENDING,
                 Enrollment.Status.COMPLETED,
             ),
-            section__offering__semester__is_active=True,
+            section__offering__is_active=True,
         ).order_by("section__offering__course__code", "section__offering__section", "student__student_no")
         if user.role == "admin":
             pass
@@ -292,6 +292,9 @@ class InstructorEnrollmentListView(InstructorRequiredMixin, ListView):
             except ObjectDoesNotExist:
                 return Enrollment.objects.none()
             qs = qs.filter(section__offering__instructor=inst)
+        status_filter = (self.request.GET.get("status") or "").strip().lower()
+        if status_filter == "pending":
+            qs = qs.filter(status=Enrollment.Status.PENDING)
         q = (self.request.GET.get("q") or "").strip()
         if q:
             qs = qs.filter(
@@ -760,6 +763,118 @@ def danishman_approve_all(request, student_pk):
         messages.warning(request, err)
 
     return redirect(reverse("academic:danishman_advisee_detail", kwargs={"student_pk": student_pk}))
+
+
+@require_POST
+@role_required("instructor", "admin")
+def enrollment_approve(request, enrollment_id):
+    """Bir PENDING kaydı onayla. Hem ders hocanın hem de danışmanın kullanabileceği ortak view."""
+    from django.db import transaction
+    from django.utils import timezone as _tz
+
+    if request.user.role != "admin":
+        try:
+            inst = request.user.instructor_profile
+        except ObjectDoesNotExist:
+            raise PermissionDenied
+    else:
+        inst = None
+
+    with transaction.atomic():
+        enrollment = get_object_or_404(
+            Enrollment.objects.select_for_update(of=("self",))
+            .select_related("section__offering__course", "student__user", "student__advisor"),
+            pk=enrollment_id,
+        )
+
+        if inst is not None:
+            is_course_instructor = enrollment.section.offering.instructor_id == inst.pk
+            is_advisor = enrollment.student.advisor_id == inst.pk
+            if not is_course_instructor and not is_advisor:
+                raise PermissionDenied
+
+        if enrollment.status != Enrollment.Status.PENDING:
+            messages.info(request, _("Bu kayıt zaten işlem görmüş."))
+            return redirect(_safe_referer(request, reverse("academic:instructor_enrollments")))
+
+        try:
+            transition_enrollment_status(
+                enrollment,
+                Enrollment.Status.ENROLLED,
+                actor=request.user,
+                request=request,
+            )
+        except ValidationError as exc:
+            messages.error(request, "; ".join(getattr(exc, "messages", [str(exc)])))
+            return redirect(_safe_referer(request, reverse("academic:instructor_enrollments")))
+
+        if inst:
+            Enrollment.objects.filter(pk=enrollment.pk).update(
+                instructor_approved=True,
+                instructor_approved_by=inst,
+                instructor_approved_at=_tz.now(),
+            )
+
+    messages.success(
+        request,
+        _("%(student)s için %(course)s kaydı onaylandı.") % {
+            "student": enrollment.student.user.get_full_name() or enrollment.student.student_no,
+            "course": enrollment.section.offering.course.code,
+        },
+    )
+    return redirect(_safe_referer(request, reverse("academic:instructor_enrollments")))
+
+
+@require_POST
+@role_required("instructor", "admin")
+def enrollment_reject(request, enrollment_id):
+    """Bir PENDING kaydı reddet. Hem ders hocanın hem de danışmanın kullanabileceği ortak view."""
+    from django.db import transaction
+
+    if request.user.role != "admin":
+        try:
+            inst = request.user.instructor_profile
+        except ObjectDoesNotExist:
+            raise PermissionDenied
+    else:
+        inst = None
+
+    with transaction.atomic():
+        enrollment = get_object_or_404(
+            Enrollment.objects.select_for_update(of=("self",))
+            .select_related("section__offering__course", "student__user", "student__advisor"),
+            pk=enrollment_id,
+        )
+
+        if inst is not None:
+            is_course_instructor = enrollment.section.offering.instructor_id == inst.pk
+            is_advisor = enrollment.student.advisor_id == inst.pk
+            if not is_course_instructor and not is_advisor:
+                raise PermissionDenied
+
+        if enrollment.status != Enrollment.Status.PENDING:
+            messages.info(request, _("Bu kayıt zaten işlem görmüş."))
+            return redirect(_safe_referer(request, reverse("academic:instructor_enrollments")))
+
+        try:
+            transition_enrollment_status(
+                enrollment,
+                Enrollment.Status.DROPPED,
+                actor=request.user,
+                request=request,
+            )
+        except ValidationError as exc:
+            messages.error(request, "; ".join(getattr(exc, "messages", [str(exc)])))
+            return redirect(_safe_referer(request, reverse("academic:instructor_enrollments")))
+
+    messages.success(
+        request,
+        _("%(student)s için %(course)s kaydı reddedildi.") % {
+            "student": enrollment.student.user.get_full_name() or enrollment.student.student_no,
+            "course": enrollment.section.offering.course.code,
+        },
+    )
+    return redirect(_safe_referer(request, reverse("academic:instructor_enrollments")))
 
 
 @require_POST

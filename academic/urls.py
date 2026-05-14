@@ -72,4 +72,15 @@ urlpatterns = [
         views.InstructorEnrollmentDecisionView.as_view(),
         name="enrollment_decision",
     ),
+    # Bireysel onay / red — hem hoca hem danışman kullanabilir
+    path(
+        "enrollments/<int:enrollment_id>/approve/",
+        views.enrollment_approve,
+        name="enrollment_approve",
+    ),
+    path(
+        "enrollments/<int:enrollment_id>/reject/",
+        views.enrollment_reject,
+        name="enrollment_reject",
+    ),
 ]

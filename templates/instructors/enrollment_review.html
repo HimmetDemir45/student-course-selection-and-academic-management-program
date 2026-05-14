@@ -141,35 +141,19 @@
 
 {% endif %}
 
+<form id="approve-hidden-form" method="post" action="" style="display:none;">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="approve">
+</form>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const approveButtons = document.querySelectorAll('.approve-btn');
-
-    approveButtons.forEach(button => {
+    document.querySelectorAll('.approve-btn').forEach(button => {
         button.addEventListener('click', function() {
             const enrollmentId = this.dataset.enrollmentId;
-            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value ||
-                            document.querySelector('meta[name="csrf-token"]')?.content;
-
-            fetch(`{% url 'instructors:enrollment_approve' enrollment_id=0 %}`.replace('/0/', '/' + enrollmentId + '/'), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken
-                },
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    location.reload();
-                } else {
-                    alert(data.error || '{% trans "Hata oluştu" %}');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('{% trans "Bir hata oluştu" %}');
-            });
+            const form = document.getElementById('approve-hidden-form');
+            form.action = `{% url 'academic:enrollment_approve' enrollment_id=0 %}`.replace('/0/', '/' + enrollmentId + '/');
+            form.submit();
         });
     });
 });
