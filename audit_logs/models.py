@@ -1,3 +1,6 @@
+"""
+Denetim olayı (AuditEvent) modeli: kim/ne zaman/ne yaptı kaydını tutar (event_type, actor, target, metadata, request_id).
+"""
 from django.db import models
 from django.conf import settings
 

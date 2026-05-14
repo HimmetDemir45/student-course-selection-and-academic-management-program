@@ -1,3 +1,6 @@
+"""
+Akademik domain modelleri (Department, Program, Semester, Curriculum, Grade, Attendance...) için admin paneli.
+"""
 from django.contrib import admin
 
 from .models import (

@@ -1,3 +1,6 @@
+"""
+Akademik modeller için post_save/post_delete signal handler'ları (cache invalidation, audit kayıtları).
+"""
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 

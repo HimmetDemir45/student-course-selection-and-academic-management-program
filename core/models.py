@@ -1,3 +1,6 @@
+"""
+Tüm app'lerde ortak kullanılan abstract base modeller: TimeStampedModel, TimeStampedActiveModel.
+"""
 from django.db import models
 
 

@@ -1,3 +1,6 @@
+"""
+AuditEvent modeli için admin paneli (denetim kayıtlarını arama/filtreleme).
+"""
 from django.contrib import admin
 
 from .models import AuditLog

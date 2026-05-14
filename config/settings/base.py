@@ -1,3 +1,6 @@
+"""
+Tüm ortamlar için ortak Django ayarları (apps, middleware, templates, auth, i18n, database, cache, logging).
+"""
 from pathlib import Path
 
 import environ

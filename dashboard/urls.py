@@ -1,3 +1,6 @@
+"""
+`dashboard` URL rotaları: pano, kurucu kuyruğu, kullanıcı onayları, istatistikler.
+"""
 from django.urls import path
 
 from . import views

@@ -1,3 +1,6 @@
+"""
+Yönetim paneli formları (öğrenci atama, kullanıcı onayı vb.).
+"""
 from django import forms
 from academic.models import Semester
 from students.models import StudentProfile

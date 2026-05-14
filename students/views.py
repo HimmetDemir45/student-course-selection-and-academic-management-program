@@ -1,3 +1,6 @@
+"""
+Öğrenci view'ları: dashboard, transkript, müfredat planı, devamsızlık, seçmeli ders havuzu, mezuniyet takibi.
+"""
 from itertools import groupby
 
 from django.contrib import messages

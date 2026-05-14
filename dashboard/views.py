@@ -1,3 +1,6 @@
+"""
+Yönetim panosu view'ları: özet kartları, admin talep kuyruğu, kullanıcı onay akışı, role göre operasyon kartları.
+"""
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError

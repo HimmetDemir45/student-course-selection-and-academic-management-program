@@ -1,3 +1,6 @@
+"""
+`students` URL rotaları: öğrenci alanı, transkript, müfredat, devamsızlık, seçmeli, mezuniyet, admin liste.
+"""
 from django.urls import path
 
 from . import views

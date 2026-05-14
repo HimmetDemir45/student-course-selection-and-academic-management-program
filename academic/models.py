@@ -1,3 +1,6 @@
+"""
+Akademik veri modelleri: Department, Program, Semester, CurriculumItem, CourseSection, SectionTimeSlot, AttendanceRecord, AttendanceEntry, Grade, Announcement.
+"""
 from django.db import models
 from django.conf import settings
 

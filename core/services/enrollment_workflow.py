@@ -1,3 +1,6 @@
+"""
+Kayıt durum geçişleri (PENDING→ENROLLED→DROPPED vb.) için state machine: transition_enrollment_status.
+"""
 from __future__ import annotations
 
 from datetime import date

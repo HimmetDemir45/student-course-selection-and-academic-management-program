@@ -1,3 +1,6 @@
+"""
+Ders kaydı view'ları: SectionListView (kayıt tarama), MyEnrollmentsView (öğrenci kayıtlarım), drop akışı.
+"""
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin

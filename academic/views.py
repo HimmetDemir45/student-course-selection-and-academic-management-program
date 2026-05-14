@@ -1,3 +1,6 @@
+"""
+Akademik view'lar: dönem/müfredat CRUD, danışman onay paneli (DanismanAdvisee*), devamsızlık (AttendanceTakeView), not girişi (GradeEntryView), haftalık program (WeeklyScheduleView).
+"""
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError

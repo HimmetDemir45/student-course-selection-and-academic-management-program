@@ -1,3 +1,6 @@
+"""
+User post_save signal'ları — yeni kullanıcı eklendikçe ilgili profil iskeletinin hazırlanması.
+"""
 from django.contrib.auth.models import Group
 from django.db.models.signals import post_save
 from django.dispatch import receiver

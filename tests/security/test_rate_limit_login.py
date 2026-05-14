@@ -1,3 +1,6 @@
+"""
+Login endpoint'i için rate limit (django-ratelimit) testleri.
+"""
 import pytest
 from django.contrib.auth import get_user_model
 from django.core.cache import cache

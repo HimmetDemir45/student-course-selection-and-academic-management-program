@@ -1,3 +1,6 @@
+"""
+Üretim ortamı güvenlik başlıkları (CSP, X-Frame-Options, HSTS) testleri.
+"""
 import pytest
 from django.test import Client, override_settings
 

@@ -1,3 +1,6 @@
+"""
+Rol bazlı view mixin'leri: AdminRequiredMixin, StudentRequiredMixin, InstructorRequiredMixin, FounderAdminRequiredMixin.
+"""
 from functools import wraps
 
 from django.contrib import messages

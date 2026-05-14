@@ -1,3 +1,6 @@
+"""
+Ders, açılan ders ve derslik CRUD view'ları; öğrenciye yönelik ders kataloğu.
+"""
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist

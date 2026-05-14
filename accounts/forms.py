@@ -1,3 +1,6 @@
+"""
+Kullanıcı kayıt, giriş, profil ve şifre değiştirme formları.
+"""
 from django import forms
 from django.contrib.auth import authenticate
 from django.contrib.auth.forms import PasswordChangeForm as _DjangoPasswordChangeForm

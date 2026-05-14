@@ -1,3 +1,6 @@
+"""
+GPA hesabı ile transkript görünümü arasında tutarlılık testleri.
+"""
 from __future__ import annotations
 
 from datetime import timedelta

@@ -1,3 +1,6 @@
+"""
+Üretim ortamı ayarları (S3 storage, SMTP email, güvenlik header'ları, structlog JSON log).
+"""
 from django.core.exceptions import ImproperlyConfigured
 
 from .base import *  # noqa: F403,F401

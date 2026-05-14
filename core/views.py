@@ -1,3 +1,6 @@
+"""
+Core view'lar: landing page, health check (live/ready), 404/500 hata sayfaları.
+"""
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import connection

@@ -1,3 +1,6 @@
+"""
+`courses` URL rotaları: ders listesi, açılan dersler, derslikler, seçmeli havuzlar.
+"""
 from django.urls import path
 
 from . import views

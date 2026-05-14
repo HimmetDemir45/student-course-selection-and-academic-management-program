@@ -1,3 +1,6 @@
+"""
+Ders modelleri: Course, CoursePrerequisite, Classroom, CourseOffering, ElectivePool.
+"""
 from django.db import models
 from django.db.models import F, Q
 

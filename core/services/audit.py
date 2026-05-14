@@ -1,3 +1,6 @@
+"""
+Audit log servis sarmalayıcısı — event_type sabitleri ve audit_enrollment_event yardımcıları.
+"""
 from __future__ import annotations
 
 from typing import Any

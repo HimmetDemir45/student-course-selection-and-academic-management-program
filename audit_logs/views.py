@@ -1,3 +1,6 @@
+"""
+Audit olayları liste view'ı (sadece admin erişimli).
+"""
 from django.views.generic import ListView
 
 from core.permissions import AdminRequiredMixin

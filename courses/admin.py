@@ -1,3 +1,6 @@
+"""
+Course, CourseOffering, Classroom ve seçmeli ders havuzu için admin paneli.
+"""
 from django.contrib import admin
 
 from .models import Classroom, Course, CourseOffering, CoursePrerequisite

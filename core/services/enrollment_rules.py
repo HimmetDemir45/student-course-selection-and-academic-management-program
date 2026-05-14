@@ -1,3 +1,6 @@
+"""
+Ders kaydı iş kuralları: kapasite, önkoşul, çakışma, add/drop penceresi, kredi limiti validation fonksiyonları.
+"""
 from __future__ import annotations
 
 from datetime import date

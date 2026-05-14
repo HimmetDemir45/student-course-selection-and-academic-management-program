@@ -1,3 +1,6 @@
+"""
+Enrollment modeli için admin paneli (kayıt durumu filtreleme ve toplu işlemler).
+"""
 from django.contrib import admin
 
 from .models import Enrollment

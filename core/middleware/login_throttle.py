@@ -1,3 +1,6 @@
+"""
+Giriş brute-force koruması middleware'i — başarısız denemelerde IP/kullanıcı bazlı blokaj.
+"""
 from django.contrib import messages
 from django.shortcuts import redirect
 

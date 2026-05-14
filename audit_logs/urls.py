@@ -1,3 +1,6 @@
+"""
+`audit_logs` URL rotaları (admin için olay listesi).
+"""
 from django.urls import path
 
 from . import views

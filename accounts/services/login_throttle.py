@@ -1,3 +1,6 @@
+"""
+Brute-force giriş denemelerini sınırlayan throttle servisi (kullanıcı/IP bazlı sayaç).
+"""
 from __future__ import annotations
 
 from functools import wraps

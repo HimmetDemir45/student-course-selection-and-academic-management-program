@@ -1,3 +1,6 @@
+"""
+`audit_logs` uygulamasının yapılandırması.
+"""
 from django.apps import AppConfig
 
 

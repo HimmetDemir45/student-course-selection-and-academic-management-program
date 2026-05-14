@@ -1,3 +1,6 @@
+"""
+InstructorProfile için admin paneli (onay, danışman ataması).
+"""
 from django.contrib import admin
 
 from .models import InstructorProfile

@@ -1,3 +1,6 @@
+"""
+`accounts` app URL rotaları: login, register, password reset, profile.
+"""
 from django.urls import path, reverse_lazy
 from django.contrib.auth import views as auth_views
 

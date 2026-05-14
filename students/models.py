@@ -1,3 +1,6 @@
+"""
+StudentProfile modeli: student_no, department, program, advisor, enrollment_year, is_approved.
+"""
 from django.db import models
 
 from core.models import TimeStampedActiveModel

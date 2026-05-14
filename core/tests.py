@@ -1,3 +1,6 @@
+"""
+Core app için genel testler (middleware, breadcrumbs, permissions).
+"""
 from django.test import Client, TestCase
 from django.urls import reverse
 

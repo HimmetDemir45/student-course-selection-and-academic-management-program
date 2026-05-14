@@ -1,3 +1,6 @@
+"""
+`enrollments` URL rotaları: ders kaydı tarama (browse), kayıtlarım, drop.
+"""
 from django.urls import path
 
 from . import views

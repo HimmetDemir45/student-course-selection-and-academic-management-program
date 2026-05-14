@@ -1,3 +1,6 @@
+"""
+Projenin kök URL routing'i — tüm app URL'lerini namespace ile dahil eder, health check ve admin route'larını tanımlar.
+"""
 from django.contrib import admin
 from django.urls import include, path
 

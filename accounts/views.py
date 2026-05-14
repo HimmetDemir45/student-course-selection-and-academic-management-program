@@ -1,3 +1,6 @@
+"""
+Giriş, kayıt, profil, şifre değişimi, admin talebi ve özel PasswordResetView (LoggingPasswordResetView).
+"""
 import logging
 
 from django.conf import settings

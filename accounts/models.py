@@ -1,3 +1,6 @@
+"""
+Özel User modeli (role: student/instructor/admin) ve admin yetkilendirme talebi (AdminRequest) modelleri.
+"""
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, UserManager as DjangoUserManager
 from django.db import models

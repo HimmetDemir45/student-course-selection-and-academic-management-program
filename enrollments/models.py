@@ -1,3 +1,6 @@
+"""
+Enrollment modeli: öğrenci-şube ilişkisi, durum (PENDING/ENROLLED/...), danışman onay alanları (instructor_approved, instructor_comment).
+"""
 from django.db import models
 from django.utils import timezone
 

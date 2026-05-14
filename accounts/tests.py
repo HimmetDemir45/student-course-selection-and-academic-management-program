@@ -1,3 +1,6 @@
+"""
+Hesap, giriş, kayıt, admin talebi akışları için unit test'ler.
+"""
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse

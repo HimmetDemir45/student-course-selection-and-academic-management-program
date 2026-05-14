@@ -1,3 +1,6 @@
+"""
+Tek bir kullanıcıyı kurucu yönetici (`is_founder_admin=True`) olarak işaretler.
+"""
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 

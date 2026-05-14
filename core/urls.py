@@ -1,3 +1,6 @@
+"""
+Core app URL rotaları: ana sayfa, sağlık uçları (/health/live/, /health/ready/).
+"""
 from django.conf import settings
 from django.urls import path
 

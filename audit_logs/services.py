@@ -1,3 +1,6 @@
+"""
+Denetim olayı yazma servisi: log_event(), log_auth_event() — view'ların kritik işlemlerde çağırdığı API.
+"""
 import logging
 
 from audit_logs.models import AuditLog

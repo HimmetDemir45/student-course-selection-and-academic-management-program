@@ -1,3 +1,6 @@
+"""
+Geliştirme ortamı ayarları (DEBUG=True, console email, SQLite/MySQL fallback).
+"""
 import sys
 
 from .base import *  # noqa: F403,F401

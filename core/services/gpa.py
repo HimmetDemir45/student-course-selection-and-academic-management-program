@@ -1,3 +1,6 @@
+"""
+GPA hesaplama servisi: harf notlarını puana çevirir, ağırlıklı ortalama hesaplar.
+"""
 from __future__ import annotations
 
 from decimal import Decimal

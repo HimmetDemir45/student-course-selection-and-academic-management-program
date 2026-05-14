@@ -1,3 +1,6 @@
+"""
+InstructorProfile modeli: employee_no, title, department, is_approved, **is_advisor** (danışman yetkisi).
+"""
 from django.db import models
 
 from core.models import TimeStampedActiveModel

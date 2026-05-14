@@ -1,3 +1,6 @@
+"""
+Eşzamanlı kayıt yarışı (race condition) testleri — select_for_update doğrulaması.
+"""
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor

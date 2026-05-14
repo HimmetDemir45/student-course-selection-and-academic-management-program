@@ -1,3 +1,6 @@
+"""
+`academic` URL rotaları: dönem, müfredat, devamsızlık, not girişi, danışman paneli, haftalık program.
+"""
 from django.urls import path
 
 from . import views

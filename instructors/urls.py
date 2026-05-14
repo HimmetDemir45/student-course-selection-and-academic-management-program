@@ -1,3 +1,6 @@
+"""
+`instructors` URL rotaları: akademisyen alanı, admin liste/düzenleme.
+"""
 from django.urls import path
 
 from . import views

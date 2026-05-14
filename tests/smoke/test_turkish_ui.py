@@ -1,3 +1,6 @@
+"""
+Türkçe UI smoke testleri — kritik sayfaların Türkçe metinleri içerdiği doğrulaması.
+"""
 import pytest
 from django.test import Client
 from django.urls import reverse

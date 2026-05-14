@@ -1,3 +1,6 @@
+"""
+`accounts` Django uygulamasının yapılandırması (AppConfig). signals modülünü ready'de yükler.
+"""
 from django.apps import AppConfig
 
 
