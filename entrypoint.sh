@@ -40,9 +40,35 @@ if [ "${SEED_STUDENTS:-0}" = "1" ]; then
     python manage.py seed_students_transcripts $EXTRA_ARGS
 fi
 
-# YZM haftalık programını seed et — SEED_YZM_WEEKLY=1 ise çalışır (idempotent).
+# Danışman yetkilerini ayarla — SEED_DANISHMAN=1 ise çalışır (idempotent).
+# Musa Arslan oluşturur, İbrahim Uğur Yılmaz + Musa Arslan is_advisor=True yapar.
+if [ "${SEED_DANISHMAN:-0}" = "1" ]; then
+    python manage.py seed_danishman
+fi
+
+# YZM GÜZ haftalık programını seed et — SEED_YZM_WEEKLY=1 ise çalışır (idempotent).
 if [ "${SEED_YZM_WEEKLY:-0}" = "1" ]; then
     python manage.py seed_yzm_weekly
+fi
+
+# YZM BAHAR haftalık programını seed et — SEED_YZM_BAHAR=1 ise çalışır (idempotent).
+if [ "${SEED_YZM_BAHAR:-0}" = "1" ]; then
+    python manage.py seed_yzm_bahar
+fi
+
+# İnşaat GÜZ haftalık programını seed et — SEED_INS_GUZ=1 ise çalışır (idempotent).
+if [ "${SEED_INS_GUZ:-0}" = "1" ]; then
+    python manage.py seed_ins_guz
+fi
+
+# İnşaat BAHAR haftalık programını seed et — SEED_INS_BAHAR=1 ise çalışır (idempotent).
+if [ "${SEED_INS_BAHAR:-0}" = "1" ]; then
+    python manage.py seed_ins_bahar
+fi
+
+# Enerji Sistemleri BAHAR haftalık programını seed et — SEED_ESM_BAHAR=1 ise çalışır (idempotent).
+if [ "${SEED_ESM_BAHAR:-0}" = "1" ]; then
+    python manage.py seed_esm_bahar
 fi
 
 # Aktif dönemi otomatik ayarla — SET_ACTIVE_SEMESTER=1 ise çalışır.
