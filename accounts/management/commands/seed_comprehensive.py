@@ -50,8 +50,8 @@ INSTRUCTORS = [
     {"username": "dr_omur_akyazi", "first": "Dr. Öğr. Üyesi Ömür", "last": "AKYAZI", "title": "Yardımcı Doçent", "dept": "ESM"},
     {"username": "dr_erhan_sesli", "first": "Dr. Öğr. Üyesi Erhan", "last": "SESLİ", "title": "Yardımcı Doçent", "dept": "ESM"},
     {"username": "ogr_gor_senol_demir", "first": "Öğr. Gör. Dr. Şenol", "last": "DEMİR", "title": "Öğretim Görevlisi", "dept": "ESM"},
-    # YZM
-    {"username": "dr_hamed_shamsi", "first": "Dr. Öğr. Üyesi Hamed", "last": "SHAMSİ", "title": "Yardımcı Doçent", "dept": "YZM"},
+    # YZM+ESM (ESM derslerini de öğrettiği için multi-dept)
+    {"username": "dr_hamed_shamsi", "first": "Dr. Öğr. Üyesi Hamed", "last": "SHAMSİ", "title": "Yardımcı Doçent", "dept": "ESM"},
     {"username": "dr_coskun_bayram", "first": "Dr. Öğr. Üyesi Coşkun", "last": "BAYRAM", "title": "Yardımcı Doçent", "dept": "YZM"},
     {"username": "ogr_gor_bekir_sitki", "first": "Öğr. Gör. Bekir Sıtkı", "last": "ÖZGEN", "title": "Öğretim Görevlisi", "dept": "YZM"},
     # OINS
