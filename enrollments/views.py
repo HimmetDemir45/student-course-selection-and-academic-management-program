@@ -84,17 +84,9 @@ class SectionBrowseView(LoginRequiredMixin, ListView):
                 Q(offering__course__code__icontains=q)
                 | Q(offering__course__name__icontains=q)
             )
-        # Semester filtresi: URL'de seçili semester varsa onu kullan, yoksa aktif dönem(ler)
         sem = rq.get("semester")
         if sem and str(sem).isdigit():
             qs = qs.filter(offering__semester_id=int(sem))
-        else:
-            # Varsayılan: aktif dönemleri göster
-            active_sem_ids = list(
-                Semester.objects.filter(is_active=True).values_list("pk", flat=True)
-            )
-            if active_sem_ids:
-                qs = qs.filter(offering__semester_id__in=active_sem_ids)
 
         # Bölüm/program filtresi: açıkça seçilmişse onu kullan;
         # öğrenci rolüyse ve filtre yok → programın müfredat derslerini göster.
