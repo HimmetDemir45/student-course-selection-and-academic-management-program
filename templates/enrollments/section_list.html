@@ -117,9 +117,8 @@
                 <th scope="col" style="width:14rem;">{% trans "Kontenjan" %}</th>
                 <th scope="col" style="width:13rem;">{% trans "Öğretim elemanı" %}</th>
                 {% if user.is_authenticated and user.role == "student" %}
-                <th scope="col" style="width:18rem;">{% trans "Durum / engel" %}</th>
+                <th scope="col" style="width:20rem;" class="text-end">{% trans "Durum / işlem" %}</th>
                 {% endif %}
-                <th scope="col" style="width:10rem;" class="text-end"></th>
             </tr>
         </thead>
         <tbody>
@@ -171,97 +170,72 @@
                 </td>
 
                 {% if user.is_authenticated and user.role == "student" %}
-                <td>
+                <td class="text-end">
                     {% if s.is_enrolled %}
                         <span class="akd-badge akd-badge--success">
                             <i data-lucide="check-circle-2" class="h-3 w-3"></i>
                             {% trans "Kayıtlısın" %}
                         </span>
-                    {% elif s.enrollment_preview %}
-                        {% if s.enrollment_preview.eligible %}
-                            <span class="akd-badge akd-badge--neutral">
-                                <i data-lucide="circle" class="h-3 w-3"></i>
-                                {% trans "Kayıt yapılabilir" %}
-                            </span>
-                        {% else %}
-                            <div class="flex flex-col gap-1">
-                                {% for b in s.enrollment_preview.blockers_display %}
-                                    <span class="akd-badge
-                                        {% if b.kind == 'prerequisite' %}akd-badge--neutral
-                                        {% elif b.kind == 'conflict' %}akd-badge--danger
-                                        {% elif b.kind == 'capacity' %}akd-badge--warning
-                                        {% elif b.kind == 'window' %}akd-badge--info
-                                        {% else %}akd-badge--neutral{% endif %}"
-                                        style="white-space:normal;text-align:left;">
-                                        <strong>{{ b.title }}:</strong> {{ b.detail }}
-                                    </span>
-                                {% empty %}
-                                    {% for msg in s.enrollment_preview.blockers %}
-                                    <span class="akd-badge akd-badge--danger" style="white-space:normal;text-align:left;">{{ msg }}</span>
-                                    {% endfor %}
+                    {% elif s.is_waitlisted %}
+                        <span class="akd-badge akd-badge--warning">
+                            <i data-lucide="clock" class="h-3 w-3"></i>
+                            {% trans "Bekleme listesi" %}
+                        </span>
+                    {% elif s.enrollment_preview and not s.enrollment_preview.eligible %}
+                        <div class="flex flex-col items-end gap-1.5">
+                            {% for b in s.enrollment_preview.blockers_display %}
+                                <span class="akd-badge
+                                    {% if b.kind == 'prerequisite' %}akd-badge--neutral
+                                    {% elif b.kind == 'conflict' %}akd-badge--danger
+                                    {% elif b.kind == 'capacity' %}akd-badge--warning
+                                    {% elif b.kind == 'window' %}akd-badge--info
+                                    {% else %}akd-badge--neutral{% endif %}"
+                                    style="white-space:normal;text-align:left;">
+                                    <strong>{{ b.title }}:</strong> {{ b.detail }}
+                                </span>
+                            {% empty %}
+                                {% for msg in s.enrollment_preview.blockers %}
+                                <span class="akd-badge akd-badge--danger" style="white-space:normal;text-align:left;">{{ msg }}</span>
                                 {% endfor %}
-                            </div>
-                        {% endif %}
-                    {% else %}
-                        <span class="text-white/40">—</span>
-                    {% endif %}
-                </td>
-                {% endif %}
-
-                <td class="text-end">
-                    {% if user.is_authenticated and user.role == "student" %}
-                        {% if s.is_enrolled %}
-                            {# Zaten kayıtlı — drop butonu özet panelde, burada bilgilendirme #}
-                            <span class="text-xs text-emerald-400 font-medium">
-                                <i data-lucide="check" class="inline h-3 w-3"></i>
-                                {% trans "Kayıtlı" %}
-                            </span>
-                        {% elif s.is_waitlisted %}
-                            <span class="text-xs text-amber-300 font-medium">
-                                <i data-lucide="clock" class="inline h-3 w-3"></i>
-                                {% trans "Bekleme listesi" %}
-                            </span>
-                        {% else %}
-                            {% if s.enrollment_preview and not s.enrollment_preview.eligible %}
-                                {% with blocker_kinds=s.enrollment_preview.blockers_display|dictsort:"kind" %}
-                                {% if s.open_seats is not None and s.open_seats <= 0 %}
-                                    {# Kapasite dolu — bekleme listesi sun #}
-                                    <form method="post" action="{% url 'enrollments:waitlist' %}">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="section_id" value="{{ s.pk }}">
-                                        <button type="submit"
-                                                class="akd-btn akd-btn--sm"
-                                                style="background:rgba(245,158,11,0.15);color:#fcd34d;border-color:rgba(245,158,11,0.3);"
-                                                aria-label="{% trans 'Bekleme listesine eklen' %} {{ s.offering.course.code }}">
-                                            <i data-lucide="clock" class="h-3.5 w-3.5"></i>
-                                            <span>{% trans "Bekle" %}</span>
-                                        </button>
-                                    </form>
-                                {% else %}
-                                    <button type="button"
-                                            class="akd-btn akd-btn--primary akd-btn--sm"
-                                            disabled aria-disabled="true"
-                                            title="{% trans 'Önkoşul veya çakışma nedeniyle kayıt mümkün değil' %}">
-                                        <i data-lucide="ban" class="h-3.5 w-3.5"></i>
-                                        <span>{% trans "Kayıt yapılamaz" %}</span>
+                            {% endfor %}
+                            {% if s.open_seats is not None and s.open_seats <= 0 %}
+                                <form method="post" action="{% url 'enrollments:waitlist' %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="section_id" value="{{ s.pk }}">
+                                    <button type="submit"
+                                            class="akd-btn akd-btn--sm"
+                                            style="background:rgba(245,158,11,0.15);color:#fcd34d;border-color:rgba(245,158,11,0.3);"
+                                            aria-label="{% trans 'Bekleme listesine eklen' %} {{ s.offering.course.code }}">
+                                        <i data-lucide="clock" class="h-3.5 w-3.5"></i>
+                                        <span>{% trans "Bekle" %}</span>
                                     </button>
-                                {% endif %}
-                                {% endwith %}
+                                </form>
                             {% else %}
-                            <form method="post" action="{% url 'enrollments:enroll' %}">
-                                {% csrf_token %}
-                                <input type="hidden" name="section_id" value="{{ s.pk }}">
-                                <button type="submit"
+                                <button type="button"
                                         class="akd-btn akd-btn--primary akd-btn--sm"
-                                        aria-label="{% trans 'Bu şubeye ders kaydı yap' %} {{ s.offering.course.code }}">
-                                    <i data-lucide="plus" class="h-3.5 w-3.5"></i>
-                                    <span>{% trans "Kayıt ol" %}</span>
+                                        disabled aria-disabled="true"
+                                        title="{% trans 'Önkoşul veya çakışma nedeniyle kayıt mümkün değil' %}">
+                                    <i data-lucide="ban" class="h-3.5 w-3.5"></i>
+                                    <span>{% trans "Kayıt yapılamaz" %}</span>
                                 </button>
-                            </form>
                             {% endif %}
-                        {% endif %}
+                        </div>
+                    {% else %}
+                        <form method="post" action="{% url 'enrollments:enroll' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="section_id" value="{{ s.pk }}">
+                            <button type="submit"
+                                    class="akd-btn akd-btn--primary akd-btn--sm"
+                                    aria-label="{% trans 'Bu şubeye ders kaydı yap' %} {{ s.offering.course.code }}">
+                                <i data-lucide="plus" class="h-3.5 w-3.5"></i>
+                                <span>{% trans "Kayıt ol" %}</span>
+                            </button>
+                        </form>
                     {% endif %}
                 </td>
+                {% else %}
+                <td></td>
+                {% endif %}
             </tr>
             {% endfor %}
         </tbody>
