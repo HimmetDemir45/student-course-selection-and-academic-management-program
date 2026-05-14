@@ -49,12 +49,14 @@ def calculate_graduation_progress(student: "StudentProfile") -> GraduationProgre
     if program is None:
         return None
 
-    # Tamamlanan ders kodları seti
+    # "Tamamlanan" = COMPLETED durumunda VE F dışı (geçer) not almış.
     completed_qs = (
         Enrollment.objects.filter(
             student=student,
             status=Enrollment.Status.COMPLETED,
         )
+        .exclude(academic_grade__letter_grade="")
+        .exclude(academic_grade__letter_grade__istartswith="F")
         .select_related("section__offering__course")
         .values_list("section__offering__course__code", flat=True)
     )

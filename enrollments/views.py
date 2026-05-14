@@ -88,6 +88,25 @@ class SectionBrowseView(LoginRequiredMixin, ListView):
         if sem and str(sem).isdigit():
             qs = qs.filter(offering__semester_id=int(sem))
 
+        # Daha önce F dışı notla geçilen dersleri listeden çıkar.
+        user = self.request.user
+        if user.is_authenticated and getattr(user, "role", None) == "student":
+            try:
+                profile = user.student_profile
+                passed_course_ids = (
+                    Enrollment.objects.filter(
+                        student=profile,
+                        status=Enrollment.Status.COMPLETED,
+                    )
+                    .exclude(academic_grade__letter_grade="")
+                    .exclude(academic_grade__letter_grade__istartswith="F")
+                    .values_list("section__offering__course_id", flat=True)
+                )
+                if passed_course_ids:
+                    qs = qs.exclude(offering__course_id__in=list(passed_course_ids))
+            except ObjectDoesNotExist:
+                pass
+
         # Bölüm/program filtresi: açıkça seçilmişse onu kullan;
         # öğrenci rolüyse ve filtre yok → programın müfredat derslerini göster.
         dep_param = rq.get("department", "").strip()

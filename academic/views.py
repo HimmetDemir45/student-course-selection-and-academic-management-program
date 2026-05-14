@@ -341,13 +341,19 @@ class GradeEntryView(InstructorRequiredMixin, View):
             pk=enrollment_id,
         )
         _assert_can_grade(request.user, enrollment)
+        # PENDING kayda not girilemez: önce onaylanmalı.
         allowed_statuses = (
             Enrollment.Status.ENROLLED,
-            Enrollment.Status.PENDING,
             Enrollment.Status.COMPLETED,
         )
         if enrollment.status not in allowed_statuses:
-            messages.error(request, _("Bu kayıt için not girilemez (öğrenci dersi bırakmış veya beklemede)."))
+            if enrollment.status == Enrollment.Status.PENDING:
+                messages.error(
+                    request,
+                    _("Bu kayıt onay bekliyor. Önce 'Onayla' butonu ile kaydı aktifleştir, sonra not gir."),
+                )
+            else:
+                messages.error(request, _("Bu kayıt için not girilemez (öğrenci dersi bırakmış)."))
             return redirect("academic:instructor_enrollments")
         grade, _created = Grade.objects.get_or_create(enrollment=enrollment)
         form = GradeForm(instance=grade)
@@ -376,24 +382,18 @@ class GradeEntryView(InstructorRequiredMixin, View):
             pk=enrollment_id,
         )
         _assert_can_grade(request.user, enrollment)
+        # POST'ta da PENDING/DROPPED'a not girilemez (GET'le aynı kural).
+        if enrollment.status not in (
+            Enrollment.Status.ENROLLED,
+            Enrollment.Status.COMPLETED,
+        ):
+            messages.error(request, _("Bu kayda not girilemez."))
+            return redirect("academic:instructor_enrollments")
         grade, _created = Grade.objects.get_or_create(enrollment=enrollment)
         form = GradeForm(request.POST, instance=grade)
         inline_quick = bool(request.POST.get("inline_quick"))
         if form.is_valid():
             form.save()
-            # Not girişi = öğretmen öğrenciyi kabul etmiş; instructor_approved'ı doldur
-            if not enrollment.instructor_approved:
-                from django.utils import timezone as _tz
-                try:
-                    inst_profile = request.user.instructor_profile
-                except ObjectDoesNotExist:
-                    inst_profile = None
-                Enrollment.objects.filter(pk=enrollment.pk).update(
-                    instructor_approved=True,
-                    instructor_approved_by=inst_profile,
-                    instructor_approved_at=_tz.now(),
-                )
-                enrollment.instructor_approved = True
             snapshot = {
                 "letter_grade": grade.letter_grade,
                 "numeric_grade": str(grade.numeric_grade)
@@ -969,6 +969,29 @@ class AttendanceTakeView(InstructorRequiredMixin, View):
         except ValueError:
             sel_date = tz.localdate()
 
+        # Tarih dönem aralığında mı?
+        sem = section.offering.semester
+        if not (sem.start_date <= sel_date <= sem.end_date):
+            messages.error(request, _("Seçilen tarih dönem aralığı dışında."))
+            return redirect(
+                reverse("academic:attendance_take", kwargs={"section_pk": section_pk})
+            )
+
+        # Ders bu haftagününde mi?
+        slot_weekdays = set(
+            SectionTimeSlot.objects.filter(section=section).values_list("weekday", flat=True)
+        )
+        if slot_weekdays and sel_date.weekday() not in slot_weekdays:
+            messages.error(
+                request,
+                _("Bu ders %(day)s günü yapılmıyor; yoklama alınamaz.") % {
+                    "day": _WEEKDAY_NAMES.get(sel_date.weekday(), str(sel_date.weekday())),
+                },
+            )
+            return redirect(
+                reverse("academic:attendance_take", kwargs={"section_pk": section_pk})
+            )
+
         inst = _get_instructor_or_403(request.user)
         record, _ = AttendanceRecord.objects.get_or_create(
             section=section,
@@ -1322,53 +1345,61 @@ class InstructorEnrollmentDecisionView(InstructorRequiredMixin, View):
     """
 
     def post(self, request, enrollment_id):
+        from django.db import transaction
         from django.utils import timezone as _tz
-
-        enrollment = get_object_or_404(
-            Enrollment.objects.select_related("section__offering", "student__user"),
-            pk=enrollment_id,
-        )
-
-        # Yetki: ilgili dersin eğitim görevlisi veya admin
-        if request.user.role != "admin":
-            try:
-                inst = request.user.instructor_profile
-            except ObjectDoesNotExist:
-                raise PermissionDenied
-            if enrollment.section.offering.instructor_id != inst.pk:
-                raise PermissionDenied
-        else:
-            inst = None
 
         action = request.POST.get("action", "").strip().lower()
         if action not in ("approve", "reject"):
             messages.error(request, _("Geçersiz işlem."))
             return redirect("academic:instructor_enrollments")
 
-        if enrollment.status != Enrollment.Status.PENDING:
-            messages.info(request, _("Bu kayıt zaten onaylanmış veya işlem yapılamıyor."))
-            return redirect("academic:instructor_enrollments")
+        # Yetki ön kontrol (DB lock'a girmeden önce)
+        if request.user.role != "admin":
+            try:
+                inst = request.user.instructor_profile
+            except ObjectDoesNotExist:
+                raise PermissionDenied
+        else:
+            inst = None
 
-        target = (
-            Enrollment.Status.ENROLLED if action == "approve" else Enrollment.Status.DROPPED
-        )
-        try:
-            transition_enrollment_status(
-                enrollment,
-                target,
-                actor=request.user,
-                request=request,
+        # Kapasite yarışını engellemek için ilgili section row'una select_for_update.
+        with transaction.atomic():
+            enrollment = get_object_or_404(
+                Enrollment.objects.select_for_update(of=("self",))
+                .select_related("section__offering__course", "student__user"),
+                pk=enrollment_id,
             )
-        except ValidationError as exc:
-            messages.error(request, "; ".join(getattr(exc, "messages", [str(exc)])))
-            return redirect("academic:instructor_enrollments")
+
+            if request.user.role != "admin":
+                if enrollment.section.offering.instructor_id != inst.pk:
+                    raise PermissionDenied
+
+            if enrollment.status != Enrollment.Status.PENDING:
+                messages.info(request, _("Bu kayıt zaten işlem görmüş."))
+                return redirect("academic:instructor_enrollments")
+
+            target = (
+                Enrollment.Status.ENROLLED if action == "approve" else Enrollment.Status.DROPPED
+            )
+            try:
+                transition_enrollment_status(
+                    enrollment,
+                    target,
+                    actor=request.user,
+                    request=request,
+                )
+            except ValidationError as exc:
+                messages.error(request, "; ".join(getattr(exc, "messages", [str(exc)])))
+                return redirect("academic:instructor_enrollments")
+
+            if action == "approve":
+                Enrollment.objects.filter(pk=enrollment.pk).update(
+                    instructor_approved=True,
+                    instructor_approved_by=inst,
+                    instructor_approved_at=_tz.now(),
+                )
 
         if action == "approve":
-            Enrollment.objects.filter(pk=enrollment.pk).update(
-                instructor_approved=True,
-                instructor_approved_by=inst,
-                instructor_approved_at=_tz.now(),
-            )
             messages.success(
                 request,
                 _("%(student)s için %(course)s kaydı onaylandı.") % {

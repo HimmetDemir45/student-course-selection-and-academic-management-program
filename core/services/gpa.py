@@ -47,11 +47,22 @@ def gpa_from_completed_enrollments(qs: QuerySet) -> tuple[Decimal, int]:
     """
     qs: Enrollment queryset with select_related('section__offering__course', 'academic_grade').
     Only COMPLETED with a resolvable letter grade count toward GPA.
+
+    Tekrar alınan derslerde (örn. F → tekrar alıp B) yalnızca son alınan not
+    GPA'ya yansır. Her course_id için en son created_at'lı kayıt seçilir.
     """
-    rows: list[tuple[Decimal, int]] = []
+    # course_id → (created_at, enrollment)
+    latest_per_course: dict[int, tuple] = {}
     for enr in qs:
         if enr.status != Enrollment.Status.COMPLETED:
             continue
+        course_id = enr.section.offering.course_id
+        prev = latest_per_course.get(course_id)
+        if prev is None or enr.created_at > prev[0]:
+            latest_per_course[course_id] = (enr.created_at, enr)
+
+    rows: list[tuple[Decimal, int]] = []
+    for _ts, enr in latest_per_course.values():
         grade = getattr(enr, "academic_grade", None)
         if grade is None:
             continue

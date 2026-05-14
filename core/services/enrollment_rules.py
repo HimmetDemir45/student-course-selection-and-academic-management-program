@@ -23,8 +23,9 @@ def _effective_capacity(section) -> int:
 
 def is_within_add_drop(semester, at: date | None = None) -> bool:
     at = at or timezone.localdate()
+    # Pencere tanımlı değilse kapalı say (güvenli varsayılan).
     if semester.add_drop_start is None or semester.add_drop_end is None:
-        return True
+        return False
     return semester.add_drop_start <= at <= semester.add_drop_end
 
 
@@ -65,6 +66,40 @@ def student_has_completed_course(student_id: int, course_id: int) -> bool:
         section__offering__course_id=course_id,
         status=Enrollment.Status.COMPLETED,
     ).exists()
+
+
+def student_has_passed_course(student_id: int, course_id: int) -> bool:
+    """
+    Öğrenci dersi geçerli bir notla (F dışı) tamamlamış mı?
+    F (fail) ile tamamlanan ders tekrar alınabilir; CC/DD/DC/D/C/B/A ile geçilen
+    dersler tekrar alınamaz.
+    """
+    from enrollments.models import Enrollment
+
+    return (
+        Enrollment.objects.filter(
+            student_id=student_id,
+            section__offering__course_id=course_id,
+            status=Enrollment.Status.COMPLETED,
+        )
+        .exclude(academic_grade__letter_grade="")
+        .exclude(academic_grade__letter_grade__istartswith="F")
+        .exists()
+    )
+
+
+def validate_not_already_passed(enrollment) -> None:
+    """Geçilmiş dersi tekrar almayı engelle (yalnızca F notu tekrar alınabilir)."""
+    if enrollment.status not in (
+        enrollment.Status.ENROLLED,
+        enrollment.Status.PENDING,
+    ):
+        return
+    course_id = enrollment.section.offering.course_id
+    if student_has_passed_course(enrollment.student_id, course_id):
+        raise ValidationError(
+            "Bu dersi daha önce geçerli bir notla tamamladınız; tekrar alamazsınız."
+        )
 
 
 def validate_prerequisites(enrollment: Enrollment) -> None:
@@ -172,6 +207,7 @@ def validate_enrollment_save(enrollment: Enrollment) -> None:
     validate_capacity(enrollment)
     validate_prerequisites(enrollment)
     validate_schedule_conflict(enrollment)
+    validate_not_already_passed(enrollment)
 
     if enrollment.pk is None:
         validate_add_drop_for_new_enrollment(enrollment)
@@ -204,6 +240,7 @@ def collect_enrollment_preview_messages(student_profile, section) -> dict:
         validate_prerequisites,
         validate_schedule_conflict,
         validate_add_drop_for_new_enrollment,
+        validate_not_already_passed,
     ):
         try:
             fn(enr)

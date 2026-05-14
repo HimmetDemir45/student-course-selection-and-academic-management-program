@@ -75,11 +75,20 @@ class Semester(TimeStampedActiveModel):
             models.UniqueConstraint(
                 fields=("academic_year", "term"),
                 name="uniq_semester_year_term",
-            )
+            ),
         ]
 
     def __str__(self):
         return f"{self.academic_year} {self.term}"
+
+    def save(self, *args, **kwargs):
+        # En fazla bir tane aktif dönem olabilir — bu kaydı aktifleştiriyorsak
+        # diğer aktifleri otomatik olarak pasifleştir.
+        if self.is_active:
+            type(self).objects.filter(is_active=True).exclude(pk=self.pk).update(
+                is_active=False
+            )
+        super().save(*args, **kwargs)
 
 
 class CurriculumItem(TimeStampedModel):
