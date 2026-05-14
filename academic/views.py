@@ -977,7 +977,11 @@ class AttendanceTakeView(InstructorRequiredMixin, View):
         enrolled = list(
             Enrollment.objects.filter(
                 section=section,
-                status__in=(Enrollment.Status.ENROLLED, Enrollment.Status.COMPLETED),
+                status__in=(
+                    Enrollment.Status.ENROLLED,
+                    Enrollment.Status.PENDING,
+                    Enrollment.Status.COMPLETED,
+                ),
             ).select_related("student")
         )
         valid_statuses = {s for s, _ in AttendanceEntry.Status.choices}

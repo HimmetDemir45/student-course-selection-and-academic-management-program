@@ -52,7 +52,7 @@ def _home_extra_context(request):
                 .count()
             )
             ctx["home_instructor_offerings"] = CourseOffering.objects.filter(
-                instructor=inst, is_active=True
+                instructor=inst, is_active=True, semester__is_active=True
             ).count()
         except ObjectDoesNotExist:
             ctx["home_instructor_pending_grades"] = None

@@ -68,7 +68,7 @@
         <p class="akd-stat__label">{% trans "Bekleyen kayıtlar" %}</p>
         <p class="text-sm text-white/60 mt-1">{% trans "Onay bekleyen öğrenci ders kayıtları." %}</p>
         <div class="mt-4">
-            <a class="akd-btn akd-btn--primary akd-btn--sm" href="{% url 'academic:instructor_pending' %}">
+            <a class="akd-btn akd-btn--primary akd-btn--sm" href="{% url 'academic:instructor_enrollments' %}?status=pending">
                 <i data-lucide="arrow-right" class="h-4 w-4"></i>
                 <span>{% trans "Görüntüle" %}</span>
             </a>

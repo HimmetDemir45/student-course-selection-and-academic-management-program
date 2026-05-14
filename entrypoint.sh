@@ -40,6 +40,20 @@ if [ "${SEED_STUDENTS:-0}" = "1" ]; then
     python manage.py seed_students_transcripts $EXTRA_ARGS
 fi
 
+# Aktif dönemi otomatik ayarla — SET_ACTIVE_SEMESTER=1 ise çalışır.
+# Açıkça belirlemek için ACTIVE_SEMESTER_YEAR (ör. 2025-2026) ve
+# ACTIVE_SEMESTER_TERM (fall|spring|summer) env var'larını da kullanabilirsiniz.
+if [ "${SET_ACTIVE_SEMESTER:-0}" = "1" ]; then
+    EXTRA_ARGS=""
+    if [ -n "$ACTIVE_SEMESTER_YEAR" ]; then
+        EXTRA_ARGS="$EXTRA_ARGS --year=$ACTIVE_SEMESTER_YEAR"
+    fi
+    if [ -n "$ACTIVE_SEMESTER_TERM" ]; then
+        EXTRA_ARGS="$EXTRA_ARGS --term=$ACTIVE_SEMESTER_TERM"
+    fi
+    python manage.py set_active_semester $EXTRA_ARGS
+fi
+
 exec gunicorn config.wsgi:application \
   --bind 0.0.0.0:8000 \
   --workers "${GUNICORN_WORKERS:-3}" \
