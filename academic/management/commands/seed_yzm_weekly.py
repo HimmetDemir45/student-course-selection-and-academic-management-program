@@ -117,10 +117,8 @@ def _normalize_ascii(s: str) -> str:
 def _parse_instructor(full: str) -> tuple[str, str, str]:
     """Returns (title, first_name, last_name)."""
     parts = full.strip().split()
-    # Surname = first all-caps token from the end (Turkish caps handled)
     last_idx = len(parts) - 1
     surname = parts[last_idx]
-    # Title = leading dotted token(s)
     title_parts = []
     i = 0
     while i < last_idx and "." in parts[i]:
@@ -245,10 +243,19 @@ class Command(BaseCommand):
             if course_name in course_map:
                 course = course_map[course_name]
             else:
-                # Önce isimle ara
-                course = Course.objects.filter(name=display_name).first()
-                if not course:
+                # "USEC0005-Genel Sosyoloji" gibi prefixli isim varsa önce kodla ara
+                head = display_name.split("-", 1)[0].strip()
+                course = None
+                if any(head.startswith(p) for p in SHARED_PREFIXES) and head[-1].isdigit():
+                    course = Course.objects.filter(code=head).first()
+                # Yoksa tam isimle ara
+                if course is None:
+                    course = Course.objects.filter(name=display_name).first()
+                # Hâlâ yoksa oluştur — kod çakışmasına karşı son güvenlik
+                if course is None:
                     code = _course_code(display_name, dept.code, code_counter)
+                    while Course.objects.filter(code=code).exists():
+                        code = _course_code(display_name, dept.code, code_counter)
                     course = Course.objects.create(
                         department=dept,
                         program=None if shared else program,
