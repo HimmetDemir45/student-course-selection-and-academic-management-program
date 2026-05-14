@@ -40,6 +40,11 @@ if [ "${SEED_STUDENTS:-0}" = "1" ]; then
     python manage.py seed_students_transcripts $EXTRA_ARGS
 fi
 
+# YZM haftalık programını seed et — SEED_YZM_WEEKLY=1 ise çalışır (idempotent).
+if [ "${SEED_YZM_WEEKLY:-0}" = "1" ]; then
+    python manage.py seed_yzm_weekly
+fi
+
 # Aktif dönemi otomatik ayarla — SET_ACTIVE_SEMESTER=1 ise çalışır.
 # Açıkça belirlemek için ACTIVE_SEMESTER_YEAR (ör. 2025-2026) ve
 # ACTIVE_SEMESTER_TERM (fall|spring|summer) env var'larını da kullanabilirsiniz.
