@@ -104,24 +104,13 @@
                         {% else %}—{% endif %}
                     </td>
                     <td class="text-end">
-                        <div class="inline-flex gap-1.5">
-                            <form method="post" action="{% url 'academic:enrollment_approve' enrollment_id=enr.pk %}">
-                                {% csrf_token %}
-                                <button type="submit" class="akd-btn akd-btn--primary akd-btn--sm"
-                                        aria-label="{% trans 'Onayla' %}">
-                                    <i data-lucide="check" class="h-3.5 w-3.5"></i>
-                                    <span>{% trans "Onayla" %}</span>
-                                </button>
-                            </form>
-                            <form method="post" action="{% url 'academic:enrollment_reject' enrollment_id=enr.pk %}">
-                                {% csrf_token %}
-                                <button type="submit" class="akd-btn akd-btn--danger akd-btn--sm"
-                                        aria-label="{% trans 'Reddet' %}">
-                                    <i data-lucide="x" class="h-3.5 w-3.5"></i>
-                                    <span>{% trans "Reddet" %}</span>
-                                </button>
-                            </form>
-                        </div>
+                        <button type="button"
+                                class="akd-btn akd-btn--danger akd-btn--sm"
+                                onclick="openRejectModal({{ enr.pk }}, '{{ enr.section.offering.course.code|escapejs }}')"
+                                aria-label="{% trans 'Reddet' %}">
+                            <i data-lucide="x" class="h-3.5 w-3.5"></i>
+                            <span>{% trans "Reddet" %}</span>
+                        </button>
                     </td>
                 </tr>
             {% endfor %}
@@ -175,5 +164,61 @@
     </div>
 </div>
 {% endif %}
+
+{# ─── Reddetme Modalı ─── #}
+<div id="reject-modal"
+     class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm hidden"
+     role="dialog" aria-modal="true" aria-labelledby="reject-modal-title">
+    <div class="akd-card max-w-md w-full mx-4">
+        <header class="akd-card__header">
+            <h2 class="akd-card__title" id="reject-modal-title">
+                <i data-lucide="x-circle" class="h-4 w-4 mr-2 inline-block text-red-400"></i>
+                {% trans "Kaydı Reddet" %}
+            </h2>
+            <button type="button" onclick="closeRejectModal()" class="akd-btn akd-btn--ghost akd-btn--sm ml-auto">
+                <i data-lucide="x" class="h-4 w-4"></i>
+            </button>
+        </header>
+        <form id="reject-form" method="post" action="" class="akd-form p-4">
+            {% csrf_token %}
+            <p class="text-sm text-white/70 mb-4">
+                <span id="reject-course-code" class="font-mono text-red-300 font-semibold"></span>
+                {% trans "dersinin kaydı reddedilecek." %}
+            </p>
+            <div class="akd-form-group">
+                <label class="akd-label" for="reject-comment">
+                    {% trans "Red gerekçesi" %}
+                    <span class="text-white/40 font-normal ml-1">({% trans "isteğe bağlı" %})</span>
+                </label>
+                <textarea id="reject-comment" name="instructor_comment" class="akd-input" rows="3"
+                          placeholder="{% trans 'Öğrenciye iletilecek açıklama...' %}"></textarea>
+            </div>
+            <div class="flex gap-2 mt-4">
+                <button type="submit" class="akd-btn akd-btn--danger akd-btn--sm">
+                    <i data-lucide="x" class="h-3.5 w-3.5"></i>
+                    <span>{% trans "Reddet" %}</span>
+                </button>
+                <button type="button" onclick="closeRejectModal()" class="akd-btn akd-btn--secondary akd-btn--sm">
+                    {% trans "İptal" %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openRejectModal(enrollmentId, courseCode) {
+    document.getElementById('reject-course-code').textContent = courseCode;
+    document.getElementById('reject-comment').value = '';
+    document.getElementById('reject-form').action = '/academic/enrollment/' + enrollmentId + '/reject/';
+    document.getElementById('reject-modal').classList.remove('hidden');
+}
+function closeRejectModal() {
+    document.getElementById('reject-modal').classList.add('hidden');
+}
+document.getElementById('reject-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeRejectModal();
+});
+</script>
 
 {% endblock %}
