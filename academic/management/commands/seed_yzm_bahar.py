@@ -178,7 +178,11 @@ def _get_or_create_department(code: str, name: str) -> Department:
 
 
 def _get_or_create_program(code: str, name: str, department: Department) -> Program:
+    """Program: code unique, (department, name) da unique. Üçlü arama."""
     prog = Program.objects.filter(code=code).first()
+    if prog:
+        return prog
+    prog = Program.objects.filter(department=department, name=name).first()
     if prog:
         return prog
     return Program.objects.create(code=code, name=name, department=department)
