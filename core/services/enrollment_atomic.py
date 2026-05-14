@@ -47,7 +47,12 @@ def enroll_student_in_section_atomic(student_profile: StudentProfile, section_id
                 "offering__semester",
                 "offering__instructor",
             )
-            .get(pk=pk, is_active=True, offering__is_active=True)
+            .get(
+                pk=pk,
+                is_active=True,
+                offering__is_active=True,
+                offering__semester__is_active=True,
+            )
         )
         # Daha önce bu şubeden bırakmış öğrenci tekrar kayıt olabilmeli:
         # DROPPED kaydı varsa güncelle, yoksa yeni oluştur.

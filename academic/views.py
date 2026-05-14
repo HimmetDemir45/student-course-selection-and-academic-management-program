@@ -626,7 +626,10 @@ class DanismanAdviseeListView(InstructorRequiredMixin, ListView):
             .annotate(
                 pending_count=Count(
                     "enrollments",
-                    filter=Q(enrollments__status=Enrollment.Status.PENDING),
+                    filter=Q(
+                        enrollments__status=Enrollment.Status.PENDING,
+                        enrollments__section__offering__semester__is_active=True,
+                    ),
                 )
             )
             .order_by("student_no")
@@ -672,7 +675,11 @@ class DanismanAdviseeDetailView(InstructorRequiredMixin, View):
         _assert_is_advisor(request.user, student)
 
         pending = (
-            Enrollment.objects.filter(student=student, status=Enrollment.Status.PENDING)
+            Enrollment.objects.filter(
+                student=student,
+                status=Enrollment.Status.PENDING,
+                section__offering__semester__is_active=True,
+            )
             .select_related(
                 "section__offering__course",
                 "section__offering__semester",
@@ -682,7 +689,11 @@ class DanismanAdviseeDetailView(InstructorRequiredMixin, View):
             .order_by("section__offering__course__code")
         )
         enrolled = (
-            Enrollment.objects.filter(student=student, status=Enrollment.Status.ENROLLED)
+            Enrollment.objects.filter(
+                student=student,
+                status=Enrollment.Status.ENROLLED,
+                section__offering__semester__is_active=True,
+            )
             .select_related(
                 "section__offering__course",
                 "section__offering__semester",
@@ -1302,6 +1313,79 @@ class WeeklyScheduleView(LoginRequiredMixin, View):
             "nav_url_name": "weekly_schedule",
         }
         return render(request, self.template_name, ctx)
+
+
+class InstructorEnrollmentDecisionView(InstructorRequiredMixin, View):
+    """
+    Eğitim görevlisi kendi dersindeki bir PENDING kaydı onaylar veya reddeder.
+    POST: action = "approve" | "reject"
+    """
+
+    def post(self, request, enrollment_id):
+        from django.utils import timezone as _tz
+
+        enrollment = get_object_or_404(
+            Enrollment.objects.select_related("section__offering", "student__user"),
+            pk=enrollment_id,
+        )
+
+        # Yetki: ilgili dersin eğitim görevlisi veya admin
+        if request.user.role != "admin":
+            try:
+                inst = request.user.instructor_profile
+            except ObjectDoesNotExist:
+                raise PermissionDenied
+            if enrollment.section.offering.instructor_id != inst.pk:
+                raise PermissionDenied
+        else:
+            inst = None
+
+        action = request.POST.get("action", "").strip().lower()
+        if action not in ("approve", "reject"):
+            messages.error(request, _("Geçersiz işlem."))
+            return redirect("academic:instructor_enrollments")
+
+        if enrollment.status != Enrollment.Status.PENDING:
+            messages.info(request, _("Bu kayıt zaten onaylanmış veya işlem yapılamıyor."))
+            return redirect("academic:instructor_enrollments")
+
+        target = (
+            Enrollment.Status.ENROLLED if action == "approve" else Enrollment.Status.DROPPED
+        )
+        try:
+            transition_enrollment_status(
+                enrollment,
+                target,
+                actor=request.user,
+                request=request,
+            )
+        except ValidationError as exc:
+            messages.error(request, "; ".join(getattr(exc, "messages", [str(exc)])))
+            return redirect("academic:instructor_enrollments")
+
+        if action == "approve":
+            Enrollment.objects.filter(pk=enrollment.pk).update(
+                instructor_approved=True,
+                instructor_approved_by=inst,
+                instructor_approved_at=_tz.now(),
+            )
+            messages.success(
+                request,
+                _("%(student)s için %(course)s kaydı onaylandı.") % {
+                    "student": enrollment.student.user.get_full_name() or enrollment.student.student_no,
+                    "course": enrollment.section.offering.course.code,
+                },
+            )
+        else:
+            messages.success(
+                request,
+                _("%(student)s için %(course)s kaydı reddedildi.") % {
+                    "student": enrollment.student.user.get_full_name() or enrollment.student.student_no,
+                    "course": enrollment.section.offering.course.code,
+                },
+            )
+
+        return redirect("academic:instructor_enrollments")
 
 
 class InstructorReassignCourseView(InstructorRequiredMixin, View):

@@ -66,4 +66,10 @@ urlpatterns = [
         views.InstructorReassignCourseView.as_view(),
         name="enrollment_reassign",
     ),
+    # Eğitim görevlisi onay/red
+    path(
+        "instructor/enrollments/<int:enrollment_id>/decision/",
+        views.InstructorEnrollmentDecisionView.as_view(),
+        name="enrollment_decision",
+    ),
 ]

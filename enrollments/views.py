@@ -300,7 +300,13 @@ class StudentWaitlistView(StudentRequiredMixin, View):
             messages.error(request, _("Geçersiz şube seçimi."))
             return redirect("enrollments:browse")
 
-        section = get_object_or_404(CourseSection, pk=pk, is_active=True, offering__is_active=True)
+        section = get_object_or_404(
+            CourseSection,
+            pk=pk,
+            is_active=True,
+            offering__is_active=True,
+            offering__semester__is_active=True,
+        )
 
         existing = Enrollment.objects.filter(student=profile, section=section).first()
         if existing:

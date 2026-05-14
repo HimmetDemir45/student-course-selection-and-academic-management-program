@@ -111,6 +111,27 @@
                 </td>
                 <td class="text-end">
                     <div class="flex items-center justify-end gap-1.5 flex-wrap">
+                        {% if e.status == 'pending' %}
+                        <form method="post" action="{% url 'academic:enrollment_decision' enrollment_id=e.pk %}" class="inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="approve">
+                            <button type="submit" class="akd-btn akd-btn--success akd-btn--sm"
+                                    title="{% trans 'Kaydı onayla' %}">
+                                <i data-lucide="check" class="h-3.5 w-3.5"></i>
+                                <span>{% trans "Onayla" %}</span>
+                            </button>
+                        </form>
+                        <form method="post" action="{% url 'academic:enrollment_decision' enrollment_id=e.pk %}" class="inline"
+                              onsubmit="return confirm('{% trans "Bu kaydı reddetmek istiyor musun?" %}');">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="reject">
+                            <button type="submit" class="akd-btn akd-btn--danger akd-btn--sm"
+                                    title="{% trans 'Kaydı reddet' %}">
+                                <i data-lucide="x" class="h-3.5 w-3.5"></i>
+                                <span>{% trans "Reddet" %}</span>
+                            </button>
+                        </form>
+                        {% endif %}
                         <a class="akd-btn akd-btn--primary akd-btn--sm"
                            href="{% url 'academic:grade_entry' enrollment_id=e.pk %}"
                            aria-label="{% trans 'Ayrıntılı not gir' %} {{ e.student.student_no }}">
