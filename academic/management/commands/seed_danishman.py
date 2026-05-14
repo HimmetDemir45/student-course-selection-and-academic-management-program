@@ -1,8 +1,9 @@
 """
-Danışman hocaları ayarlar:
-  - İbrahim Uğur YILMAZ  → is_advisor=True  (seed_yzm_weekly ile zaten oluştu)
-  - Musa ARSLAN           → oluştur + is_advisor=True
-  - Diğer tüm hocalar    → is_advisor=False  (güvenlik için sıfırla)
+Danışman atamaları:
+  - SADECE İbrahim Uğur YILMAZ danışman olacak (is_advisor=True)
+  - Diğer tüm hocalar is_advisor=False
+  - TÜM YZM öğrencilerinin advisor'ı İbrahim Uğur YILMAZ'a atanır
+  - İ.U.Yılmaz hem öğretim üyesi hem danışman olacak
 
 Kullanım:
     python manage.py seed_danishman
@@ -16,71 +17,88 @@ from accounts.models import User
 from instructors.models import InstructorProfile
 
 
-DANISMANLAR = [
-    {
-        "username": "inst_ibrahim_ugur_yilmaz",
-        "first_name": "İbrahim Uğur",
-        "last_name": "YILMAZ",
-        "title": "Öğr.Gör.",
-        "employee_no_hint": "YILMAZ_IU",
-    },
-    {
-        "username": "inst_musa_arslan",
-        "first_name": "Musa",
-        "last_name": "ARSLAN",
-        "title": "Dr.Öğr.Üyesi",
-        "employee_no_hint": "ARSLAN_M",
-    },
-]
+ADVISOR_USERNAME = "inst_ibrahim_ugur_yilmaz"
+ADVISOR_FIRST_NAME = "İbrahim Uğur"
+ADVISOR_LAST_NAME = "YILMAZ"
+ADVISOR_TITLE = "Öğr.Gör."
 
 
 class Command(BaseCommand):
-    help = "Danışman yetkilerini ayarlar (Musa Arslan + İbrahim Uğur Yılmaz)."
+    help = "Danışman yetkisini SADECE İbrahim Uğur Yılmaz'a verir ve tüm YZM öğrencilerini ona atar."
 
     @transaction.atomic
     def handle(self, *args, **opts):
         from academic.models import Department
+        from students.models import StudentProfile
 
         yzm_dept = Department.objects.filter(code="YZM").first()
+        if yzm_dept is None:
+            self.stdout.write(self.style.ERROR(
+                "[HATA] YZM bölümü bulunamadı. Önce 'seed_yzm_weekly' çalıştırın."
+            ))
+            return
 
-        # Önce tüm hocaların is_advisor'ını False yap
-        updated = InstructorProfile.objects.update(is_advisor=False)
-        self.stdout.write(f"  {updated} hocanın is_advisor=False yapıldı.")
+        # 1) Tüm hocaları danışmanlıktan al
+        reset = InstructorProfile.objects.update(is_advisor=False)
+        self.stdout.write(f"  {reset} hocanın is_advisor=False yapıldı.")
 
-        for data in DANISMANLAR:
-            user, u_created = User.objects.get_or_create(
-                username=data["username"],
-                defaults={
-                    "first_name": data["first_name"],
-                    "last_name": data["last_name"],
-                    "email": f"{data['username']}@uni.edu.tr",
-                    "role": User.Role.INSTRUCTOR,
-                },
-            )
-            if u_created or not user.has_usable_password():
-                user.set_password("DemoPass2026!")
-                user.save()
+        # 2) İbrahim Uğur YILMAZ kullanıcısı + profili
+        user, u_created = User.objects.get_or_create(
+            username=ADVISOR_USERNAME,
+            defaults={
+                "first_name": ADVISOR_FIRST_NAME,
+                "last_name": ADVISOR_LAST_NAME,
+                "email": f"{ADVISOR_USERNAME}@uni.edu.tr",
+                "role": User.Role.INSTRUCTOR,
+            },
+        )
+        if u_created or not user.has_usable_password():
+            user.set_password("DemoPass2026!")
+            user.save()
 
-            employee_no = f"ADV{abs(hash(data['employee_no_hint'])) % 10**6:06d}"
-            profile, p_created = InstructorProfile.objects.get_or_create(
-                user=user,
-                defaults={
-                    "department": yzm_dept,
-                    "title": data["title"],
-                    "is_approved": True,
-                    "is_advisor": True,
-                    "employee_no": employee_no,
-                },
-            )
-            if not profile.is_advisor or not profile.is_approved:
-                profile.is_advisor = True
-                profile.is_approved = True
-                profile.save(update_fields=["is_advisor", "is_approved"])
+        employee_no = f"ADV{abs(hash(ADVISOR_USERNAME)) % 10**6:06d}"
+        profile, p_created = InstructorProfile.objects.get_or_create(
+            user=user,
+            defaults={
+                "department": yzm_dept,
+                "title": ADVISOR_TITLE,
+                "is_approved": True,
+                "is_advisor": True,
+                "employee_no": employee_no,
+            },
+        )
+        # Mevcut profili tek danışman yapacak şekilde güncelle
+        update_fields = []
+        if not profile.is_advisor:
+            profile.is_advisor = True
+            update_fields.append("is_advisor")
+        if not profile.is_approved:
+            profile.is_approved = True
+            update_fields.append("is_approved")
+        if profile.department_id != yzm_dept.pk:
+            profile.department = yzm_dept
+            update_fields.append("department")
+        if update_fields:
+            profile.save(update_fields=update_fields)
 
-            tag = "YENI" if p_created else "OK  "
-            self.stdout.write(
-                f"  {tag} Danışman: {user.get_full_name()} "
-                f"({user.username}) is_advisor={profile.is_advisor}"
-            )
+        tag = "YENI" if p_created else "OK  "
+        self.stdout.write(
+            f"  {tag} Tek danışman: {user.get_full_name()} "
+            f"({user.username}) is_advisor={profile.is_advisor}"
+        )
 
-        self.stdout.write(self.style.SUCCESS("\n[OK] Danışman atamaları tamamlandı."))
+        # 3) Tüm YZM öğrencilerinin advisor'ını bu profile ata
+        # (department=YZM veya program.department=YZM olanlar)
+        from django.db.models import Q
+        yzm_students = StudentProfile.objects.filter(
+            Q(department=yzm_dept) | Q(program__department=yzm_dept)
+        )
+        assigned = yzm_students.update(advisor=profile)
+        self.stdout.write(
+            f"  {assigned} YZM öğrencisinin danışmanı '{user.get_full_name()}' olarak atandı."
+        )
+
+        self.stdout.write(self.style.SUCCESS(
+            "\n[OK] Danışman atamaları tamamlandı. "
+            "Artık SADECE İbrahim Uğur Yılmaz YZM öğrencilerinin ders kayıtlarını onaylayabilir."
+        ))

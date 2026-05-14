@@ -111,7 +111,7 @@
                 </td>
                 <td class="text-end">
                     <div class="flex items-center justify-end gap-1.5 flex-wrap">
-                        {% if e.status == 'pending' %}
+                        {% if e.status == 'pending' and viewer_is_advisor %}
                         <form method="post" action="{% url 'academic:enrollment_decision' enrollment_id=e.pk %}" class="inline">
                             {% csrf_token %}
                             <input type="hidden" name="action" value="approve">

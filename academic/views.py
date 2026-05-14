@@ -291,7 +291,16 @@ class InstructorEnrollmentListView(InstructorRequiredMixin, ListView):
                 inst = user.instructor_profile
             except ObjectDoesNotExist:
                 return Enrollment.objects.none()
-            qs = qs.filter(section__offering__instructor=inst)
+            # Danışman ise: kendi danışöğrencilerinin TÜM kayıtları (onay yapabilir)
+            # Danışman değilse: yalnızca kendi şubelerindeki ENROLLED/COMPLETED kayıtları
+            # (not girişi için), PENDING görünmesin.
+            if inst.is_advisor:
+                qs = qs.filter(
+                    Q(student__advisor=inst) | Q(section__offering__instructor=inst)
+                )
+            else:
+                qs = qs.filter(section__offering__instructor=inst)
+                qs = qs.exclude(status=Enrollment.Status.PENDING)
         status_filter = (self.request.GET.get("status") or "").strip().lower()
         if status_filter == "pending":
             qs = qs.filter(status=Enrollment.Status.PENDING)
@@ -313,6 +322,18 @@ class InstructorEnrollmentListView(InstructorRequiredMixin, ListView):
             {"label": _("Pano"), "url": reverse("dashboard:index")},
             {"label": _("Öğrenci kayıtları ve notlar"), "url": None},
         )
+        # Template'in onay/red butonlarını gösterip göstermeyeceğini bilmesi için
+        user = self.request.user
+        is_advisor = False
+        if user.role == "admin":
+            is_advisor = True
+        else:
+            try:
+                is_advisor = bool(user.instructor_profile.is_advisor)
+            except ObjectDoesNotExist:
+                is_advisor = False
+        ctx["viewer_is_advisor"] = is_advisor
+
         seen = set()
         quick = []
         for e in ctx["enrollments"]:
@@ -794,12 +815,12 @@ def enrollment_approve(request, enrollment_id):
         )
 
         if inst is not None:
-            is_course_instructor = enrollment.section.offering.instructor_id == inst.pk
-            # Danışman ataması olsa bile is_advisor=False ise yetki yok
+            # Sadece öğrencinin danışmanı (is_advisor=True olan) onay/red yapabilir.
+            # Course instructor olmak yetki vermez.
             is_advisor = (
                 enrollment.student.advisor_id == inst.pk and inst.is_advisor
             )
-            if not is_course_instructor and not is_advisor:
+            if not is_advisor:
                 raise PermissionDenied
 
         if enrollment.status != Enrollment.Status.PENDING:
@@ -856,12 +877,12 @@ def enrollment_reject(request, enrollment_id):
         )
 
         if inst is not None:
-            is_course_instructor = enrollment.section.offering.instructor_id == inst.pk
-            # Danışman ataması olsa bile is_advisor=False ise yetki yok
+            # Sadece öğrencinin danışmanı (is_advisor=True olan) onay/red yapabilir.
+            # Course instructor olmak yetki vermez.
             is_advisor = (
                 enrollment.student.advisor_id == inst.pk and inst.is_advisor
             )
-            if not is_course_instructor and not is_advisor:
+            if not is_advisor:
                 raise PermissionDenied
 
         if enrollment.status != Enrollment.Status.PENDING:
@@ -1562,12 +1583,20 @@ class InstructorEnrollmentDecisionView(InstructorRequiredMixin, View):
         with transaction.atomic():
             enrollment = get_object_or_404(
                 Enrollment.objects.select_for_update(of=("self",))
-                .select_related("section__offering__course", "student__user"),
+                .select_related(
+                    "section__offering__course",
+                    "student__user",
+                    "student__advisor",
+                ),
                 pk=enrollment_id,
             )
 
             if request.user.role != "admin":
-                if enrollment.section.offering.instructor_id != inst.pk:
+                # Sadece öğrencinin danışmanı (is_advisor=True) onay/red yapabilir.
+                is_advisor = (
+                    enrollment.student.advisor_id == inst.pk and inst.is_advisor
+                )
+                if not is_advisor:
                     raise PermissionDenied
 
             if enrollment.status != Enrollment.Status.PENDING:
