@@ -1143,17 +1143,24 @@ class WeeklyScheduleView(LoginRequiredMixin, View):
             except ObjectDoesNotExist:
                 profile = None
             if profile:
-                enrolled_ids = (
-                    Enrollment.objects
-                    .filter(
-                        student=profile,
-                        status__in=[
-                            Enrollment.Status.ENROLLED,
-                            Enrollment.Status.PENDING,
-                        ],
-                    )
-                    .values_list("section_id", flat=True)
+                enr_qs = Enrollment.objects.filter(
+                    student=profile,
+                    status__in=[
+                        Enrollment.Status.ENROLLED,
+                        Enrollment.Status.PENDING,
+                    ],
                 )
+                # Dönem filtresi: URL'de seçili dönem varsa onu kullan,
+                # yoksa aktif dönemlere göre filtrele.
+                if sem_id.isdigit():
+                    enr_qs = enr_qs.filter(section__offering__semester_id=int(sem_id))
+                else:
+                    active_sem_ids = list(
+                        Semester.objects.filter(is_active=True).values_list("pk", flat=True)
+                    )
+                    if active_sem_ids:
+                        enr_qs = enr_qs.filter(section__offering__semester_id__in=active_sem_ids)
+                enrolled_ids = enr_qs.values_list("section_id", flat=True)
                 slots_qs = base_qs.filter(section_id__in=enrolled_ids)
             else:
                 slots_qs = SectionTimeSlot.objects.none()
@@ -1217,12 +1224,28 @@ class WeeklyScheduleView(LoginRequiredMixin, View):
             for d in days_to_show
         ]
 
+        # Dönem listesi: öğrenci için kayıtlı olduğu dönemler, diğerleri için aktif dönemler
+        if user.role == "student":
+            try:
+                _profile = user.student_profile
+                sem_list = Semester.objects.filter(
+                    coursesection__enrollments__student=_profile,
+                    coursesection__enrollments__status__in=[
+                        Enrollment.Status.ENROLLED,
+                        Enrollment.Status.PENDING,
+                    ],
+                ).distinct().order_by("-academic_year", "term")
+            except ObjectDoesNotExist:
+                sem_list = Semester.objects.none()
+        else:
+            sem_list = Semester.objects.filter(is_active=True).order_by("-academic_year", "term")
+
         ctx = {
             "schedule_cols": schedule_cols,
             "time_labels": time_labels,
             "grid_height_px": grid_height_px,
             "col_count": len(days_to_show),
-            "semesters": Semester.objects.filter(is_active=True).order_by("-academic_year", "term"),
+            "semesters": sem_list,
             "selected_semester": sem_id,
             "breadcrumb_items": items(
                 home(),
