@@ -867,6 +867,10 @@ def enrollment_reject(request, enrollment_id):
             messages.error(request, "; ".join(getattr(exc, "messages", [str(exc)])))
             return redirect(_safe_referer(request, reverse("academic:instructor_enrollments")))
 
+        comment = request.POST.get("instructor_comment", "").strip()
+        if comment:
+            Enrollment.objects.filter(pk=enrollment.pk).update(instructor_comment=comment)
+
     messages.success(
         request,
         _("%(student)s için %(course)s kaydı reddedildi.") % {
@@ -874,7 +878,7 @@ def enrollment_reject(request, enrollment_id):
             "course": enrollment.section.offering.course.code,
         },
     )
-    return redirect(_safe_referer(request, reverse("academic:instructor_enrollments")))
+    return redirect(_safe_referer(request, reverse("academic:danishman_advisees")))
 
 
 @require_POST

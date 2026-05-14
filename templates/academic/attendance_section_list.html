@@ -18,7 +18,7 @@
 {% include "includes/breadcrumbs.html" %}
 
 {% if not sections %}
-    {% include "includes/empty_state.html" with empty_title=_("Aktif şubeniz yok") empty_message=_("Size atanmış aktif ders şubesi bulunamadı.") empty_icon="clipboard-list" %}
+    {% include "includes/empty_state.html" with empty_title=_("Size tanımlı ders yok") empty_message=_("Aktif dönemde üzerinize atanmış ders şubesi bulunmuyor. Ders programı güncellendikten sonra tekrar kontrol ediniz.") empty_icon="clipboard-list" %}
 {% else %}
 <div class="akd-table-wrap">
     <table class="akd-table">

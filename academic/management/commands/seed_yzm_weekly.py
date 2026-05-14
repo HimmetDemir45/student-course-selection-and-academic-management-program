@@ -1,9 +1,9 @@
 """
-YZM Lisans haftalık ders programını seed eder (Bahar 2025-2026 olarak).
+YZM Lisans haftalık ders programını seed eder (GÜZ 2025-2026).
 
 Görseldeki KTU OF Teknoloji Fak. Yazılım Mühendisliği 2025-2026 Güz programını
-demo amaçlı Bahar 2025-2026 dönemine bağlar. Eksik dersleri / hocaları otomatik
-olarak oluşturur. Idempotent — tekrar çalıştırılabilir.
+Güz 2025-2026 dönemine bağlar. Derslikler CourseOffering.classroom alanına
+düzgün eşleştirilir. Idempotent — tekrar çalıştırılabilir.
 
 Kullanım:
     python manage.py seed_yzm_weekly
@@ -25,12 +25,11 @@ from academic.models import (
     Semester,
 )
 from accounts.models import User
-from courses.models import Course, CourseOffering
+from courses.models import Classroom, Course, CourseOffering
 from instructors.models import InstructorProfile
 
 
 # (weekday[0=Mon..5=Sat], start_h, end_h, year_level, course_name, instructor_full, room_hint)
-# Lab kısımları aynı dersin ek time slot'u olarak ekleniyor.
 SCHEDULE: list[tuple[int, int, int, int, str, str, str]] = [
     # ───────── PAZARTESİ ─────────
     (0, 8, 10, 2, "Veri Tabanı ve Yönetimi", "Arş.Gör.Dr. Hakan AYDIN", "D2"),
@@ -89,11 +88,7 @@ SCHEDULE: list[tuple[int, int, int, int, str, str, str]] = [
     (5, 12, 13, 2, "USEC0035-Kalite Okuryazarlığı", "Dr.Öğr.Üyesi Ebru G. AŞIK", "U"),
 ]
 
-
-# Paylaşımlı (UZEM) ders kodu prefix'leri
 SHARED_PREFIXES = ("USEC", "TDB", "ATA", "YDB", "YDI", "AITB")
-
-# Bilinen UZEM dersleri (isimden tanımak için)
 UZEM_NAME_KEYWORDS = (
     "ingilizce",
     "türk dili",
@@ -103,6 +98,17 @@ UZEM_NAME_KEYWORDS = (
     "i̇şyeri uygulaması",
     "işyeri uygulaması",
 )
+
+# Derslik eşleme: room_hint → (building, room_number)  None → classroom=null
+ROOM_MAP: dict[str, tuple[str, str] | None] = {
+    "D1": ("OF-TF", "D1"),
+    "D2": ("OF-TF", "D2"),
+    "D3": ("OF-TF", "D3"),
+    "D4": ("OF-TF", "D4"),
+    "D5": ("OF-TF", "D5"),
+    "Lab": ("OF-TF", "Lab"),
+    "U": None,  # UZEM / online
+}
 
 
 def _normalize_ascii(s: str) -> str:
@@ -115,7 +121,6 @@ def _normalize_ascii(s: str) -> str:
 
 
 def _parse_instructor(full: str) -> tuple[str, str, str]:
-    """Returns (title, first_name, last_name)."""
     parts = full.strip().split()
     last_idx = len(parts) - 1
     surname = parts[last_idx]
@@ -137,7 +142,6 @@ def _instructor_username(first: str, last: str) -> str:
 
 
 def _course_code(name: str, dept_code: str, counter: dict) -> str:
-    """USEC0005-Genel Sosyoloji gibi prefix'li isimlerde mevcut kodu kullan."""
     head = name.split("-", 1)[0].strip()
     if any(head.startswith(p) for p in SHARED_PREFIXES) and head[-1].isdigit():
         return head
@@ -153,27 +157,40 @@ def _is_shared(name: str) -> bool:
     return any(kw in lower for kw in (_normalize_ascii(k) for k in UZEM_NAME_KEYWORDS))
 
 
+def _get_classroom(hint: str) -> Classroom | None:
+    mapping = ROOM_MAP.get(hint)
+    if mapping is None:
+        return None
+    building, room_number = mapping
+    classroom, _ = Classroom.objects.get_or_create(
+        building=building,
+        room_number=room_number,
+        defaults={"capacity": 60},
+    )
+    return classroom
+
+
 class Command(BaseCommand):
-    help = "YZM Lisans haftalık programını Bahar 2025-2026 dönemi için seed eder."
+    help = "YZM Lisans haftalık programını GÜZ 2025-2026 dönemi için seed eder (derslikler dahil)."
 
     @transaction.atomic
     def handle(self, *args, **opts):
-        # ── Semester (Bahar 2025-2026) ────────────────────────────────────
-        spring, _ = Semester.objects.get_or_create(
+        # ── Semester (GÜZ 2025-2026) ──────────────────────────────────────
+        fall, _ = Semester.objects.get_or_create(
             academic_year="2025-2026",
-            term=Semester.Term.SPRING,
+            term=Semester.Term.FALL,
             defaults={
-                "name": "2025-2026 Bahar",
-                "start_date": date(2026, 2, 10),
-                "end_date": date(2026, 6, 30),
-                "add_drop_start": date(2026, 2, 10),
-                "add_drop_end": date(2026, 3, 7),
+                "name": "2025-2026 Güz",
+                "start_date": date(2025, 9, 15),
+                "end_date": date(2026, 1, 31),
+                "add_drop_start": date(2025, 9, 15),
+                "add_drop_end": date(2025, 10, 10),
                 "is_active": True,
             },
         )
-        if not spring.is_active:
-            spring.is_active = True
-            spring.save(update_fields=["is_active"])
+        if not fall.is_active:
+            fall.is_active = True
+            fall.save(update_fields=["is_active"])
 
         # ── Department + Program ──────────────────────────────────────────
         yzm_dept, _ = Department.objects.get_or_create(
@@ -192,7 +209,6 @@ class Command(BaseCommand):
             },
         )
 
-        # ── Önce tüm benzersiz hoca ve dersleri belirle ───────────────────
         instructor_map: dict[str, InstructorProfile] = {}
         course_map: dict[str, Course] = {}
         code_counter: dict[str, int] = {"YZM": 0, "UZEM": 0}
@@ -216,7 +232,6 @@ class Command(BaseCommand):
             if u_created or not user.has_usable_password():
                 user.set_password("DemoPass2026!")
                 user.save()
-            # employee_no unique → username'den türet (yeterince benzersiz)
             employee_no = f"E{abs(hash(username)) % 10**8:08d}"
             profile, p_created = InstructorProfile.objects.get_or_create(
                 user=user,
@@ -227,59 +242,57 @@ class Command(BaseCommand):
                     "employee_no": employee_no,
                 },
             )
+            if not profile.is_approved:
+                profile.is_approved = True
+                profile.save(update_fields=["is_approved"])
             instructor_map[inst_full] = profile
             self.stdout.write(
                 f"{'YENI' if p_created else 'OK  '} Hoca: {user.get_full_name()} ({username})"
             )
 
-        # Dersleri oluştur (isim bazlı tek kayıt)
+        # Dersleri oluştur
         for row in SCHEDULE:
             _wd, _sh, _eh, year_level, course_name, _inst, _room = row
-            # "USEC0005-Genel Sosyoloji" gibi prefixli isimden kod çıkar
             display_name = course_name
             shared = _is_shared(course_name)
             dept = uzem_dept if shared else yzm_dept
 
             if course_name in course_map:
-                course = course_map[course_name]
-            else:
-                # "USEC0005-Genel Sosyoloji" gibi prefixli isim varsa önce kodla ara
-                head = display_name.split("-", 1)[0].strip()
-                course = None
-                if any(head.startswith(p) for p in SHARED_PREFIXES) and head[-1].isdigit():
-                    course = Course.objects.filter(code=head).first()
-                # Yoksa tam isimle ara
-                if course is None:
-                    course = Course.objects.filter(name=display_name).first()
-                # Hâlâ yoksa oluştur — kod çakışmasına karşı son güvenlik
-                if course is None:
-                    code = _course_code(display_name, dept.code, code_counter)
-                    while Course.objects.filter(code=code).exists():
-                        code = _course_code(display_name, dept.code, code_counter)
-                    course = Course.objects.create(
-                        department=dept,
-                        program=None if shared else program,
-                        code=code,
-                        name=display_name,
-                        credits=4,
-                    )
-                course_map[course_name] = course
+                continue
 
-            # Curriculum item: hangi yıl/dönem (Bahar)
+            head = display_name.split("-", 1)[0].strip()
+            course = None
+            if any(head.startswith(p) for p in SHARED_PREFIXES) and head[-1].isdigit():
+                course = Course.objects.filter(code=head).first()
+            if course is None:
+                course = Course.objects.filter(name=display_name).first()
+            if course is None:
+                code = _course_code(display_name, dept.code, code_counter)
+                while Course.objects.filter(code=code).exists():
+                    code = _course_code(display_name, dept.code, code_counter)
+                course = Course.objects.create(
+                    department=dept,
+                    program=None if shared else program,
+                    code=code,
+                    name=display_name,
+                    credits=4,
+                )
+            course_map[course_name] = course
+
             CurriculumItem.objects.get_or_create(
                 program=program,
                 course=course,
-                defaults={"year_level": year_level, "term": "spring"},
+                defaults={"year_level": year_level, "term": "fall"},
             )
 
         # ── Offering + Section + TimeSlot ─────────────────────────────────
-        # Aynı (course, instructor) → tek offering. Time slot'lar üst üste eklenir.
         offering_cache: dict[tuple[int, int], CourseOffering] = {}
 
         for row in SCHEDULE:
-            weekday, start_h, end_h, _yr, course_name, inst_full, _room = row
+            weekday, start_h, end_h, _yr, course_name, inst_full, room_hint = row
             course = course_map[course_name]
             instructor = instructor_map[inst_full]
+            classroom = _get_classroom(room_hint)
             key = (course.pk, instructor.pk)
 
             if key in offering_cache:
@@ -287,22 +300,30 @@ class Command(BaseCommand):
             else:
                 offering, _ = CourseOffering.objects.get_or_create(
                     course=course,
-                    semester=spring,
+                    semester=fall,
                     section="A",
                     defaults={
                         "instructor": instructor,
+                        "classroom": classroom,
                         "quota": 60,
                         "is_active": True,
                     },
                 )
-                # Instructor'ı her durumda güncel tut
-                if offering.instructor_id != instructor.pk or not offering.is_active:
+                # Derslik ve hoca her durumda güncel tut
+                update_fields = []
+                if offering.instructor_id != instructor.pk:
                     offering.instructor = instructor
+                    update_fields.append("instructor")
+                if offering.classroom_id != (classroom.pk if classroom else None):
+                    offering.classroom = classroom
+                    update_fields.append("classroom")
+                if not offering.is_active:
                     offering.is_active = True
-                    offering.save(update_fields=["instructor", "is_active"])
+                    update_fields.append("is_active")
+                if update_fields:
+                    offering.save(update_fields=update_fields)
                 offering_cache[key] = offering
 
-            # CourseSection (OneToOne)
             section, _ = CourseSection.objects.get_or_create(
                 offering=offering,
                 defaults={"is_active": True},
@@ -320,8 +341,8 @@ class Command(BaseCommand):
 
         self.stdout.write(
             self.style.SUCCESS(
-                f"\n[OK] YZM haftalık programı seed edildi. "
+                f"\n[OK] YZM GÜZ haftalık programı seed edildi. "
                 f"Dersler: {len(course_map)}, Hocalar: {len(instructor_map)}, "
-                f"Time slot satırları: {len(SCHEDULE)}"
+                f"Satır: {len(SCHEDULE)}"
             )
         )

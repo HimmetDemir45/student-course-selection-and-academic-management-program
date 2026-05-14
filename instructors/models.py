@@ -22,6 +22,10 @@ class InstructorProfile(TimeStampedActiveModel):
         default=False,
         help_text="Yönetici onayı verildi mi? Onaysız akademisyenler ders işlemi yapamaz.",
     )
+    is_advisor = models.BooleanField(
+        default=False,
+        help_text="Danışman yetkisi var mı? Sadece danışmanlar öğrenci ders onayı yapabilir.",
+    )
 
     class Meta:
         ordering = ("employee_no",)

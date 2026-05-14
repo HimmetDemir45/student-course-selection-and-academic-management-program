@@ -122,12 +122,16 @@
                         <a href="{% url 'academic:instructor_enrollments' %}" class="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition {% if nav_namespace == 'academic' and nav_url_name == 'instructor_enrollments' or nav_namespace == 'academic' and nav_url_name == 'grade_entry' %}bg-white/10 text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]{% else %}text-white/70 hover:bg-white/5 hover:text-white{% endif %}">
                             <i data-lucide="clipboard-check" class="h-4 w-4"></i><span>{% trans "Kayıtlar ve notlar" %}</span>
                         </a>
+                        {% with inst_profile=request.user.instructor_profile %}
+                        {% if inst_profile.is_advisor %}
                         <a href="{% url 'academic:instructor_enrollments' %}?status=pending" class="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition text-white/70 hover:bg-white/5 hover:text-white">
                             <i data-lucide="clock" class="h-4 w-4"></i><span>{% trans "Bekleyen kayıtlar" %}</span>
                         </a>
                         <a href="{% url 'academic:danishman_advisees' %}" class="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition {% if nav_namespace == 'academic' and nav_url_name == 'danishman_advisees' or nav_namespace == 'academic' and nav_url_name == 'danishman_advisee_detail' %}bg-white/10 text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]{% else %}text-white/70 hover:bg-white/5 hover:text-white{% endif %}">
                             <i data-lucide="users" class="h-4 w-4"></i><span>{% trans "Danışöğrencilerim" %}</span>
                         </a>
+                        {% endif %}
+                        {% endwith %}
                         <a href="{% url 'academic:attendance_sections' %}" class="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition {% if nav_namespace == 'academic' and nav_url_name == 'attendance_sections' or nav_namespace == 'academic' and nav_url_name == 'attendance_take' %}bg-white/10 text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]{% else %}text-white/70 hover:bg-white/5 hover:text-white{% endif %}">
                             <i data-lucide="clipboard-list" class="h-4 w-4"></i><span>{% trans "Devamsızlık" %}</span>
                         </a>
@@ -274,8 +278,12 @@
                             <a href="{% url 'instructors:index' %}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/75 hover:bg-white/5 hover:text-white transition"><i data-lucide="user-round" class="h-4 w-4"></i><span>{% trans "Akademisyen alanı" %}</span></a>
                             <a href="{% url 'courses:offering_list' %}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/75 hover:bg-white/5 hover:text-white transition"><i data-lucide="book" class="h-4 w-4"></i><span>{% trans "Açılan dersler" %}</span></a>
                             <a href="{% url 'academic:instructor_enrollments' %}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/75 hover:bg-white/5 hover:text-white transition"><i data-lucide="clipboard-check" class="h-4 w-4"></i><span>{% trans "Kayıtlar ve notlar" %}</span></a>
+                            {% with inst_profile=request.user.instructor_profile %}
+                            {% if inst_profile.is_advisor %}
                             <a href="{% url 'academic:instructor_enrollments' %}?status=pending" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/75 hover:bg-white/5 hover:text-white transition"><i data-lucide="clock" class="h-4 w-4"></i><span>{% trans "Bekleyen kayıtlar" %}</span></a>
                             <a href="{% url 'academic:danishman_advisees' %}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/75 hover:bg-white/5 hover:text-white transition"><i data-lucide="users" class="h-4 w-4"></i><span>{% trans "Danışöğrencilerim" %}</span></a>
+                            {% endif %}
+                            {% endwith %}
                             <a href="{% url 'academic:attendance_sections' %}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/75 hover:bg-white/5 hover:text-white transition"><i data-lucide="clipboard-list" class="h-4 w-4"></i><span>{% trans "Devamsızlık" %}</span></a>
                             <a href="{% url 'academic:weekly_schedule' %}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/75 hover:bg-white/5 hover:text-white transition"><i data-lucide="calendar-days" class="h-4 w-4"></i><span>{% trans "Haftalık program" %}</span></a>
                         {% elif user.role == "admin" %}

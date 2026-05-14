@@ -374,7 +374,11 @@ class MyEnrollmentsView(StudentRequiredMixin, View):
         all_enr = list(
             Enrollment.objects.filter(
                 student=profile,
-                status__in=(Enrollment.Status.PENDING, Enrollment.Status.ENROLLED),
+                status__in=(
+                    Enrollment.Status.PENDING,
+                    Enrollment.Status.ENROLLED,
+                    Enrollment.Status.DROPPED,
+                ),
             )
             .select_related(
                 "section__offering__course",
@@ -396,12 +400,15 @@ class MyEnrollmentsView(StudentRequiredMixin, View):
             within_window = is_within_add_drop(sem)
             pending_rows = [e for e in rows if e.status == Enrollment.Status.PENDING]
             enrolled_rows = [e for e in rows if e.status == Enrollment.Status.ENROLLED]
-            total_credits = sum(e.section.offering.course.credits or 0 for e in rows)
+            dropped_rows = [e for e in rows if e.status == Enrollment.Status.DROPPED]
+            total_credits = sum(e.section.offering.course.credits or 0 for e in rows
+                                if e.status in (Enrollment.Status.PENDING, Enrollment.Status.ENROLLED))
             sem_blocks.append({
                 "semester": sem,
                 "within_window": within_window,
                 "pending_rows": pending_rows,
                 "enrolled_rows": enrolled_rows,
+                "dropped_rows": dropped_rows,
                 "total_credits": total_credits,
             })
 
