@@ -183,20 +183,29 @@ class AnnouncementListView(LoginRequiredMixin, ListView):
             base = qs
         else:
             role_filter = Q(target_role="all") | Q(target_role=user.role)
-            # Bölüm filtresi: department=None ise herkese, set ise sadece o bölüme
-            user_dept_id = None
+            # Bölüm filtresi: department=None ise herkese, set ise sadece o bölüme(lere)
+            user_dept_ids = set()
             if user.role == "student":
                 try:
-                    user_dept_id = user.student_profile.department_id
+                    user_dept_ids.add(user.student_profile.department_id)
                 except ObjectDoesNotExist:
                     pass
             elif user.role == "instructor":
                 try:
-                    user_dept_id = user.instructor_profile.department_id
+                    # Akademisyen: kendi departmanı + ders öğrettikleri tüm departmanlar
+                    inst = user.instructor_profile
+                    user_dept_ids.add(inst.department_id)
+                    from courses.models import CourseOffering
+                    taught_depts = set(
+                        CourseOffering.objects.filter(instructor=inst)
+                        .values_list("course__department_id", flat=True)
+                        .distinct()
+                    )
+                    user_dept_ids.update(taught_depts)
                 except ObjectDoesNotExist:
                     pass
-            if user_dept_id:
-                dept_filter = Q(department__isnull=True) | Q(department_id=user_dept_id)
+            if user_dept_ids:
+                dept_filter = Q(department__isnull=True) | Q(department_id__in=user_dept_ids)
             else:
                 dept_filter = Q(department__isnull=True)
             base = qs.filter(is_active=True).filter(role_filter).filter(dept_filter)
