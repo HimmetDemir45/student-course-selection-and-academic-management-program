@@ -50,13 +50,28 @@ X_FRAME_OPTIONS = "DENY"
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REFERRER_POLICY = "same-origin"
 
+# ── E-posta gönderimi ─────────────────────────────────────────────────────
+# Render'da gerçek e-posta göndermek için EMAIL_HOST_USER ortam değişkeni
+# tanımlanmalıdır. Tanımlı değilse console backend'e düşer (log'a yazar,
+# gerçekten göndermez) — geliştirme/test için güvenli varsayılan.
+_EMAIL_USER = env("EMAIL_HOST_USER", default="")  # noqa: F405
 EMAIL_BACKEND = env(  # noqa: F405
     "EMAIL_BACKEND",
-    default="django.core.mail.backends.console.EmailBackend",
+    default=(
+        "django.core.mail.backends.smtp.EmailBackend"
+        if _EMAIL_USER
+        else "django.core.mail.backends.console.EmailBackend"
+    ),
 )
-EMAIL_HOST = env("EMAIL_HOST", default="")  # noqa: F405
+EMAIL_HOST = env("EMAIL_HOST", default="smtp.gmail.com")  # noqa: F405
 EMAIL_PORT = env.int("EMAIL_PORT", default=587)  # noqa: F405
 EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)  # noqa: F405
-EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")  # noqa: F405
+EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", default=False)  # noqa: F405
+EMAIL_HOST_USER = _EMAIL_USER
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")  # noqa: F405
-DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="webmaster@localhost")  # noqa: F405
+EMAIL_TIMEOUT = env.int("EMAIL_TIMEOUT", default=15)  # noqa: F405
+DEFAULT_FROM_EMAIL = env(  # noqa: F405
+    "DEFAULT_FROM_EMAIL",
+    default=_EMAIL_USER or "webmaster@localhost",
+)
+SERVER_EMAIL = env("SERVER_EMAIL", default=DEFAULT_FROM_EMAIL)  # noqa: F405

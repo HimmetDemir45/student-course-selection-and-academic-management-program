@@ -129,6 +129,23 @@ def _get_classroom(hint: str) -> Classroom | None:
     return obj
 
 
+def _get_or_create_department(code: str, name: str) -> Department:
+    dept = Department.objects.filter(code=code).first()
+    if dept:
+        return dept
+    dept = Department.objects.filter(name=name).first()
+    if dept:
+        return dept
+    return Department.objects.create(code=code, name=name)
+
+
+def _get_or_create_program(code: str, name: str, department: Department) -> Program:
+    prog = Program.objects.filter(code=code).first()
+    if prog:
+        return prog
+    return Program.objects.create(code=code, name=name, department=department)
+
+
 class Command(BaseCommand):
     help = "Enerji Sistemleri Mühendisliği BAHAR 2025-2026 haftalık programını seed eder."
 
@@ -147,16 +164,9 @@ class Command(BaseCommand):
             },
         )
 
-        esm_dept, _ = Department.objects.get_or_create(
-            code="ESM", defaults={"name": "Enerji Sistemleri Mühendisliği"}
-        )
-        uzem_dept, _ = Department.objects.get_or_create(
-            code="UZEM", defaults={"name": "Uzaktan Eğitim / Ortak Dersler"}
-        )
-        program, _ = Program.objects.get_or_create(
-            code="ESM-LIS",
-            defaults={"department": esm_dept, "name": "Enerji Sistemleri Mühendisliği Lisans"},
-        )
+        esm_dept = _get_or_create_department("ESM", "Enerji Sistemleri Mühendisliği")
+        uzem_dept = _get_or_create_department("UZEM", "Uzaktan Eğitim / Ortak Dersler")
+        program = _get_or_create_program("ESM-LIS", "Enerji Sistemleri Mühendisliği Lisans", esm_dept)
 
         instructor_map: dict[str, InstructorProfile] = {}
         course_map: dict[str, Course] = {}

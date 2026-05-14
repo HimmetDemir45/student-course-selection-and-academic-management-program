@@ -1,7 +1,10 @@
+import logging
+
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import PasswordResetView as DjangoPasswordResetView
 from django.shortcuts import redirect, render
 from django.utils.translation import gettext as _
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -13,6 +16,51 @@ from core.breadcrumbs import home, items
 from .forms import AdminRequestForm, AkdPasswordChangeForm, LoginForm, ProfileForm, RegisterForm
 from .models import AdminRequest, User
 from .services.login_throttle import clear_login_throttle, login_throttle, register_login_failure
+
+logger = logging.getLogger(__name__)
+
+
+class LoggingPasswordResetView(DjangoPasswordResetView):
+    """
+    Django'nun PasswordResetView'ı, SMTP hatasında sessizce başarısız olur.
+    Bu sınıf e-posta gönderim sürecini log'lar ve hatayı audit kayıtlarına yazar.
+    """
+
+    def form_valid(self, form):
+        email = form.cleaned_data.get("email", "")
+        backend_name = getattr(settings, "EMAIL_BACKEND", "?")
+        try:
+            response = super().form_valid(form)
+            logger.info(
+                "Password reset requested for %s (backend=%s, host=%s)",
+                email, backend_name, getattr(settings, "EMAIL_HOST", "?"),
+            )
+            log_event(
+                event_type="auth.password_reset_requested",
+                actor=None,
+                target_type="accounts.User",
+                metadata={"email": email, "backend": backend_name},
+                request=self.request,
+            )
+            return response
+        except Exception as exc:
+            logger.exception(
+                "Password reset e-mail FAILED for %s (backend=%s): %s",
+                email, backend_name, exc,
+            )
+            log_event(
+                event_type="auth.password_reset_failed",
+                actor=None,
+                target_type="accounts.User",
+                metadata={"email": email, "backend": backend_name, "error": str(exc)},
+                request=self.request,
+            )
+            # Kullanıcıya generic mesaj ver; e-posta var/yok'un sızdırılmaması adına
+            messages.error(
+                self.request,
+                _("E-posta gönderiminde bir sorun oluştu. Lütfen daha sonra tekrar deneyin veya yöneticinize başvurun."),
+            )
+            return redirect("accounts:password_reset")
 
 
 @require_http_methods(["GET", "POST"])
