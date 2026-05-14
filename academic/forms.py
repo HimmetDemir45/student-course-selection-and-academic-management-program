@@ -154,6 +154,9 @@ class SectionTimeSlotForm(forms.ModelForm):
 
 
 class GradeForm(forms.ModelForm):
+    # Geçerli harf notları (KTÜ standart)
+    VALID_LETTERS = {"AA", "BA", "BB", "CB", "CC", "DC", "DD", "FD", "FF", "I"}
+
     class Meta:
         model = Grade
         fields = ("letter_grade", "numeric_grade")
@@ -162,12 +165,32 @@ class GradeForm(forms.ModelForm):
             "numeric_grade": "Sayısal not",
         }
         help_texts = {
-            "letter_grade": "A, B, C, D veya F (büyük harf önerilir).",
-            "numeric_grade": "İsteğe bağlı; harf notu ile birlikte kullanılabilir.",
+            "letter_grade": "AA, BA, BB, CB, CC, DC, DD, FD, FF veya I (incomplete).",
+            "numeric_grade": "İsteğe bağlı; 0-100 arası sayısal not.",
         }
         widgets = {
             "letter_grade": forms.TextInput(
-                attrs={"class": "akd-input", "maxlength": "2", "autocomplete": "off"}
+                attrs={"class": "akd-input", "maxlength": "2", "autocomplete": "off",
+                       "placeholder": "AA / BB / FF / I"}
             ),
-            "numeric_grade": forms.NumberInput(attrs={"class": "akd-input", "step": "0.01"}),
+            "numeric_grade": forms.NumberInput(attrs={"class": "akd-input", "step": "0.01",
+                                                       "min": "0", "max": "100"}),
         }
+
+    def clean_letter_grade(self):
+        value = (self.cleaned_data.get("letter_grade") or "").strip().upper()
+        if not value:
+            return value
+        if value not in self.VALID_LETTERS:
+            raise forms.ValidationError(
+                "Geçersiz harf notu. Geçerli olanlar: " + ", ".join(sorted(self.VALID_LETTERS))
+            )
+        return value
+
+    def clean_numeric_grade(self):
+        value = self.cleaned_data.get("numeric_grade")
+        if value is None:
+            return value
+        if value < 0 or value > 100:
+            raise forms.ValidationError("Sayısal not 0 ile 100 arasında olmalıdır.")
+        return value
