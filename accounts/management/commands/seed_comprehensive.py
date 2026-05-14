@@ -573,6 +573,60 @@ COURSE_TO_CLASSROOM = {
 }
 
 
+# ─── SEÇMELİ DERS AÇIKLAMALARI ──────────────────────────────────────────────
+
+COURSE_DESCRIPTIONS = {
+    # Ortak seçmeli (USEC)
+    "USEC0002": "Bilimin tarihsel gelişimi, bilimsel yöntem ve paradigma değişimleri üzerine kapsamlı bir inceleme.",
+    "USEC0003": "Mesleki yaşamda etik ilkeler, karar alma süreçleri ve etik ikilemi çözme yöntemleri.",
+    "USEC0004": "İş ve mesleki yaşamda etik sorunlar, örnek vakalar üzerinden etik düşünme pratiği.",
+    "USEC0005": "Toplumsal yapı, kurumlar ve sosyal ilişkileri inceleyen temel sosyoloji kavramları.",
+    "USEC0008": "KVKK kapsamında kişisel veri işleme ilkeleri, haklar ve kurumsal uyum gereklilikleri.",
+    "USEC0010": "Proje planlama, kaynak yönetimi, risk analizi ve proje yaşam döngüsü yönetimi.",
+    "USEC0012": "Kariyer hedefleri belirleme, CV hazırlama, mülakat teknikleri ve iş arama stratejileri.",
+    "USEC0014": "Dijital teknoloji kullanım alışkanlıkları, bağımlılık belirtileri ve sağlıklı teknoloji kullanımı.",
+    "USEC0016": "İngilizce ortamda proje yönetimi kavramları, proje döngüsü ve ekip koordinasyonu.",
+    "USEC0018": "İş yerinde sağlık ve güvenlik mevzuatı, risk değerlendirme ve kaza önleme yöntemleri.",
+    "USEC0035": "Kalite yönetim sistemleri, ISO standartları ve veri okur-yazarlığı temel kavramları.",
+    "USEC0038": "Toplumsal duyarlılık projeleri, sivil toplum kuruluşları ile gönüllü çalışma deneyimi.",
+    "USEC0044": "Girişimcilik ekosistemi, iş fikri geliştirme, iş planı hazırlama ve finansman kaynakları.",
+    # YZM seçmeli dersler
+    "YZM2006": "Yazılım geliştirme süreçlerinde kalite güvencesi, test stratejileri ve otomasyon araçları.",
+    "YZM2015": "Karmaşık sistemlerde matematiksel modelleme, optimizasyon ve sayısal analiz teknikleri.",
+    "YZM2020": "Veri tabanı tasarımı, SQL ve NoSQL sistemleri, veri modelleme ve sorgulama ileri konuları.",
+    "YZM2025": "Yazılım mimarisi kalıpları, dağıtık sistemler ve büyük ölçekli sistem tasarım prensipleri.",
+    "YZM3028": "Yapay zeka temel algoritmaları, makine öğrenimi modelleri ve uygulama alanları.",
+    "YZM3033": "Programlama dili paradigmaları, sözdizimi analizi ve dil tasarım ilkeleri.",
+    "YZM3034": "Mobil uygulama geliştirme süreçleri, iOS/Android platformları ve kullanıcı deneyimi tasarımı.",
+    # ESM seçmeli dersler
+    "ESM2013": "Enerji çevrimi ve enerji kaynaklarının termodinamik analizi, enerji verimliliği ilkeleri.",
+    "ESM2023": "Kimyasal reaksiyonlarda ısı ve enerji dengesi, endüstriyel termokimya uygulamaları.",
+    "ESM3044": "Nükleer fisyon ve füzyon, reaktör tasarımı ve nükleer enerji santralleri işletimi.",
+    "ESM3048": "Kombinasyonel ve ardışık lojik devre tasarımı, sayısal elektronik ve FPGA uygulamaları.",
+    # OINS seçmeli dersler
+    "OINS2001": "İnşaat malzemelerinin mekanik özellikleri, beton, çelik ve ahşap yapı malzemeleri.",
+    "OINS2002": "Zemin mekaniği ilkeleri, temel mühendisliği ve zemin araştırma yöntemleri.",
+    "OINS2014": "Yapı statik analizi, yük dağılımları ve basit yapı sistemlerinin hesabı.",
+    "OINS2016": "İnşaat proje yönetimi, maliyet tahmini, program yapımı ve sözleşme yönetimi.",
+    "OINS2018": "Çevre mühendisliği temelleri, atık su arıtma ve çevresel etki değerlendirmesi.",
+    "OINS2019": "Yapı malzemeleri ve tekniklerinin genel tanıtımı, temel inşaat uygulamaları.",
+    "OINS2027": "Mühendislik çizim teknikleri, CAD programları ve teknik belgeleme standartları.",
+    "OINS2033": "Beton teknolojisi, karışım tasarımı ve beton kalite kontrol yöntemleri.",
+    "OINS2034": "Ulaştırma mühendisliği temel kavramları, yol geometrisi ve trafik akışı.",
+    "OINS3002": "Köprü, tünel ve viyadük tasarımı; altyapı yapılarının mühendislik ilkeleri.",
+    "OINS3022": "Betonarme yapı elemanlarının tasarımı ve hesabı, TS500 ve Eurocode kapsamında.",
+    "OINS3028": "Deprem mühendisliği, yük analizi ve yapıların deprem performans değerlendirmesi.",
+    "OINS3030": "Su kaynakları planlaması, sulama sistemleri ve hidrolik yapı tasarımı.",
+    "OINS4010": "İnşaat sektöründe araştırma metodolojisi, veri analizi ve akademik yazım.",
+    "OINS4016": "Çelik yapı sistemleri, birleşim detayları ve hafif çelik konstrüksiyonlar.",
+    "OINS4024": "Akıllı ulaşım sistemleri, trafik simülasyonu ve kentsel hareketlilik çözümleri.",
+    "OINS4036": "Yapı proje yönetiminde ileri konular, risk analizi ve BIM teknolojileri.",
+    "OINS4038": "Kentsel dönüşüm projeleri, yapı güçlendirme ve yıkım mühendisliği.",
+    # Diğer seçmeli dersler
+    "YDI2008": "Akademik ve mesleki İngilizce konuşma becerileri, sunum ve tartışma pratiği.",
+}
+
+
 class Command(BaseCommand):
     help = "ESM, YZM, OINS bölümleri ve derslerini seed'le (update_or_create)"
 
@@ -687,7 +741,7 @@ class Command(BaseCommand):
                             },
                         )
 
-                    # Update name/credits even if course existed
+                    # Update name/credits/description even if course existed
                     changed = False
                     if course.name != name:
                         course.name = name
@@ -695,8 +749,12 @@ class Command(BaseCommand):
                     if course.credits != credits:
                         course.credits = credits
                         changed = True
+                    desc = COURSE_DESCRIPTIONS.get(code, "")
+                    if desc and course.description != desc:
+                        course.description = desc
+                        changed = True
                     if changed:
-                        course.save(update_fields=["name", "credits"])
+                        course.save(update_fields=["name", "credits", "description"])
 
                     CurriculumItem.objects.get_or_create(
                         program=program,

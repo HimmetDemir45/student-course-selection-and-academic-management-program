@@ -68,10 +68,14 @@
         <i data-lucide="{% if showing_all_departments %}globe{% else %}filter{% endif %}"
            class="h-4 w-4 flex-shrink-0 {% if showing_all_departments %}text-amber-400{% else %}text-indigo-300{% endif %}"></i>
         {% if showing_all_departments %}
-            <span class="text-amber-200">{% trans "Tüm bölümlerin dersleri gösteriliyor. Kendi bölümün dışındaki dersler müfredat planına uygun olmayabilir." %}</span>
+            <span class="text-amber-200">{% trans "Tüm dersleri görüntülüyorsunuz. Müfredat dışı dersler danışman onayı gerektirebilir." %}</span>
         {% else %}
             <span class="text-indigo-200">
-                <strong>{{ own_department.code }}</strong> {% trans "bölümünün dersleri gösteriliyor." %}
+                {% if own_program %}
+                    <strong>{{ own_program.code }}</strong> {% trans "programının müfredat dersleri gösteriliyor." %}
+                {% else %}
+                    <strong>{{ own_department.code }}</strong> {% trans "bölümünün dersleri gösteriliyor." %}
+                {% endif %}
             </span>
         {% endif %}
     </div>

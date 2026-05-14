@@ -183,7 +183,23 @@ class AnnouncementListView(LoginRequiredMixin, ListView):
             base = qs
         else:
             role_filter = Q(target_role="all") | Q(target_role=user.role)
-            base = qs.filter(is_active=True).filter(role_filter)
+            # Bölüm filtresi: department=None ise herkese, set ise sadece o bölüme
+            user_dept_id = None
+            if user.role == "student":
+                try:
+                    user_dept_id = user.student_profile.department_id
+                except ObjectDoesNotExist:
+                    pass
+            elif user.role == "instructor":
+                try:
+                    user_dept_id = user.instructor_profile.department_id
+                except ObjectDoesNotExist:
+                    pass
+            if user_dept_id:
+                dept_filter = Q(department__isnull=True) | Q(department_id=user_dept_id)
+            else:
+                dept_filter = Q(department__isnull=True)
+            base = qs.filter(is_active=True).filter(role_filter).filter(dept_filter)
         q = (self.request.GET.get("q") or "").strip()
         if q:
             base = base.filter(Q(title__icontains=q) | Q(body__icontains=q))
@@ -260,6 +276,13 @@ class InstructorEnrollmentListView(InstructorRequiredMixin, ListView):
             "section__offering__course",
             "section__offering__semester",
             "academic_grade",
+        ).filter(
+            status__in=(
+                Enrollment.Status.ENROLLED,
+                Enrollment.Status.PENDING,
+                Enrollment.Status.COMPLETED,
+            ),
+            section__offering__semester__is_active=True,
         ).order_by("section__offering__course__code", "section__offering__section", "student__student_no")
         if user.role == "admin":
             pass
@@ -318,6 +341,14 @@ class GradeEntryView(InstructorRequiredMixin, View):
             pk=enrollment_id,
         )
         _assert_can_grade(request.user, enrollment)
+        allowed_statuses = (
+            Enrollment.Status.ENROLLED,
+            Enrollment.Status.PENDING,
+            Enrollment.Status.COMPLETED,
+        )
+        if enrollment.status not in allowed_statuses:
+            messages.error(request, _("Bu kayıt için not girilemez (öğrenci dersi bırakmış veya beklemede)."))
+            return redirect("academic:instructor_enrollments")
         grade, _created = Grade.objects.get_or_create(enrollment=enrollment)
         form = GradeForm(instance=grade)
         return render(
@@ -808,7 +839,7 @@ class AttendanceSectionListView(InstructorRequiredMixin, ListView):
         qs = (
             CourseSection.objects
             .select_related("offering__course", "offering__semester", "offering__instructor__user")
-            .filter(is_active=True)
+            .filter(is_active=True, offering__semester__is_active=True)
             .annotate(record_count=Count("attendance_records"))
         )
         if inst is not None:
@@ -1174,6 +1205,12 @@ class WeeklyScheduleView(LoginRequiredMixin, View):
                 slots_qs = base_qs.filter(section__offering__instructor=profile)
                 if sem_id.isdigit():
                     slots_qs = slots_qs.filter(section__offering__semester_id=int(sem_id))
+                else:
+                    active_sem_ids = list(
+                        Semester.objects.filter(is_active=True).values_list("pk", flat=True)
+                    )
+                    if active_sem_ids:
+                        slots_qs = slots_qs.filter(section__offering__semester_id__in=active_sem_ids)
             else:
                 slots_qs = SectionTimeSlot.objects.none()
 
@@ -1181,6 +1218,12 @@ class WeeklyScheduleView(LoginRequiredMixin, View):
             slots_qs = base_qs
             if sem_id.isdigit():
                 slots_qs = slots_qs.filter(section__offering__semester_id=int(sem_id))
+            else:
+                active_sem_ids = list(
+                    Semester.objects.filter(is_active=True).values_list("pk", flat=True)
+                )
+                if active_sem_ids:
+                    slots_qs = slots_qs.filter(section__offering__semester_id__in=active_sem_ids)
 
         # Build schedule grid: {weekday: [{"slot":..., "top_px":..., "height_px":...}, ...]}
         schedule = {d: [] for d in range(7)}
@@ -1229,8 +1272,8 @@ class WeeklyScheduleView(LoginRequiredMixin, View):
             try:
                 _profile = user.student_profile
                 sem_list = Semester.objects.filter(
-                    coursesection__enrollments__student=_profile,
-                    coursesection__enrollments__status__in=[
+                    offerings__section_detail__enrollments__student=_profile,
+                    offerings__section_detail__enrollments__status__in=[
                         Enrollment.Status.ENROLLED,
                         Enrollment.Status.PENDING,
                     ],
