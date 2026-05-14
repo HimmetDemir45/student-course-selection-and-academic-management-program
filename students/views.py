@@ -84,6 +84,38 @@ class TranscriptView(StudentRequiredMixin, TemplateView):
                 }
             )
         ctx["semester_blocks"] = semester_blocks
+
+        # Aktif dönem — devam eden kayıtlar
+        from academic.models import Semester as SemesterModel
+        active_sems = SemesterModel.objects.filter(is_active=True)
+        active_enrollments = (
+            Enrollment.objects.filter(
+                student=profile,
+                status__in=(Enrollment.Status.ENROLLED, Enrollment.Status.PENDING),
+                section__offering__semester__in=active_sems,
+            )
+            .select_related(
+                "section__offering__course",
+                "section__offering__semester",
+                "academic_grade",
+            )
+            .order_by("section__offering__course__code")
+        )
+        active_list = list(active_enrollments)
+        if active_list:
+            graded = [e for e in active_list if hasattr(e, "academic_grade") and e.academic_grade and e.academic_grade.letter_grade]
+            in_progress_gpa, in_progress_credits = gpa_from_completed_enrollments(graded)
+            ctx["active_block"] = {
+                "semester": active_list[0].section.offering.semester,
+                "rows": active_list,
+                "in_progress_gpa": in_progress_gpa,
+                "in_progress_credits": in_progress_credits,
+                "graded_count": len(graded),
+                "total_count": len(active_list),
+            }
+        else:
+            ctx["active_block"] = None
+
         ctx["breadcrumb_items"] = items(
             home(),
             {"label": _("Öğrenci alanı"), "url": reverse("students:index")},

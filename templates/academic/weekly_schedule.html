@@ -21,11 +21,15 @@
             {% endif %}
         </p>
     </div>
-    {% if user.role == "admin" or user.role == "instructor" %}
+    {% if semesters %}
     <div class="akd-page-header__actions">
         <form method="get" class="flex items-center gap-2">
             <select name="semester" class="akd-input akd-input--sm" onchange="this.form.submit()" style="min-width:13rem;">
-                <option value="">{% trans "Tüm dönemler" %}</option>
+                {% if user.role == "student" %}
+                    <option value="">{% trans "Aktif dönem" %}</option>
+                {% else %}
+                    <option value="">{% trans "Tüm dönemler" %}</option>
+                {% endif %}
                 {% for sem in semesters %}
                 <option value="{{ sem.pk }}" {% if selected_semester == sem.pk|stringformat:"s" %}selected{% endif %}>
                     {{ sem }}
@@ -86,12 +90,14 @@
                  style="top: {{ tl.top_px }}px;"></div>
             {% endfor %}
 
-            {# Ders kartları #}
+            {# Ders kartları — col_index/col_count ile yan yana çakışma çözümü #}
             {% for item in col.items %}
-            <div class="absolute left-1 right-1 rounded-lg px-2 py-1 overflow-hidden
+            <div class="absolute rounded-lg px-2 py-1 overflow-hidden
                         bg-indigo-600/70 border border-indigo-400/40
                         hover:bg-indigo-600/90 transition-colors cursor-default select-none group"
-                 style="top: {{ item.top_px }}px; height: {{ item.height_px }}px; min-height: 26px;"
+                 style="top: {{ item.top_px }}px; height: {{ item.height_px }}px; min-height: 26px;
+                        left: calc(4px + {{ item.col_index }} * (100% - 8px) / {{ item.col_count }});
+                        width: calc((100% - 8px) / {{ item.col_count }} - 2px);"
                  title="{{ item.slot.section.offering.course.code }} — {{ item.slot.section.offering.course.name }}&#10;{{ item.slot.start_time|time:'H:i' }}–{{ item.slot.end_time|time:'H:i' }}{% if item.slot.section.offering.classroom %} · {{ item.slot.section.offering.classroom }}{% endif %}">
 
                 <p class="text-[11px] font-bold text-white leading-tight truncate">

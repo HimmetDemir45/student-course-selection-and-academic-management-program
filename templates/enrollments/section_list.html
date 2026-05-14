@@ -7,6 +7,14 @@
 {% trans "Ders kaydı — açılan şubeler" as section_title %}
 {% include "includes/page_header.html" with header_title=section_title header_eyebrow=_("Ders kaydı") header_subtitle=_("Açılan şubeleri ara, kontenjan durumuna göre filtrele ve kaydını oluştur.") header_actions_template="includes/page_header_actions/enrollment_section.html" %}
 
+{# ===== Onay uyarısı ===== #}
+{% if student_not_approved %}
+<div class="akd-alert akd-alert--warning mb-6" role="alert">
+    <i data-lucide="shield-alert" class="akd-alert__icon" aria-hidden="true"></i>
+    <span>{% trans "Hesabınız henüz yönetici tarafından onaylanmamış. Ders listesini görüntüleyebilirsiniz ancak kayıt yapılamaz." %}</span>
+</div>
+{% endif %}
+
 {# ===== Mevcut kayıtlar özet paneli (yalnızca öğrenci) ===== #}
 {% if my_enrollments %}
 <section class="mb-6">
@@ -49,6 +57,37 @@
 <div class="mb-6 rounded-xl border border-white/10 bg-white/4 px-5 py-4 text-sm text-white/55">
     <i data-lucide="info" class="inline h-3.5 w-3.5 mr-1"></i>
     {% trans "Henüz hiçbir derse kayıt yaptırmadın. Aşağıdan şube seçerek başlayabilirsin." %}
+</div>
+{% endif %}
+
+{# ===== Bölüm kısıtlama bildirimi (yalnızca öğrenci) ===== #}
+{% if own_department and user.role == "student" %}
+<div class="mb-4 flex items-center justify-between gap-4 rounded-xl border px-4 py-3
+    {% if showing_all_departments %}border-amber-400/25 bg-amber-500/8{% else %}border-indigo-400/20 bg-indigo-500/8{% endif %}">
+    <div class="flex items-center gap-2.5 text-sm">
+        <i data-lucide="{% if showing_all_departments %}globe{% else %}filter{% endif %}"
+           class="h-4 w-4 flex-shrink-0 {% if showing_all_departments %}text-amber-400{% else %}text-indigo-300{% endif %}"></i>
+        {% if showing_all_departments %}
+            <span class="text-amber-200">{% trans "Tüm bölümlerin dersleri gösteriliyor. Kendi bölümün dışındaki dersler müfredat planına uygun olmayabilir." %}</span>
+        {% else %}
+            <span class="text-indigo-200">
+                <strong>{{ own_department.code }}</strong> {% trans "bölümünün dersleri gösteriliyor." %}
+            </span>
+        {% endif %}
+    </div>
+    {% if showing_all_departments %}
+        <a href="?" class="akd-btn akd-btn--sm shrink-0"
+           style="background:rgba(99,102,241,0.15);color:#a5b4fc;border-color:rgba(99,102,241,0.3);">
+            <i data-lucide="filter" class="h-3.5 w-3.5"></i>
+            <span>{% trans "Kendi bölümüm" %}</span>
+        </a>
+    {% else %}
+        <a href="?department=all" class="akd-btn akd-btn--sm shrink-0"
+           style="background:rgba(245,158,11,0.12);color:#fcd34d;border-color:rgba(245,158,11,0.25);">
+            <i data-lucide="globe" class="h-3.5 w-3.5"></i>
+            <span>{% trans "Tüm bölümler" %}</span>
+        </a>
+    {% endif %}
 </div>
 {% endif %}
 
@@ -173,21 +212,49 @@
                                 <i data-lucide="check" class="inline h-3 w-3"></i>
                                 {% trans "Kayıtlı" %}
                             </span>
+                        {% elif s.is_waitlisted %}
+                            <span class="text-xs text-amber-300 font-medium">
+                                <i data-lucide="clock" class="inline h-3 w-3"></i>
+                                {% trans "Bekleme listesi" %}
+                            </span>
                         {% else %}
+                            {% if s.enrollment_preview and not s.enrollment_preview.eligible %}
+                                {% with blocker_kinds=s.enrollment_preview.blockers_display|dictsort:"kind" %}
+                                {% if s.open_seats is not None and s.open_seats <= 0 %}
+                                    {# Kapasite dolu — bekleme listesi sun #}
+                                    <form method="post" action="{% url 'enrollments:waitlist' %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="section_id" value="{{ s.pk }}">
+                                        <button type="submit"
+                                                class="akd-btn akd-btn--sm"
+                                                style="background:rgba(245,158,11,0.15);color:#fcd34d;border-color:rgba(245,158,11,0.3);"
+                                                aria-label="{% trans 'Bekleme listesine eklen' %} {{ s.offering.course.code }}">
+                                            <i data-lucide="clock" class="h-3.5 w-3.5"></i>
+                                            <span>{% trans "Bekle" %}</span>
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <button type="button"
+                                            class="akd-btn akd-btn--primary akd-btn--sm"
+                                            disabled aria-disabled="true"
+                                            title="{% trans 'Önkoşul veya çakışma nedeniyle kayıt mümkün değil' %}">
+                                        <i data-lucide="ban" class="h-3.5 w-3.5"></i>
+                                        <span>{% trans "Kayıt yapılamaz" %}</span>
+                                    </button>
+                                {% endif %}
+                                {% endwith %}
+                            {% else %}
                             <form method="post" action="{% url 'enrollments:enroll' %}">
                                 {% csrf_token %}
                                 <input type="hidden" name="section_id" value="{{ s.pk }}">
                                 <button type="submit"
                                         class="akd-btn akd-btn--primary akd-btn--sm"
-                                        {% if s.enrollment_preview and not s.enrollment_preview.eligible %}
-                                            disabled aria-disabled="true"
-                                            title="{% trans 'Önkoşul, çakışma veya kontenjan nedeniyle kayıt mümkün değil' %}"
-                                        {% endif %}
                                         aria-label="{% trans 'Bu şubeye ders kaydı yap' %} {{ s.offering.course.code }}">
                                     <i data-lucide="plus" class="h-3.5 w-3.5"></i>
                                     <span>{% trans "Kayıt ol" %}</span>
                                 </button>
                             </form>
+                            {% endif %}
                         {% endif %}
                     {% endif %}
                 </td>

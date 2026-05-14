@@ -28,6 +28,12 @@ def enroll_student_in_section_atomic(student_profile: StudentProfile, section_id
     Locks the CourseSection row (select_for_update) then validates and saves enrollment.
     Raises CourseSection.DoesNotExist, ValidationError, IntegrityError (duplicate student+section).
     """
+    if not getattr(student_profile, "is_approved", False):
+        raise ValidationError(
+            "Hesabınız henüz yönetici tarafından onaylanmamış. "
+            "Onay tamamlandıktan sonra ders kaydı yapabilirsiniz."
+        )
+
     pk = _parse_section_pk(section_id_raw)
     if pk is None:
         raise ValidationError("Gecersiz section secimi.")

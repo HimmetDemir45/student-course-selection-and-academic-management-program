@@ -16,6 +16,10 @@
         </p>
     </div>
     <div class="akd-page-header__actions">
+        <a class="akd-btn akd-btn--primary akd-btn--sm" href="{% url 'dashboard:student_create' %}">
+            <i data-lucide="user-plus" class="h-3.5 w-3.5"></i>
+            <span>{% trans "Yeni Öğrenci" %}</span>
+        </a>
         <a class="akd-btn akd-btn--secondary akd-btn--sm" href="{% url 'dashboard:index' %}">
             <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i>
             <span>{% trans "Geri" %}</span>

@@ -10,4 +10,5 @@ urlpatterns = [
     path("my-selections/", views.StudentMyCourseSelectionsView.as_view(), name="my_course_selections"),
     path("enroll/", views.StudentEnrollView.as_view(), name="enroll"),
     path("<int:pk>/drop/", views.StudentDropEnrollmentView.as_view(), name="drop"),
+    path("waitlist/", views.StudentWaitlistView.as_view(), name="waitlist"),
 ]

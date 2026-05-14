@@ -60,4 +60,10 @@ urlpatterns = [
     path("timeslots/<int:slot_pk>/delete/", views.timeslot_delete, name="timeslot_delete"),
     # Haftalık program
     path("haftalik-program/", views.WeeklyScheduleView.as_view(), name="weekly_schedule"),
+    # Eğitim görevlisi alternatif ders önerisi
+    path(
+        "instructor/enrollments/<int:enrollment_id>/reassign/",
+        views.InstructorReassignCourseView.as_view(),
+        name="enrollment_reassign",
+    ),
 ]
