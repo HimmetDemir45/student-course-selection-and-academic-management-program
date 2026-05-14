@@ -20,9 +20,10 @@ if TYPE_CHECKING:
 ALLOWED = {
     "pending": ("enrolled", "dropped"),
     "enrolled": ("dropped", "withdrawn", "completed"),
-    "dropped": (),
+    "dropped": ("pending",),   # bekleme listesinden terfi veya yeniden kayıt
     "withdrawn": (),
     "completed": (),
+    "waitlisted": ("pending", "dropped"),
 }
 
 
@@ -48,6 +49,9 @@ def transition_enrollment_status(
         raise ValidationError(f"Durum gecisi izin verilmiyor: {old} -> {new_status}")
     if new_status == Enrollment.Status.DROPPED:
         enrollment_rules.validate_drop_window(enrollment, new_status, at)
+    # Danışman onayı (PENDING→ENROLLED) anında kapasite kontrolü yap
+    if new_status == Enrollment.Status.ENROLLED and old == Enrollment.Status.PENDING:
+        enrollment_rules.validate_capacity(enrollment)
     enrollment.status = new_status
     enrollment.save()
     if actor is not None and getattr(actor, "is_authenticated", False):
