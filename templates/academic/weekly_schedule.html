@@ -43,6 +43,18 @@
 
 {% include "includes/breadcrumbs.html" %}
 
+{% if showing_curriculum_fallback %}
+<div class="mb-4 rounded-xl border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200 flex items-start gap-3">
+    <i data-lucide="info" class="h-4 w-4 mt-0.5 flex-shrink-0"></i>
+    <div>
+        <p class="font-semibold mb-0.5">{% trans "Henüz aktif ders kaydın yok" %}</p>
+        <p class="text-amber-200/80 text-xs leading-relaxed">
+            {% trans "Aşağıda programının müfredat dersleri gösteriliyor. Kayıt yapmak için 'Ders kaydı' sayfasına gidebilirsin." %}
+        </p>
+    </div>
+</div>
+{% endif %}
+
 {# Check for any data #}
 {% with has_data=False %}
 {% for col in schedule_cols %}{% if col.items %}{% with has_data=True %}{% endwith %}{% endif %}{% endfor %}

@@ -574,24 +574,40 @@ select.form-select {
 /* Dark modda native select dropdown'ı koyu göster */
 html.dark .akd-form select,
 html.dark select.form-control,
-html.dark select.form-select {
+html.dark select.form-select,
+html.dark select.akd-input,
+html.dark select[class*="akd-input"],
+html.dark .akd-input {
   color-scheme: dark;
 }
 
-/* Option elementleri: dark modda açık popup'ta okunabilir koyu zemin + açık metin */
+/* Option elementleri: dark modda native popup koyu zemin + açık metin */
 html.dark .akd-form select option,
 html.dark select.form-control option,
 html.dark select.form-select option,
-html.dark .akd-input option {
-  background-color: #1a1d2e;
-  color: #e2e8f0;
+html.dark select.akd-input option,
+html.dark select[class*="akd-input"] option,
+html.dark .akd-input option,
+html.dark option {
+  background-color: #1a1d2e !important;
+  color: #e2e8f0 !important;
 }
 
 html.dark .akd-form select option:checked,
 html.dark select.form-control option:checked,
-html.dark select.form-select option:checked {
-  background-color: #3730a3;   /* indigo-800 */
-  color: #ffffff;
+html.dark select.form-select option:checked,
+html.dark select.akd-input option:checked,
+html.dark select[class*="akd-input"] option:checked,
+html.dark option:checked {
+  background-color: #3730a3 !important;   /* indigo-800 */
+  color: #ffffff !important;
+}
+
+html.dark .akd-form select option:hover,
+html.dark select.akd-input option:hover,
+html.dark option:hover {
+  background-color: #312e81 !important;   /* indigo-900 */
+  color: #ffffff !important;
 }
 
 .akd-form textarea,
@@ -2232,15 +2248,56 @@ html:not(.dark) [class*="bg-violet-6"] [data-lucide] {
    metin rengi beyaz kalınca okunamaz hale gelir.
    ============================================================ */
 html:not(.dark) select.akd-input,
-html:not(.dark) select[class*="akd-input"] {
-  background-color: var(--akd-surface-1, #ffffff) !important;
-  color: var(--akd-text-strong, #0f172a) !important;
+html:not(.dark) select[class*="akd-input"],
+html:not(.dark) .akd-form select,
+html:not(.dark) select.form-control,
+html:not(.dark) select.form-select {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  color-scheme: light;
+  border-color: #cbd5e1 !important;
 }
 
 html:not(.dark) select.akd-input option,
-html:not(.dark) select[class*="akd-input"] option {
+html:not(.dark) select[class*="akd-input"] option,
+html:not(.dark) .akd-form select option,
+html:not(.dark) select.form-control option,
+html:not(.dark) select.form-select option,
+html:not(.dark) option {
   background-color: #ffffff !important;
   color: #0f172a !important;
+}
+
+html:not(.dark) select.akd-input option:checked,
+html:not(.dark) select[class*="akd-input"] option:checked,
+html:not(.dark) option:checked {
+  background-color: #6366f1 !important;
+  color: #ffffff !important;
+}
+
+html:not(.dark) select.akd-input option:hover,
+html:not(.dark) option:hover {
+  background-color: #eef2ff !important;
+  color: #0f172a !important;
+}
+
+/* Input ve textarea — light tema güçlendirme */
+html:not(.dark) input.akd-input,
+html:not(.dark) textarea.akd-input,
+html:not(.dark) .akd-form input,
+html:not(.dark) .akd-form textarea,
+html:not(.dark) input.form-control,
+html:not(.dark) textarea.form-control {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+html:not(.dark) input.akd-input::placeholder,
+html:not(.dark) textarea.akd-input::placeholder,
+html:not(.dark) .akd-form input::placeholder,
+html:not(.dark) .akd-form textarea::placeholder {
+  color: #94a3b8 !important;
 }
 
 /* Sidebar aktif bağlantı — border-white/20 class, "bg-white/10 text-white" ile birlikte

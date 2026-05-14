@@ -610,6 +610,9 @@ def _assert_is_advisor(user, student_profile):
         inst = user.instructor_profile
     except ObjectDoesNotExist as exc:
         raise PermissionDenied from exc
+    # is_advisor flag'i şart: danışman olmayan hoca danışmanlık işlemi yapamaz
+    if not inst.is_advisor:
+        raise PermissionDenied
     if student_profile.advisor_id != inst.pk:
         raise PermissionDenied
 
@@ -624,6 +627,9 @@ class DanismanAdviseeListView(InstructorRequiredMixin, ListView):
     def get_queryset(self):
         from students.models import StudentProfile
         inst = _get_instructor_or_403(self.request.user)
+        # Danışman olmayan hocalar bu sayfayı göremez
+        if inst is not None and not inst.is_advisor:
+            raise PermissionDenied
         qs = (
             StudentProfile.objects.select_related("user", "department", "program")
             .annotate(
@@ -789,7 +795,10 @@ def enrollment_approve(request, enrollment_id):
 
         if inst is not None:
             is_course_instructor = enrollment.section.offering.instructor_id == inst.pk
-            is_advisor = enrollment.student.advisor_id == inst.pk
+            # Danışman ataması olsa bile is_advisor=False ise yetki yok
+            is_advisor = (
+                enrollment.student.advisor_id == inst.pk and inst.is_advisor
+            )
             if not is_course_instructor and not is_advisor:
                 raise PermissionDenied
 
@@ -848,7 +857,10 @@ def enrollment_reject(request, enrollment_id):
 
         if inst is not None:
             is_course_instructor = enrollment.section.offering.instructor_id == inst.pk
-            is_advisor = enrollment.student.advisor_id == inst.pk
+            # Danışman ataması olsa bile is_advisor=False ise yetki yok
+            is_advisor = (
+                enrollment.student.advisor_id == inst.pk and inst.is_advisor
+            )
             if not is_course_instructor and not is_advisor:
                 raise PermissionDenied
 
@@ -1013,12 +1025,13 @@ class AttendanceTakeView(InstructorRequiredMixin, View):
             record = None
             entry_map = {}
 
+        # Sadece danışman onayı almış (ENROLLED) ya da tamamlamış (COMPLETED) öğrenciler yoklamaya alınabilir.
+        # PENDING (onay bekleyen) öğrenciler kaydı kesinleşmediği için listeye dahil edilmez.
         enrolled = list(
             Enrollment.objects.filter(
                 section=section,
                 status__in=(
                     Enrollment.Status.ENROLLED,
-                    Enrollment.Status.PENDING,
                     Enrollment.Status.COMPLETED,
                 ),
             )
@@ -1087,6 +1100,13 @@ class AttendanceTakeView(InstructorRequiredMixin, View):
             sel_date = datetime.date.fromisoformat(date_str)
         except ValueError:
             sel_date = tz.localdate()
+
+        # Gelecek tarihlere yoklama girilemez
+        if sel_date > tz.localdate():
+            messages.error(request, _("Gelecek bir tarihe yoklama girilemez."))
+            return redirect(
+                reverse("academic:attendance_take", kwargs={"section_pk": section_pk})
+            )
 
         # Tarih dönem aralığında mı?
         sem = section.offering.semester
@@ -1265,42 +1285,69 @@ def _assign_columns(items: list) -> list:
     Aynı gün sütunundaki çakışan kartlara alt-sütun (col_index, col_count) atar.
     items: [{"top_px": int, "height_px": int, ...}, ...]
     Her item'a col_index ve col_count eklenir; orijinal liste döner.
+
+    Algoritma:
+    1. items'i başlangıç zamanına göre sırala
+    2. Greedy yerleşim: her item için boş alt-sütun bul, yoksa yeni aç
+    3. Çakışma gruplarını tespit et: zaman aralığında üst üste binen tüm
+       item'lar aynı GRUBA dahildir → grubun tüm item'ları aynı col_count alır
+       (bu sayede tek dersli + 3 dersli aynı saat aralığını paylaşamaz —
+        tek dersli olan da grubun max genişliğine göre daralır)
     """
     if not items:
         return items
-    sorted_items = sorted(items, key=lambda x: x["top_px"])
-    # sub_col_ends[i] = i. alt-sütunun son doldurulan piksel değeri
-    sub_col_ends: list[int] = []
-    col_indices: list[int] = []
 
-    for it in sorted_items:
+    sorted_items = sorted(items, key=lambda x: x["top_px"])
+    n = len(sorted_items)
+
+    # Greedy column assignment
+    sub_col_ends: list[int] = []
+    col_indices: list[int] = [0] * n
+
+    for idx, it in enumerate(sorted_items):
         top = it["top_px"]
         bottom = top + it["height_px"]
         placed = False
         for i, end in enumerate(sub_col_ends):
             if top >= end:
-                col_indices.append(i)
+                col_indices[idx] = i
                 sub_col_ends[i] = bottom
                 placed = True
                 break
         if not placed:
-            col_indices.append(len(sub_col_ends))
+            col_indices[idx] = len(sub_col_ends)
             sub_col_ends.append(bottom)
 
-    # Overlap gruplarını bul — aynı anda çakışan kartların max alt-sütun sayısı
+    # Çakışma grupları: union-find ile birleştir
+    parent = list(range(n))
+    def find(x):
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+    def union(a, b):
+        ra, rb = find(a), find(b)
+        if ra != rb:
+            parent[ra] = rb
+
+    for i in range(n):
+        ti, bi = sorted_items[i]["top_px"], sorted_items[i]["top_px"] + sorted_items[i]["height_px"]
+        for j in range(i + 1, n):
+            tj, bj = sorted_items[j]["top_px"], sorted_items[j]["top_px"] + sorted_items[j]["height_px"]
+            # Çakışma: ti < bj VE tj < bi
+            if ti < bj and tj < bi:
+                union(i, j)
+
+    # Her grubun max col_index'ini bul → grubun col_count'u
+    group_max_col: dict[int, int] = {}
+    for idx in range(n):
+        root = find(idx)
+        group_max_col[root] = max(group_max_col.get(root, 0), col_indices[idx])
+
     for idx, it in enumerate(sorted_items):
-        top = it["top_px"]
-        bottom = top + it["height_px"]
-        max_col = 1
-        for jdx, jt in enumerate(sorted_items):
-            if idx == jdx:
-                continue
-            jtop = jt["top_px"]
-            jbottom = jtop + jt["height_px"]
-            if top < jbottom and jtop < bottom:
-                max_col = max(max_col, col_indices[jdx] + 1)
+        root = find(idx)
         it["col_index"] = col_indices[idx]
-        it["col_count"] = max(max_col, col_indices[idx] + 1)
+        it["col_count"] = group_max_col[root] + 1
 
     return sorted_items
 
@@ -1313,6 +1360,9 @@ class WeeklyScheduleView(LoginRequiredMixin, View):
     def get(self, request):
         user = request.user
         sem_id = (request.GET.get("semester") or "").strip()
+
+        # Öğrencinin programa göre fallback müfredatını mı yoksa kayıtlarını mı gösterdiğini belirtir
+        showing_curriculum_fallback = False
 
         base_qs = (
             SectionTimeSlot.objects
@@ -1331,6 +1381,14 @@ class WeeklyScheduleView(LoginRequiredMixin, View):
             except ObjectDoesNotExist:
                 profile = None
             if profile:
+                # Aktif dönem(ler)i belirle
+                if sem_id.isdigit():
+                    active_sem_ids = [int(sem_id)]
+                else:
+                    active_sem_ids = list(
+                        Semester.objects.filter(is_active=True).values_list("pk", flat=True)
+                    )
+
                 enr_qs = Enrollment.objects.filter(
                     student=profile,
                     status__in=[
@@ -1338,18 +1396,36 @@ class WeeklyScheduleView(LoginRequiredMixin, View):
                         Enrollment.Status.PENDING,
                     ],
                 )
-                # Dönem filtresi: URL'de seçili dönem varsa onu kullan,
-                # yoksa aktif dönemlere göre filtrele.
-                if sem_id.isdigit():
-                    enr_qs = enr_qs.filter(section__offering__semester_id=int(sem_id))
-                else:
-                    active_sem_ids = list(
-                        Semester.objects.filter(is_active=True).values_list("pk", flat=True)
+                if active_sem_ids:
+                    enr_qs = enr_qs.filter(section__offering__semester_id__in=active_sem_ids)
+
+                enrolled_ids = list(enr_qs.values_list("section_id", flat=True))
+
+                if enrolled_ids:
+                    slots_qs = base_qs.filter(section_id__in=enrolled_ids)
+                elif profile.program_id and active_sem_ids:
+                    # Fallback: Öğrenci henüz kayıt olmamış ama programı var
+                    # → programındaki müfredat derslerinin aktif dönemdeki şubelerini göster
+                    showing_curriculum_fallback = True
+                    from datetime import date as _date
+                    try:
+                        cur_year = _date.today().year
+                        year_level = max(1, min(4, cur_year - profile.enrollment_year + 1))
+                    except Exception:
+                        year_level = 1
+
+                    # Programındaki MÜFREDAT dersleri (öğrencinin sınıf yılına eşit veya daha düşük)
+                    curriculum_course_ids = list(
+                        CurriculumItem.objects
+                        .filter(program=profile.program, year_level__lte=year_level)
+                        .values_list("course_id", flat=True)
                     )
-                    if active_sem_ids:
-                        enr_qs = enr_qs.filter(section__offering__semester_id__in=active_sem_ids)
-                enrolled_ids = enr_qs.values_list("section_id", flat=True)
-                slots_qs = base_qs.filter(section_id__in=enrolled_ids)
+                    slots_qs = base_qs.filter(
+                        section__offering__course_id__in=curriculum_course_ids,
+                        section__offering__semester_id__in=active_sem_ids,
+                    )
+                else:
+                    slots_qs = SectionTimeSlot.objects.none()
             else:
                 slots_qs = SectionTimeSlot.objects.none()
 
@@ -1447,6 +1523,7 @@ class WeeklyScheduleView(LoginRequiredMixin, View):
             "col_count": len(days_to_show),
             "semesters": sem_list,
             "selected_semester": sem_id,
+            "showing_curriculum_fallback": showing_curriculum_fallback,
             "breadcrumb_items": items(
                 home(),
                 {"label": _("Haftalık program"), "url": None},
