@@ -12,7 +12,8 @@ from django.utils.translation import gettext as _
 from django.views import View
 from django.views.generic import ListView
 
-from academic.models import CourseSection, Department, Semester
+from academic.models import CourseSection, CurriculumItem, Department, Semester
+from courses.models import ElectivePool
 from core.breadcrumbs import home, items
 from core.permissions import StudentRequiredMixin
 from core.services.audit import EVENT_ENROLLMENT_CREATED, audit_enrollment_event
@@ -41,6 +42,16 @@ class SectionBrowseView(LoginRequiredMixin, ListView):
             return None
         try:
             return user.student_profile.department
+        except ObjectDoesNotExist:
+            return None
+
+    def _student_program(self):
+        """Öğrencinin programını döner; yoksa None."""
+        user = self.request.user
+        if not (user.is_authenticated and getattr(user, "role", None) == "student"):
+            return None
+        try:
+            return user.student_profile.program
         except ObjectDoesNotExist:
             return None
 
@@ -77,18 +88,31 @@ class SectionBrowseView(LoginRequiredMixin, ListView):
         if sem and str(sem).isdigit():
             qs = qs.filter(offering__semester_id=int(sem))
 
-        # Bölüm filtresi: açıkça seçilmişse onu kullan;
-        # öğrenci rolüyse ve filtre yok veya "all" ise kendi bölümüyle sınırla.
+        # Bölüm/program filtresi: açıkça seçilmişse onu kullan;
+        # öğrenci rolüyse ve filtre yok → programın müfredat derslerini göster.
         dep_param = rq.get("department", "").strip()
         if dep_param == "all":
-            pass  # Öğrenci tüm bölümleri görmek istiyor
+            pass  # Öğrenci tüm dersleri görmek istiyor
         elif dep_param and dep_param.isdigit():
             qs = qs.filter(offering__course__department_id=int(dep_param))
         else:
-            # Hiç filtre yok — öğrenciyse kendi bölümünü varsayılan yap
-            own_dept = self._student_department()
-            if own_dept is not None:
-                qs = qs.filter(offering__course__department=own_dept)
+            # Hiç filtre yok — öğrenciyse program müfredatına göre kısıtla
+            own_program = self._student_program()
+            if own_program is not None:
+                curriculum_ids = set(
+                    CurriculumItem.objects.filter(program=own_program)
+                    .values_list("course_id", flat=True)
+                )
+                elective_ids = set(
+                    ElectivePool.objects.filter(program=own_program, is_active=True)
+                    .values_list("courses", flat=True)
+                )
+                allowed_ids = curriculum_ids | elective_ids
+                qs = qs.filter(offering__course_id__in=allowed_ids)
+            else:
+                own_dept = self._student_department()
+                if own_dept is not None:
+                    qs = qs.filter(offering__course__department=own_dept)
 
         if rq.get("avail") == "1":
             qs = qs.filter(open_seats__gt=0)
@@ -128,9 +152,11 @@ class SectionBrowseView(LoginRequiredMixin, ListView):
             "avail": self.request.GET.get("avail", ""),
             "sort": self.request.GET.get("sort", "code"),
         }
-        # Öğrenci için bölüm kısıtlama bilgisi
+        # Öğrenci için program/bölüm kısıtlama bilgisi
         own_dept = self._student_department()
+        own_program = self._student_program()
         ctx["own_department"] = own_dept
+        ctx["own_program"] = own_program
         ctx["showing_all_departments"] = (dep_param == "all")
         # Onay durumu uyarısı
         ctx["student_not_approved"] = False

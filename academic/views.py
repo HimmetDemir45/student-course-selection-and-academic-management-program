@@ -1229,8 +1229,8 @@ class WeeklyScheduleView(LoginRequiredMixin, View):
             try:
                 _profile = user.student_profile
                 sem_list = Semester.objects.filter(
-                    coursesection__enrollments__student=_profile,
-                    coursesection__enrollments__status__in=[
+                    offerings__section_detail__enrollments__student=_profile,
+                    offerings__section_detail__enrollments__status__in=[
                         Enrollment.Status.ENROLLED,
                         Enrollment.Status.PENDING,
                     ],
