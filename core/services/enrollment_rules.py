@@ -49,6 +49,7 @@ def validate_capacity(enrollment: Enrollment) -> None:
         enrollment.Status.ENROLLED,
         enrollment.Status.PENDING,
     ):
+        # WAITLISTED ve diğer pasif durumlar kapasite kontrolünden muaf
         return
     cap = _effective_capacity(enrollment.section)
     used = count_active_enrollments(enrollment.section_id, enrollment.pk)

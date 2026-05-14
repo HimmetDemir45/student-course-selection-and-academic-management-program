@@ -15,6 +15,7 @@ from core.breadcrumbs import home, items
 from core.permissions import AdminRequiredMixin, InstructorRequiredMixin, role_required
 
 from enrollments.models import Enrollment
+from courses.models import Course
 
 from .forms import AnnouncementForm, CurriculumItemForm, DepartmentForm, GradeForm, ProgramForm, SectionTimeSlotForm, SemesterForm
 from .models import Announcement, AttendanceEntry, AttendanceRecord, CourseSection, CurriculumItem, Department, Grade, Program, Semester, SectionTimeSlot
@@ -301,6 +302,7 @@ class InstructorEnrollmentListView(InstructorRequiredMixin, ListView):
                 }
             )
         ctx["section_quick_links"] = quick
+        ctx["all_courses"] = Course.objects.order_by("code").values("pk", "code", "name", "credits")
         return ctx
 
 
@@ -348,6 +350,19 @@ class GradeEntryView(InstructorRequiredMixin, View):
         inline_quick = bool(request.POST.get("inline_quick"))
         if form.is_valid():
             form.save()
+            # Not girişi = öğretmen öğrenciyi kabul etmiş; instructor_approved'ı doldur
+            if not enrollment.instructor_approved:
+                from django.utils import timezone as _tz
+                try:
+                    inst_profile = request.user.instructor_profile
+                except ObjectDoesNotExist:
+                    inst_profile = None
+                Enrollment.objects.filter(pk=enrollment.pk).update(
+                    instructor_approved=True,
+                    instructor_approved_by=inst_profile,
+                    instructor_approved_at=_tz.now(),
+                )
+                enrollment.instructor_approved = True
             snapshot = {
                 "letter_grade": grade.letter_grade,
                 "numeric_grade": str(grade.numeric_grade)
@@ -840,7 +855,11 @@ class AttendanceTakeView(InstructorRequiredMixin, View):
         enrolled = list(
             Enrollment.objects.filter(
                 section=section,
-                status__in=(Enrollment.Status.ENROLLED, Enrollment.Status.COMPLETED),
+                status__in=(
+                    Enrollment.Status.ENROLLED,
+                    Enrollment.Status.PENDING,
+                    Enrollment.Status.COMPLETED,
+                ),
             )
             .select_related("student__user")
             .order_by("student__student_no")
@@ -1053,6 +1072,51 @@ def timeslot_delete(request, slot_pk):
 # Haftalık Ders Programı
 # ---------------------------------------------------------------------------
 
+def _assign_columns(items: list) -> list:
+    """
+    Aynı gün sütunundaki çakışan kartlara alt-sütun (col_index, col_count) atar.
+    items: [{"top_px": int, "height_px": int, ...}, ...]
+    Her item'a col_index ve col_count eklenir; orijinal liste döner.
+    """
+    if not items:
+        return items
+    sorted_items = sorted(items, key=lambda x: x["top_px"])
+    # sub_col_ends[i] = i. alt-sütunun son doldurulan piksel değeri
+    sub_col_ends: list[int] = []
+    col_indices: list[int] = []
+
+    for it in sorted_items:
+        top = it["top_px"]
+        bottom = top + it["height_px"]
+        placed = False
+        for i, end in enumerate(sub_col_ends):
+            if top >= end:
+                col_indices.append(i)
+                sub_col_ends[i] = bottom
+                placed = True
+                break
+        if not placed:
+            col_indices.append(len(sub_col_ends))
+            sub_col_ends.append(bottom)
+
+    # Overlap gruplarını bul — aynı anda çakışan kartların max alt-sütun sayısı
+    for idx, it in enumerate(sorted_items):
+        top = it["top_px"]
+        bottom = top + it["height_px"]
+        max_col = 1
+        for jdx, jt in enumerate(sorted_items):
+            if idx == jdx:
+                continue
+            jtop = jt["top_px"]
+            jbottom = jtop + jt["height_px"]
+            if top < jbottom and jtop < bottom:
+                max_col = max(max_col, col_indices[jdx] + 1)
+        it["col_index"] = col_indices[idx]
+        it["col_count"] = max(max_col, col_indices[idx] + 1)
+
+    return sorted_items
+
+
 class WeeklyScheduleView(LoginRequiredMixin, View):
     """Kullanıcı rolüne göre haftalık ders programını grid olarak gösterir."""
 
@@ -1081,7 +1145,13 @@ class WeeklyScheduleView(LoginRequiredMixin, View):
             if profile:
                 enrolled_ids = (
                     Enrollment.objects
-                    .filter(student=profile, status__in=["enrolled", "approved"])
+                    .filter(
+                        student=profile,
+                        status__in=[
+                            Enrollment.Status.ENROLLED,
+                            Enrollment.Status.PENDING,
+                        ],
+                    )
                     .values_list("section_id", flat=True)
                 )
                 slots_qs = base_qs.filter(section_id__in=enrolled_ids)
@@ -1137,11 +1207,12 @@ class WeeklyScheduleView(LoginRequiredMixin, View):
             h += 1
 
         # Convert to ordered list of day-columns for easy template iteration
+        # _assign_columns adds col_index / col_count for overlap-aware rendering
         schedule_cols = [
             {
                 "day": d,
                 "name": _WEEKDAY_NAMES.get(d, str(d)),
-                "items": schedule[d],
+                "items": _assign_columns(schedule[d]),
             }
             for d in days_to_show
         ]
@@ -1161,3 +1232,57 @@ class WeeklyScheduleView(LoginRequiredMixin, View):
             "nav_url_name": "weekly_schedule",
         }
         return render(request, self.template_name, ctx)
+
+
+class InstructorReassignCourseView(InstructorRequiredMixin, View):
+    """
+    Eğitim görevlisi bir PENDING enrollment için alternatif ders önerir.
+    POST: enrollment_id, suggested_course_id, note
+    """
+
+    def post(self, request, enrollment_id):
+        enrollment = get_object_or_404(Enrollment, pk=enrollment_id)
+
+        # Yetki: sadece ilgili dersin eğitim görevlisi veya admin
+        if request.user.role != "admin":
+            try:
+                inst = request.user.instructor_profile
+            except ObjectDoesNotExist:
+                raise PermissionDenied
+            if enrollment.section.offering.instructor != inst:
+                raise PermissionDenied
+
+        suggested_id = request.POST.get("suggested_course_id")
+        note = request.POST.get("note", "").strip()
+
+        if suggested_id:
+            suggested = Course.objects.filter(pk=suggested_id).first()
+            if suggested:
+                enrollment.reassignment_suggested_course = suggested
+                enrollment.reassignment_note = note
+                # bypass full_clean (add/drop window vs.)
+                super(Enrollment, enrollment).save(update_fields=["reassignment_suggested_course", "reassignment_note"])
+                messages.success(
+                    request,
+                    _("%(student)s için alternatif ders önerisi kaydedildi: %(course)s") % {
+                        "student": enrollment.student.user.get_full_name(),
+                        "course": suggested.code,
+                    },
+                )
+                log_event(
+                    event_type="enrollment.reassignment_suggested",
+                    actor=request.user,
+                    target_type="enrollments.Enrollment",
+                    target_id=str(enrollment.pk),
+                    metadata={
+                        "suggested_course": suggested.code,
+                        "note": note,
+                    },
+                    request=request,
+                )
+            else:
+                messages.error(request, _("Geçersiz ders seçimi."))
+        else:
+            messages.error(request, _("Lütfen bir ders seçin."))
+
+        return redirect("academic:instructor_enrollments")

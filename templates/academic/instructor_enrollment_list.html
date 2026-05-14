@@ -69,7 +69,7 @@
                 <th scope="col">{% trans "Ders / şube" %}</th>
                 <th scope="col" style="width: 9rem;">{% trans "Durum" %}</th>
                 <th scope="col" style="width: 14rem;">{% trans "Not (hızlı)" %}</th>
-                <th scope="col" style="width: 11rem;" class="text-end">{% trans "İşlem" %}</th>
+                <th scope="col" style="width: 16rem;" class="text-end">{% trans "İşlem" %}</th>
             </tr>
         </thead>
         <tbody>
@@ -110,12 +110,23 @@
                     </form>
                 </td>
                 <td class="text-end">
-                    <a class="akd-btn akd-btn--primary akd-btn--sm"
-                       href="{% url 'academic:grade_entry' enrollment_id=e.pk %}"
-                       aria-label="{% trans 'Ayrıntılı not gir' %} {{ e.student.student_no }}">
-                        <i data-lucide="edit-3" class="h-3.5 w-3.5"></i>
-                        <span>{% trans "Ayrıntılı" %}</span>
-                    </a>
+                    <div class="flex items-center justify-end gap-1.5 flex-wrap">
+                        <a class="akd-btn akd-btn--primary akd-btn--sm"
+                           href="{% url 'academic:grade_entry' enrollment_id=e.pk %}"
+                           aria-label="{% trans 'Ayrıntılı not gir' %} {{ e.student.student_no }}">
+                            <i data-lucide="edit-3" class="h-3.5 w-3.5"></i>
+                            <span>{% trans "Ayrıntılı" %}</span>
+                        </a>
+                        {% if e.status == 'pending' or e.status == 'enrolled' %}
+                        <button type="button"
+                                class="akd-btn akd-btn--secondary akd-btn--sm"
+                                onclick="openReassignModal({{ e.pk }}, '{{ e.student.user.get_full_name|escapejs }}', '{{ e.section.offering.course.code|escapejs }}', '{{ e.reassignment_suggested_course.code|default:''|escapejs }}')"
+                                title="{% trans 'Alternatif ders öner' %}">
+                            <i data-lucide="shuffle" class="h-3.5 w-3.5"></i>
+                            <span>{% trans "Alternatif" %}</span>
+                        </button>
+                        {% endif %}
+                    </div>
                 </td>
             </tr>
         {% endfor %}
@@ -125,4 +136,91 @@
 {% endif %}
 
 {% include "includes/pagination.html" %}
+
+{# ── Alternatif Ders Önerisi Modalı ──────────────────────────────────── #}
+<div id="reassign-modal"
+     class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm hidden"
+     role="dialog" aria-modal="true" aria-labelledby="reassign-modal-title">
+    <div class="akd-card max-w-lg w-full mx-4">
+        <header class="akd-card__header">
+            <h2 class="akd-card__title" id="reassign-modal-title">
+                <i data-lucide="shuffle" class="h-4 w-4 mr-2 inline-block"></i>
+                {% trans "Alternatif Ders Öner" %}
+            </h2>
+            <button type="button" onclick="closeReassignModal()" class="akd-btn akd-btn--ghost akd-btn--sm ml-auto">
+                <i data-lucide="x" class="h-4 w-4"></i>
+            </button>
+        </header>
+
+        <form id="reassign-form" method="post" action="" class="akd-form p-4">
+            {% csrf_token %}
+            <p class="text-sm text-white/70 mb-4">
+                <span id="reassign-student-name" class="font-semibold text-white"></span>
+                — <span id="reassign-current-course" class="font-mono text-indigo-300"></span>
+            </p>
+
+            <div class="akd-form-group">
+                <label class="akd-label" for="reassign-course-search">{% trans "Ders Ara" %}</label>
+                <input id="reassign-course-search" type="text" class="akd-input mb-2"
+                       placeholder="{% trans 'Kod veya ad ile ara...' %}"
+                       oninput="filterReassignCourses(this.value)">
+                <select id="suggested_course_id" name="suggested_course_id" class="akd-input" size="6" style="height: auto;">
+                    {% for course in all_courses %}
+                    <option value="{{ course.pk }}" data-search="{{ course.code|lower }} {{ course.name|lower }}">
+                        {{ course.code }} — {{ course.name }} ({{ course.credits }} AKTS)
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="akd-form-group mt-3">
+                <label class="akd-label" for="reassign-note">{% trans "Not (isteğe bağlı)" %}</label>
+                <textarea id="reassign-note" name="note" class="akd-input" rows="3"
+                          placeholder="{% trans 'Öğrenciye yönlendirme notu...' %}"></textarea>
+            </div>
+
+            <div class="flex gap-2 mt-4">
+                <button type="submit" class="akd-btn akd-btn--primary">
+                    <i data-lucide="send" class="h-4 w-4"></i>
+                    <span>{% trans "Öneriyi Kaydet" %}</span>
+                </button>
+                <button type="button" onclick="closeReassignModal()" class="akd-btn akd-btn--ghost">
+                    {% trans "İptal" %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openReassignModal(enrollmentId, studentName, currentCourse, suggestedCode) {
+    document.getElementById('reassign-student-name').textContent = studentName;
+    document.getElementById('reassign-current-course').textContent = currentCourse;
+    document.getElementById('reassign-form').action = `/academic/instructor/enrollments/${enrollmentId}/reassign/`;
+    document.getElementById('reassign-course-search').value = '';
+    filterReassignCourses('');
+    // Önceki öneriyi seç
+    if (suggestedCode) {
+        const opts = document.querySelectorAll('#suggested_course_id option');
+        opts.forEach(o => { if (o.dataset.search.startsWith(suggestedCode.toLowerCase())) o.selected = true; });
+    }
+    document.getElementById('reassign-modal').classList.remove('hidden');
+    document.getElementById('reassign-course-search').focus();
+}
+
+function closeReassignModal() {
+    document.getElementById('reassign-modal').classList.add('hidden');
+}
+
+function filterReassignCourses(query) {
+    const q = query.toLowerCase().trim();
+    document.querySelectorAll('#suggested_course_id option').forEach(opt => {
+        opt.style.display = (!q || opt.dataset.search.includes(q)) ? '' : 'none';
+    });
+}
+
+document.getElementById('reassign-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeReassignModal();
+});
+</script>
 {% endblock %}

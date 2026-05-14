@@ -16,7 +16,7 @@ from instructors.models import InstructorProfile
 from students.models import StudentProfile
 from academic.models import Announcement, Semester
 from academic.forms import SemesterForm
-from .forms import StudentAssignmentForm
+from .forms import StudentAssignmentForm, StudentCreateForm
 from audit_logs.models import AuditLog
 from audit_logs.services import log_event
 from courses.models import CourseOffering
@@ -596,3 +596,66 @@ class StudentAssignmentEditView(AdminRequiredMixin, UpdateView):
             request=self.request,
         )
         return super().form_valid(form)
+
+
+class StudentCreateView(AdminRequiredMixin, View):
+    """Yönetici yeni öğrenci hesabı + profil oluşturur."""
+    template_name = "dashboard/student_create_form.html"
+
+    def get(self, request):
+        form = StudentCreateForm(initial={"is_approved": True, "enrollment_year": 1})
+        return render(request, self.template_name, self._ctx(form))
+
+    @transaction.atomic
+    def post(self, request):
+        form = StudentCreateForm(request.POST)
+        if not form.is_valid():
+            return render(request, self.template_name, self._ctx(form))
+
+        cd = form.cleaned_data
+        user = User.objects.create_user(
+            username=cd["username"],
+            first_name=cd["first_name"],
+            last_name=cd["last_name"],
+            email=cd.get("email") or f"{cd['username']}@uni.edu.tr",
+            password=cd["password"],
+            role=User.Role.STUDENT,
+        )
+
+        student_no = cd.get("student_no") or f"STU{user.pk:06d}"
+        profile = StudentProfile.objects.create(
+            user=user,
+            student_no=student_no,
+            department=cd.get("department"),
+            program=cd.get("program"),
+            enrollment_year=cd["enrollment_year"],
+            advisor=cd.get("advisor"),
+            is_approved=cd.get("is_approved", False),
+        )
+
+        log_event(
+            event_type="student.created",
+            actor=request.user,
+            target_type="students.StudentProfile",
+            target_id=str(profile.pk),
+            metadata={
+                "student_no": profile.student_no,
+                "username": user.username,
+                "program": str(profile.program) if profile.program else "None",
+                "enrollment_year": profile.enrollment_year,
+            },
+            request=request,
+        )
+        messages.success(request, _("%(name)s öğrencisi oluşturuldu.") % {"name": user.get_full_name()})
+        return redirect("dashboard:student_assignment_list")
+
+    def _ctx(self, form):
+        return {
+            "form": form,
+            "breadcrumb_items": items(
+                home(),
+                {"label": _("Pano"), "url": reverse("dashboard:index")},
+                {"label": _("Öğrenci Ataması"), "url": reverse("dashboard:student_assignment_list")},
+                {"label": _("Yeni Öğrenci"), "url": None},
+            ),
+        }

@@ -41,7 +41,76 @@
             {% trans "Genel GPA" %}: {{ gpa }} ({{ gpa_credits }} {% trans "kredi" %})
         </div>
 
-        {% if not semester_blocks %}
+        {# ── Aktif dönem bloğu (devam eden kayıtlar) ── #}
+        {% if active_block %}
+        <section class="akd-card akd-card--flush mb-4 phase15-no-print" aria-label="{% trans 'Aktif dönem' %}">
+            <header class="akd-card__header flex-wrap" style="border-left: 3px solid #6366f1;">
+                <div class="flex items-center gap-3 min-w-0">
+                    <span class="akd-stat__icon akd-stat__icon--brand flex-shrink-0" style="width: 2rem; height: 2rem;">
+                        <i data-lucide="activity" class="h-4 w-4"></i>
+                    </span>
+                    <div>
+                        <h2 class="akd-card__title truncate">{{ active_block.semester }}</h2>
+                        <p class="text-xs text-white/50 mt-0.5">{% trans "Dönem devam ediyor" %}</p>
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-center gap-2 text-xs">
+                    {% if active_block.graded_count > 0 %}
+                    <span class="akd-badge akd-badge--brand">
+                        <i data-lucide="trending-up" class="h-3 w-3"></i>
+                        <span>{% trans "Tahmini GPA" %}: <strong>{{ active_block.in_progress_gpa }}</strong></span>
+                    </span>
+                    {% endif %}
+                    <span class="akd-badge akd-badge--neutral">
+                        {{ active_block.total_count }} {% trans "ders" %}
+                    </span>
+                    <span class="akd-badge" style="background:rgba(99,102,241,0.15);color:#a5b4fc;border-color:rgba(99,102,241,0.3);">
+                        <i data-lucide="loader" class="h-3 w-3"></i>
+                        {% trans "Aktif" %}
+                    </span>
+                </div>
+            </header>
+            <div>
+                <table class="akd-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">{% trans "Ders" %}</th>
+                            <th scope="col" style="width: 6rem;">{% trans "Kredi" %}</th>
+                            <th scope="col" style="width: 9rem;">{% trans "Durum" %}</th>
+                            <th scope="col" style="width: 6rem;" class="text-end">{% trans "Not" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for e in active_block.rows %}
+                        <tr>
+                            <td class="font-medium text-white">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="font-mono text-xs text-indigo-200 px-2 py-1 rounded-md bg-indigo-500/15 border border-indigo-400/25 flex-shrink-0">{{ e.section.offering.course.code }}</span>
+                                    <span class="truncate text-white/90">{{ e.section.offering.course.name }}</span>
+                                </div>
+                            </td>
+                            <td class="text-white/85 font-semibold">{{ e.section.offering.course.credits }}</td>
+                            <td>
+                                <span class="akd-badge" style="background:rgba(99,102,241,0.15);color:#a5b4fc;border-color:rgba(99,102,241,0.3);">
+                                    {% trans "Devam ediyor" %}
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                {% if e.academic_grade and e.academic_grade.letter_grade %}
+                                    <span class="font-mono text-sm font-bold text-white px-2.5 py-1 rounded-md bg-gradient-to-br from-indigo-500/30 to-violet-500/20 border border-indigo-400/35">{{ e.academic_grade.letter_grade }}</span>
+                                {% else %}
+                                    <span class="text-white/30 text-xs">{% trans "Girilmedi" %}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        {% endif %}
+
+        {% if not semester_blocks and not active_block %}
             {% trans "Kayıt bulunmuyor" as tr_empty_title %}
             {% trans "Henüz tamamlanmış veya aktif bir kayıt görünmüyor." as tr_empty_message %}
             {% include "includes/empty_state.html" with empty_title=tr_empty_title empty_message=tr_empty_message empty_icon="file-text" %}

@@ -12,6 +12,7 @@ class Enrollment(TimeStampedModel):
         DROPPED = "dropped", "Dropped"
         WITHDRAWN = "withdrawn", "Withdrawn"
         COMPLETED = "completed", "Completed"
+        WAITLISTED = "waitlisted", "Bekleme listesi"
 
     student = models.ForeignKey(
         "students.StudentProfile",
@@ -29,6 +30,16 @@ class Enrollment(TimeStampedModel):
         default=Status.ENROLLED,
         db_index=True,
     )
+
+    # Eğitim görevlisi alternatif ders önerisi
+    reassignment_suggested_course = models.ForeignKey(
+        "courses.Course",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="reassignment_suggestions",
+    )
+    reassignment_note = models.TextField(blank=True)
 
     # Eğitim görevlisi onayı (instructor approval)
     instructor_approved = models.BooleanField(default=False)

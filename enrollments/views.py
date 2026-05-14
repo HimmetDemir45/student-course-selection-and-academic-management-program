@@ -34,6 +34,16 @@ class SectionBrowseView(LoginRequiredMixin, ListView):
     context_object_name = "sections"
     paginate_by = 25
 
+    def _student_department(self):
+        """Öğrencinin bağlı olduğu bölümü döner; yoksa None."""
+        user = self.request.user
+        if not (user.is_authenticated and getattr(user, "role", None) == "student"):
+            return None
+        try:
+            return user.student_profile.department
+        except ObjectDoesNotExist:
+            return None
+
     def get_queryset(self):
         active_status_q = Q(
             enrollments__status__in=(Enrollment.Status.ENROLLED, Enrollment.Status.PENDING)
@@ -66,9 +76,20 @@ class SectionBrowseView(LoginRequiredMixin, ListView):
         sem = rq.get("semester")
         if sem and str(sem).isdigit():
             qs = qs.filter(offering__semester_id=int(sem))
-        dep = rq.get("department")
-        if dep and str(dep).isdigit():
-            qs = qs.filter(offering__course__department_id=int(dep))
+
+        # Bölüm filtresi: açıkça seçilmişse onu kullan;
+        # öğrenci rolüyse ve filtre yok veya "all" ise kendi bölümüyle sınırla.
+        dep_param = rq.get("department", "").strip()
+        if dep_param == "all":
+            pass  # Öğrenci tüm bölümleri görmek istiyor
+        elif dep_param and dep_param.isdigit():
+            qs = qs.filter(offering__course__department_id=int(dep_param))
+        else:
+            # Hiç filtre yok — öğrenciyse kendi bölümünü varsayılan yap
+            own_dept = self._student_department()
+            if own_dept is not None:
+                qs = qs.filter(offering__course__department=own_dept)
+
         if rq.get("avail") == "1":
             qs = qs.filter(open_seats__gt=0)
         sort = rq.get("sort") or "code"
@@ -99,13 +120,26 @@ class SectionBrowseView(LoginRequiredMixin, ListView):
             "-academic_year", "term"
         )
         ctx["filter_departments"] = Department.objects.filter(is_active=True).order_by("code")
+        dep_param = self.request.GET.get("department", "").strip()
         ctx["current_filters"] = {
             "q": self.request.GET.get("q", "").strip(),
             "semester": self.request.GET.get("semester", ""),
-            "department": self.request.GET.get("department", ""),
+            "department": dep_param,
             "avail": self.request.GET.get("avail", ""),
             "sort": self.request.GET.get("sort", "code"),
         }
+        # Öğrenci için bölüm kısıtlama bilgisi
+        own_dept = self._student_department()
+        ctx["own_department"] = own_dept
+        ctx["showing_all_departments"] = (dep_param == "all")
+        # Onay durumu uyarısı
+        ctx["student_not_approved"] = False
+        user = self.request.user
+        if user.is_authenticated and getattr(user, "role", None) == "student":
+            try:
+                ctx["student_not_approved"] = not user.student_profile.is_approved
+            except ObjectDoesNotExist:
+                pass
         for sec in ctx["sections"]:
             cap = getattr(sec, "effective_quota", None) or 0
             used = getattr(sec, "active_enrollment_count", 0) or 0
@@ -132,12 +166,21 @@ class SectionBrowseView(LoginRequiredMixin, ListView):
                     .order_by("section__offering__course__code")
                 )
                 enrolled_section_ids = set(e.section_id for e in active_enrollments)
+
+                waitlisted_section_ids = set(
+                    Enrollment.objects.filter(
+                        student=profile,
+                        status=Enrollment.Status.WAITLISTED,
+                    ).values_list("section_id", flat=True)
+                )
+
                 ctx["my_enrollments"] = active_enrollments
                 ctx["enrolled_section_ids"] = enrolled_section_ids
 
                 for sec in ctx["sections"]:
                     sec.is_enrolled = sec.pk in enrolled_section_ids
-                    if not sec.is_enrolled:
+                    sec.is_waitlisted = sec.pk in waitlisted_section_ids
+                    if not sec.is_enrolled and not sec.is_waitlisted:
                         setattr(
                             sec,
                             "enrollment_preview",
@@ -204,6 +247,54 @@ class StudentDropEnrollmentView(StudentRequiredMixin, View):
             messages.error(request, _validation_message(exc))
         else:
             messages.success(request, _("Ders bırakıldı."))
+        return redirect("enrollments:browse")
+
+
+class StudentWaitlistView(StudentRequiredMixin, View):
+    """Öğrenci bekleme listesine eklenir (kapasite dolduğunda)."""
+
+    def post(self, request, *args, **kwargs):
+        try:
+            profile = request.user.student_profile
+        except ObjectDoesNotExist:
+            messages.error(request, _("Öğrenci profiliniz bulunamadı."))
+            return redirect("enrollments:browse")
+
+        if not profile.is_approved:
+            messages.error(request, _("Hesabınız henüz yönetici tarafından onaylanmamış."))
+            return redirect("enrollments:browse")
+
+        from academic.models import CourseSection
+        from django.db import IntegrityError as IE
+
+        pk = request.POST.get("section_id")
+        try:
+            pk = int(pk)
+        except (TypeError, ValueError):
+            messages.error(request, _("Geçersiz şube seçimi."))
+            return redirect("enrollments:browse")
+
+        section = get_object_or_404(CourseSection, pk=pk, is_active=True, offering__is_active=True)
+
+        existing = Enrollment.objects.filter(student=profile, section=section).first()
+        if existing:
+            if existing.status in (Enrollment.Status.ENROLLED, Enrollment.Status.PENDING):
+                messages.info(request, _("Bu derse zaten kayıtlısın."))
+            elif existing.status == Enrollment.Status.WAITLISTED:
+                messages.info(request, _("Zaten bekleme listesindelsin."))
+            else:
+                # DROPPED/WITHDRAWN → WAITLISTED
+                Enrollment.objects.filter(pk=existing.pk).update(status=Enrollment.Status.WAITLISTED)
+                messages.success(request, _("Bekleme listesine alındın."))
+            return redirect("enrollments:browse")
+
+        try:
+            enr = Enrollment(student=profile, section=section, status=Enrollment.Status.WAITLISTED)
+            # bypass full_clean (kapasite dolu olduğunda çalıştırıyoruz)
+            super(Enrollment, enr).save(force_insert=True)
+            messages.success(request, _("Bekleme listesine alındın. Yer açıldığında otomatik olarak kayıt isteğine alınacaksın."))
+        except IE:
+            messages.error(request, _("Bu şube için zaten bir kaydın var."))
         return redirect("enrollments:browse")
 
 

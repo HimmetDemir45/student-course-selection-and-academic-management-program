@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Yeni Öğrenci — Akademik 2.0" %}{% endblock %}
+
+{% block content %}
+<header class="akd-page-header">
+    <div class="akd-page-header__intro">
+        <span class="akd-page-header__eyebrow">
+            <i data-lucide="users" class="h-3 w-3"></i>
+            {% trans "Yönetim" %}
+        </span>
+        <h1 class="akd-page-header__title">{% trans "Yeni Öğrenci Oluştur" %}</h1>
+        <p class="akd-page-header__subtitle">{% trans "Öğrenci hesabı ve profili oluşturun." %}</p>
+    </div>
+    <div class="akd-page-header__actions">
+        <a class="akd-btn akd-btn--secondary akd-btn--sm" href="{% url 'dashboard:student_assignment_list' %}">
+            <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i>
+            <span>{% trans "Geri" %}</span>
+        </a>
+    </div>
+</header>
+
+<section class="akd-card max-w-2xl">
+    <form method="post" novalidate class="akd-form">
+        {% csrf_token %}
+        {% include "includes/form_errors.html" with form=form %}
+
+        <h3 class="text-sm font-semibold text-white/70 uppercase tracking-wide mb-4">{% trans "Hesap Bilgileri" %}</h3>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div class="akd-form-group">
+                <label class="akd-label" for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label>
+                {{ form.first_name }}
+                {% for e in form.first_name.errors %}<p class="akd-form-error">{{ e }}</p>{% endfor %}
+            </div>
+            <div class="akd-form-group">
+                <label class="akd-label" for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}</label>
+                {{ form.last_name }}
+                {% for e in form.last_name.errors %}<p class="akd-form-error">{{ e }}</p>{% endfor %}
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div class="akd-form-group">
+                <label class="akd-label" for="{{ form.username.id_for_label }}">{{ form.username.label }}</label>
+                {{ form.username }}
+                {% for e in form.username.errors %}<p class="akd-form-error">{{ e }}</p>{% endfor %}
+            </div>
+            <div class="akd-form-group">
+                <label class="akd-label" for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+                {{ form.email }}
+                {% for e in form.email.errors %}<p class="akd-form-error">{{ e }}</p>{% endfor %}
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div class="akd-form-group">
+                <label class="akd-label" for="{{ form.password.id_for_label }}">{{ form.password.label }}</label>
+                {{ form.password }}
+                {% for e in form.password.errors %}<p class="akd-form-error">{{ e }}</p>{% endfor %}
+            </div>
+            <div class="akd-form-group">
+                <label class="akd-label" for="{{ form.student_no.id_for_label }}">{{ form.student_no.label }}</label>
+                {{ form.student_no }}
+                {% for e in form.student_no.errors %}<p class="akd-form-error">{{ e }}</p>{% endfor %}
+            </div>
+        </div>
+
+        <hr class="border-white/10 my-6">
+        <h3 class="text-sm font-semibold text-white/70 uppercase tracking-wide mb-4">{% trans "Akademik Atama" %}</h3>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div class="akd-form-group">
+                <label class="akd-label" for="{{ form.department.id_for_label }}">{{ form.department.label }}</label>
+                {{ form.department }}
+                {% for e in form.department.errors %}<p class="akd-form-error">{{ e }}</p>{% endfor %}
+            </div>
+            <div class="akd-form-group">
+                <label class="akd-label" for="{{ form.program.id_for_label }}">{{ form.program.label }}</label>
+                {{ form.program }}
+                {% for e in form.program.errors %}<p class="akd-form-error">{{ e }}</p>{% endfor %}
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div class="akd-form-group">
+                <label class="akd-label" for="{{ form.enrollment_year.id_for_label }}">{{ form.enrollment_year.label }}</label>
+                {{ form.enrollment_year }}
+                {% for e in form.enrollment_year.errors %}<p class="akd-form-error">{{ e }}</p>{% endfor %}
+            </div>
+            <div class="akd-form-group">
+                <label class="akd-label" for="{{ form.advisor.id_for_label }}">{{ form.advisor.label }}</label>
+                {{ form.advisor }}
+                {% for e in form.advisor.errors %}<p class="akd-form-error">{{ e }}</p>{% endfor %}
+            </div>
+        </div>
+
+        <div class="akd-form-group">
+            <label class="akd-label flex items-center gap-2 cursor-pointer">
+                {{ form.is_approved }}
+                <span>{{ form.is_approved.label }}</span>
+            </label>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2 mt-6">
+            <button type="submit" class="akd-btn akd-btn--primary">
+                <i data-lucide="user-plus" class="h-4 w-4"></i>
+                <span>{% trans "Oluştur" %}</span>
+            </button>
+            <a class="akd-btn akd-btn--ghost" href="{% url 'dashboard:student_assignment_list' %}">
+                <i data-lucide="x" class="h-4 w-4"></i>
+                <span>{% trans "İptal" %}</span>
+            </a>
+        </div>
+    </form>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const deptSelect = document.getElementById('{{ form.department.id_for_label }}');
+    const progSelect = document.getElementById('{{ form.program.id_for_label }}');
+
+    function updatePrograms() {
+        const deptId = deptSelect.value;
+        if (!deptId) {
+            progSelect.innerHTML = '<option value="">---------</option>';
+            return;
+        }
+        fetch(`/api/department/${deptId}/programs/`)
+            .then(r => r.json())
+            .then(data => {
+                progSelect.innerHTML = '<option value="">---------</option>';
+                data.programs.forEach(prog => {
+                    const opt = document.createElement('option');
+                    opt.value = prog.id;
+                    opt.textContent = prog.code + ' - ' + prog.name;
+                    progSelect.appendChild(opt);
+                });
+            });
+    }
+
+    if (deptSelect) deptSelect.addEventListener('change', updatePrograms);
+});
+</script>
+{% endblock %}

@@ -2132,20 +2132,115 @@ html:not(.dark) [class*="bg-violet-6"] [data-lucide] {
 
   .akd-shell-sidebar,
   .akd-shell-header,
-  [data-mobile-sidebar] {
+  [data-mobile-sidebar],
+  nav,
+  [class*="akd-shell-sidebar"],
+  [class*="akd-shell-header"] {
     display: none !important;
+  }
+
+  /* Ana içerik tam genişlik */
+  .akd-shell-main,
+  [class*="akd-shell-main"],
+  main {
+    margin: 0 !important;
+    padding: 0.5rem !important;
+    width: 100% !important;
   }
 
   .akd-card,
   .card {
     box-shadow: none !important;
-    border: 1px solid #e2e8f0 !important;
+    border: 1px solid #cbd5e1 !important;
+    background: #fff !important;
   }
 
   body {
     background: #fff !important;
     color: #0f172a !important;
   }
+
+  /* Metin renklerini beyazdan koyuya çevir */
+  .text-white,
+  [class*="text-white\/"] {
+    color: #0f172a !important;
+  }
+
+  /* Tailwind opacity renk sınıfları */
+  [class*="text-white"] {
+    color: #1e293b !important;
+  }
+
+  [class*="text-indigo-"],
+  [class*="text-violet-"],
+  [class*="text-cyan-"] {
+    color: #1e40af !important;
+  }
+
+  /* Gradient arka planları kaldır */
+  [class*="bg-indigo-"],
+  [class*="bg-violet-"],
+  [class*="bg-slate-"],
+  [class*="bg-gradient-"] {
+    background: transparent !important;
+    background-color: transparent !important;
+  }
+
+  /* Gradient text → düz metin */
+  [class*="bg-clip-text"],
+  [class*="bg-gradient-to-"] {
+    -webkit-text-fill-color: #0f172a !important;
+    background: none !important;
+  }
+
+  /* Badge'ler */
+  [class*="akd-badge"] {
+    background: #f1f5f9 !important;
+    color: #0f172a !important;
+    border: 1px solid #cbd5e1 !important;
+  }
+
+  /* Tablo */
+  .akd-table thead tr,
+  [class*="akd-table"] thead {
+    background: #f8fafc !important;
+  }
+
+  .akd-table th,
+  .akd-table td {
+    color: #0f172a !important;
+    border-color: #e2e8f0 !important;
+  }
+
+  /* Ders kodu badge */
+  [class*="bg-indigo-500\/15"],
+  [class*="border-indigo-"] {
+    background: #eff6ff !important;
+    border-color: #bfdbfe !important;
+  }
+
+  /* Font mono */
+  [class*="font-mono"] {
+    color: #1e40af !important;
+  }
+}
+
+/* ============================================================
+   SELECT DROPDOWN — LIGHT MODE OPTİON RENKLERİ
+   Native <select> optionları tarayıcı tarafından render edilir;
+   dark-mode değişkenleri option arka planını koyu bırakırken
+   metin rengi beyaz kalınca okunamaz hale gelir.
+   ============================================================ */
+html:not(.dark) select.akd-input,
+html:not(.dark) select[class*="akd-input"] {
+  background-color: var(--akd-surface-1, #ffffff) !important;
+  color: var(--akd-text-strong, #0f172a) !important;
+}
+
+html:not(.dark) select.akd-input option,
+html:not(.dark) select[class*="akd-input"] option {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
 }
 
 /* Sidebar aktif bağlantı — border-white/20 class, "bg-white/10 text-white" ile birlikte
