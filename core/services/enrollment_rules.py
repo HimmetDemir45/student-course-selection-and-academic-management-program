@@ -1,5 +1,5 @@
 """
-Ders kaydı iş kuralları: kapasite, önkoşul, çakışma, add/drop penceresi, kredi limiti validation fonksiyonları.
+Ders kaydı iş kuralları: kapasite, önkoşul, çakışma, add/drop penceresi, kredi limiti, bölüm uyumu validation fonksiyonları.
 """
 from __future__ import annotations
 
@@ -12,6 +12,15 @@ from django.utils import timezone
 
 if TYPE_CHECKING:
     from enrollments.models import Enrollment
+
+
+# Bir dönemde alınabilecek maksimum AKTS kredisi.
+MAX_CREDITS_PER_SEMESTER = 30
+
+# Bölümler arası ortak ders kodu önekleri (USEC: ortak seçmeli, TDB: Türk dili,
+# ATA: Atatürk ilkeleri, YDB/YDI: yabancı dil, AITB: ortak, UZEM: uzaktan eğitim).
+# Bu öneklerle başlayan dersler her bölüm öğrencisine açıktır.
+SHARED_COURSE_CODE_PREFIXES = ("USEC", "TDB", "ATA", "YDB", "YDI", "AITB", "UZEM")
 
 
 def _effective_capacity(section) -> int:
@@ -177,6 +186,86 @@ def validate_schedule_conflict(enrollment: Enrollment) -> None:
                 )
 
 
+def _is_shared_course(course) -> bool:
+    """Ders kodu ortak prefiks ile başlıyorsa True (bölümler arası ortak ders)."""
+    if course is None:
+        return False
+    code = (course.code or "").strip().upper()
+    if not code:
+        return False
+    head = code.split("-", 1)[0]
+    return any(head.startswith(p) for p in SHARED_COURSE_CODE_PREFIXES)
+
+
+def calculate_active_credits(
+    student_id: int,
+    semester_id: int,
+    exclude_enrollment_id: int | None = None,
+) -> int:
+    """Bir öğrencinin verilen dönemde PENDING+ENROLLED kayıtlarının toplam AKTS'si."""
+    from enrollments.models import Enrollment
+
+    qs = (
+        Enrollment.objects.filter(
+            student_id=student_id,
+            section__offering__semester_id=semester_id,
+            status__in=(Enrollment.Status.ENROLLED, Enrollment.Status.PENDING),
+        )
+        .select_related("section__offering__course")
+    )
+    if exclude_enrollment_id:
+        qs = qs.exclude(pk=exclude_enrollment_id)
+    return sum(int(e.section.offering.course.credits or 0) for e in qs)
+
+
+def validate_credit_limit(enrollment: Enrollment) -> None:
+    """Aktif kayıtlar + yeni kayıt toplamı MAX_CREDITS_PER_SEMESTER'ı aşamaz."""
+    if enrollment.status not in (
+        enrollment.Status.ENROLLED,
+        enrollment.Status.PENDING,
+    ):
+        return
+    course = enrollment.section.offering.course
+    new_credits = int(course.credits or 0)
+    existing = calculate_active_credits(
+        enrollment.student_id,
+        enrollment.section.offering.semester_id,
+        exclude_enrollment_id=enrollment.pk,
+    )
+    total = existing + new_credits
+    if total > MAX_CREDITS_PER_SEMESTER:
+        raise ValidationError(
+            f"Kredi limiti asildi: bu kayitla toplam {total} AKTS olur, "
+            f"bir donemde en fazla {MAX_CREDITS_PER_SEMESTER} AKTS alabilirsiniz."
+        )
+
+
+def validate_department_match(enrollment: Enrollment) -> None:
+    """
+    Öğrenci kendi bölümünün dersini alabilir; ortak ders kodları (USEC, TDB, ATA,
+    YDB/YDI, AITB, UZEM) tüm bölümlere açıktır. Başka bölümün özel dersleri seçilemez.
+    """
+    if enrollment.status not in (
+        enrollment.Status.ENROLLED,
+        enrollment.Status.PENDING,
+    ):
+        return
+    student = enrollment.student
+    course = enrollment.section.offering.course
+    if not getattr(student, "department_id", None):
+        return
+    if not getattr(course, "department_id", None):
+        return
+    if _is_shared_course(course):
+        return
+    if student.department_id == course.department_id:
+        return
+    raise ValidationError(
+        f"Bolum disi ders: bu ders '{course.department.code}' bolumune ait, "
+        f"siz '{student.department.code}' bolumundesiniz."
+    )
+
+
 def validate_add_drop_for_new_enrollment(enrollment: Enrollment, at: date | None = None) -> None:
     if enrollment.status not in (
         enrollment.Status.ENROLLED,
@@ -211,6 +300,8 @@ def validate_enrollment_save(enrollment: Enrollment) -> None:
     validate_prerequisites(enrollment)
     validate_schedule_conflict(enrollment)
     validate_not_already_passed(enrollment)
+    validate_department_match(enrollment)
+    validate_credit_limit(enrollment)
 
     if enrollment.pk is None:
         validate_add_drop_for_new_enrollment(enrollment)
@@ -244,6 +335,8 @@ def collect_enrollment_preview_messages(student_profile, section) -> dict:
         validate_schedule_conflict,
         validate_add_drop_for_new_enrollment,
         validate_not_already_passed,
+        validate_department_match,
+        validate_credit_limit,
     ):
         try:
             fn(enr)
@@ -285,5 +378,17 @@ def humanize_enrollment_blocker(message: str) -> dict:
             "kind": "window",
             "title": "Ders kaydı penceresi",
             "detail": "Ders kaydı veya ders bırakma için tanımlı zaman aralığında değilsiniz.",
+        }
+    if "kredi limiti" in lower:
+        return {
+            "kind": "credit_limit",
+            "title": "Kredi limiti",
+            "detail": msg,
+        }
+    if "bolum disi" in lower or "bölüm dışı" in lower:
+        return {
+            "kind": "department",
+            "title": "Bölüm dışı ders",
+            "detail": "Bu ders sizin bölümünüze ait değil. Yalnızca kendi bölümünüzün dersleri ve ortak dersler (USEC, TDB, ATA, YDB, YDI, AITB, UZEM) seçilebilir.",
         }
     return {"kind": "other", "title": "Uyarı", "detail": msg}

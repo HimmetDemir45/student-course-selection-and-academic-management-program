@@ -17,10 +17,11 @@ from accounts.models import User
 from instructors.models import InstructorProfile
 
 
-ADVISOR_USERNAME = "inst_ibrahim_ugur_yilmaz"
+ADVISOR_USERNAME = "inst_ibrahim_yilmaz"  # seed_yzm_weekly._instructor_username() ile aynı format: inst_<ilk_ad>_<soyad>
 ADVISOR_FIRST_NAME = "İbrahim Uğur"
 ADVISOR_LAST_NAME = "YILMAZ"
 ADVISOR_TITLE = "Öğr.Gör."
+LEGACY_USERNAMES = ("inst_ibrahim_ugur_yilmaz",)  # Eski hatalı kullanıcı adları — varsa silinir/birleştirilir
 
 
 class Command(BaseCommand):
@@ -37,6 +38,24 @@ class Command(BaseCommand):
                 "[HATA] YZM bölümü bulunamadı. Önce 'seed_yzm_weekly' çalıştırın."
             ))
             return
+
+        # 0) Geriye dönük temizlik: yanlış username'le açılmış eski İ.U.Yılmaz hesaplarını sil
+        #    (öğrenci/öğretim verisi yoksa). Bu, seed_yzm_weekly ile seed_danishman
+        #    arasındaki username uyumsuzluğundan kaynaklanan duplicate kullanıcıları kaldırır.
+        for legacy in LEGACY_USERNAMES:
+            legacy_user = User.objects.filter(username=legacy).first()
+            if not legacy_user:
+                continue
+            legacy_profile = InstructorProfile.objects.filter(user=legacy_user).first()
+            has_offerings = legacy_profile is not None and legacy_profile.offerings.exists()
+            if not has_offerings:
+                # Profili silmeden önce danışan referanslarını temizle (advisor → NULL)
+                from students.models import StudentProfile
+                if legacy_profile is not None:
+                    StudentProfile.objects.filter(advisor=legacy_profile).update(advisor=None)
+                    legacy_profile.delete()
+                legacy_user.delete()
+                self.stdout.write(f"  [TEMIZLIK] Eski duplicate hesap silindi: {legacy}")
 
         # 1) Tüm hocaları danışmanlıktan al
         reset = InstructorProfile.objects.update(is_advisor=False)
