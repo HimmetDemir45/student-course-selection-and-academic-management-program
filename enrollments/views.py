@@ -24,7 +24,11 @@ from core.services.enrollment_atomic import (
     enroll_student_integrity_message,
     enroll_student_in_section_atomic,
 )
-from core.services.enrollment_rules import collect_enrollment_preview_messages, is_within_add_drop
+from core.services.enrollment_rules import (
+    SHARED_COURSE_CODE_PREFIXES,
+    collect_enrollment_preview_messages,
+    is_within_add_drop,
+)
 from core.services.enrollment_workflow import transition_enrollment_status
 
 from .models import Enrollment
@@ -135,6 +139,20 @@ class SectionBrowseView(LoginRequiredMixin, ListView):
                 own_dept = self._student_department()
                 if own_dept is not None:
                     qs = qs.filter(offering__course__department=own_dept)
+
+        # Bölüm uyumu: öğrenciye sadece kendi bölümünün VEYA ortak ders kodu
+        # taşıyan (USEC/TDB/ATA/YDB/YDI/AITB/UZEM) şubeleri göster. Müfredata
+        # cross-listing olarak girmiş bölüm dışı dersleri listeden gizler ki
+        # öğrenci yalnızca alabildiği dersleri görsün.
+        if dep_param != "all":
+            own_dept = self._student_department()
+            if own_dept is not None:
+                shared_q = Q()
+                for prefix in SHARED_COURSE_CODE_PREFIXES:
+                    shared_q |= Q(offering__course__code__istartswith=prefix)
+                qs = qs.filter(
+                    Q(offering__course__department=own_dept) | shared_q
+                )
 
         if rq.get("avail") == "1":
             qs = qs.filter(open_seats__gt=0)
