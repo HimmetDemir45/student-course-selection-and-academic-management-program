@@ -182,20 +182,23 @@
                             {% trans "Bekleme listesi" %}
                         </span>
                     {% elif s.enrollment_preview and not s.enrollment_preview.eligible %}
-                        <div class="flex flex-col items-end gap-1.5">
+                        <div class="flex flex-col items-end gap-1.5" style="max-width:280px;">
                             {% for b in s.enrollment_preview.blockers_display %}
                                 <span class="akd-badge
                                     {% if b.kind == 'prerequisite' %}akd-badge--neutral
                                     {% elif b.kind == 'conflict' %}akd-badge--danger
                                     {% elif b.kind == 'capacity' %}akd-badge--warning
                                     {% elif b.kind == 'window' %}akd-badge--info
+                                    {% elif b.kind == 'credit_limit' %}akd-badge--warning
+                                    {% elif b.kind == 'department' %}akd-badge--danger
                                     {% else %}akd-badge--neutral{% endif %}"
-                                    style="white-space:normal;text-align:left;">
+                                    style="white-space:normal;text-align:left;max-width:280px;word-break:break-word;line-height:1.35;"
+                                    title="{{ b.title }}: {{ b.detail }}">
                                     <strong>{{ b.title }}:</strong> {{ b.detail }}
                                 </span>
                             {% empty %}
                                 {% for msg in s.enrollment_preview.blockers %}
-                                <span class="akd-badge akd-badge--danger" style="white-space:normal;text-align:left;">{{ msg }}</span>
+                                <span class="akd-badge akd-badge--danger" style="white-space:normal;text-align:left;max-width:280px;word-break:break-word;line-height:1.35;">{{ msg }}</span>
                                 {% endfor %}
                             {% endfor %}
                             {% if s.open_seats is not None and s.open_seats <= 0 %}
