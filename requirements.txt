@@ -1,5 +1,5 @@
 Django==5.1.15
-django-environ==0.12.0
+django-environ==0.13.0
 PyMySQL==1.1.1
 cryptography
 gunicorn==23.0.0
