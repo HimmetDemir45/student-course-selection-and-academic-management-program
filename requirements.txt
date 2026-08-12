@@ -1,6 +1,6 @@
 Django==5.1.15
 django-environ==0.12.0
-PyMySQL==1.1.1
+PyMySQL==1.1.2
 cryptography
 gunicorn==23.0.0
 whitenoise==6.8.2
